@@ -44,8 +44,6 @@
             width: 100%;
             padding: 2rem 4rem;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
             z-index: 1000;
             background: transparent;
         }
@@ -58,41 +56,6 @@
             opacity: 0;
             animation: fadeIn 1s ease-out 0.5s forwards;
             text-transform: lowercase;
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 3rem;
-            opacity: 0;
-            animation: fadeIn 1s ease-out 1s forwards;
-        }
-
-        nav a {
-            font-family: 'Retron2000', 'Space Mono', monospace;
-            text-decoration: none;
-            color: var(--black);
-            font-size: 0.75rem;
-            letter-spacing: 0.2em;
-            text-transform: lowercase;
-            font-weight: 400;
-            position: relative;
-            transition: opacity 0.3s;
-        }
-
-        nav a::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background: var(--black);
-            transition: width 0.3s ease;
-        }
-
-        nav a:hover::after {
-            width: 100%;
         }
 
         /* Main Container */
@@ -385,12 +348,6 @@
         @media (max-width: 968px) {
             nav {
                 padding: 1.5rem 2rem;
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            nav ul {
-                gap: 1.5rem;
             }
 
             .container {
@@ -439,12 +396,12 @@
     <div class="container">
         <div class="content">
             <h1>
-                <div class="typewriter">data & digital</div>
+                <div class="typewriter">data & digital </div>
             </h1>
             <p>
                 pushing limits through data modeling, data visualization, photo and video.
             </p>
-            <a href="#contact" class="cta-link">go →</a>
+            <a href="#contact" class="cta-link">get in touch →</a>
         </div>
     </div>
 
