@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>home/ - beau nelson</title>
+    <title>beau nelson</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -28,6 +28,7 @@
             --gray-mid: #808080;
             --gray-light: #C0C0C0;
             --off-white: #F8F8F8;
+            --sidebar-width: 280px;
         }
 
         body {
@@ -37,314 +38,583 @@
             overflow-x: hidden;
         }
 
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            padding: 2rem 4rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            background: transparent;
-        }
-
-        .signature {
-            font-family: 'Retron2000', 'Space Mono', monospace;
-            font-size: 0.9rem;
-            font-weight: 400;
-            letter-spacing: 0.15em;
-            opacity: 0;
-            animation: fadeIn 1s ease-out 0.5s forwards;
-            text-transform: lowercase;
-        }
-
-        .signature a {
-            color: var(--black);
-            text-decoration: none;
-            transition: opacity 0.3s;
-        }
-
-        .signature a:hover {
-            opacity: 0.6;
-        }
-
-        .back-link {
-            font-family: 'Retron2000', 'Space Mono', monospace;
-            font-size: 0.75rem;
-            letter-spacing: 0.15em;
-            opacity: 0;
-            animation: fadeIn 1s ease-out 0.7s forwards;
-            text-transform: lowercase;
-        }
-
-        .back-link a {
-            color: var(--gray-mid);
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .back-link a:hover {
-            color: var(--black);
-        }
-
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* Main Container */
+        /* Layout */
         .container {
-            min-height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4rem;
+            min-height: 100vh;
         }
 
-        /* File Browser */
-        .file-browser {
-            max-width: 800px;
-            width: 100%;
-            opacity: 0;
-            animation: fadeIn 1s ease-out 1s forwards;
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            border-right: 2px solid var(--black);
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: transform 0.3s ease;
         }
 
-        .breadcrumb {
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 2px solid var(--gray-light);
+        }
+
+        .logo {
             font-family: 'Retron2000', 'Space Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--gray-mid);
-            margin-bottom: 3rem;
+            font-size: 1rem;
             letter-spacing: 0.1em;
             text-transform: lowercase;
+            margin-bottom: 0.5rem;
         }
 
-        .breadcrumb span {
+        .path {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--gray-mid);
+            letter-spacing: 0.05em;
+        }
+
+        /* Navigation */
+        .nav-list {
+            list-style: none;
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
             color: var(--black);
+            font-family: 'Retron2000', 'Space Mono', monospace;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            text-transform: lowercase;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
         }
 
-        .folder-title {
+        .nav-item a:hover,
+        .nav-item a.active {
+            background: var(--off-white);
+            border-left-color: var(--black);
+        }
+
+        .nav-icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-extension {
+            margin-left: auto;
+            font-size: 0.75rem;
+            color: var(--gray-mid);
+        }
+
+        /* Nested items */
+        .nav-item.nested {
+            padding-left: 0;
+        }
+
+        .nav-item.nested a {
+            padding-left: 2.5rem;
+            font-size: 0.85rem;
+        }
+
+        .nav-item.nested .nav-icon {
+            color: var(--gray-light);
+            font-size: 0.85rem;
+        }
+
+        /* Folder headers */
+        .nav-item.folder-header a {
+            font-weight: 400;
+        }
+
+        .folder .nav-icon {
+            transition: transform 0.2s;
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 1001;
+            background: var(--black);
+            border: none;
+            padding: 0.75rem;
+            cursor: pointer;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 2px;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-area {
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Home Animation Canvas */
+        .data-stream {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background: var(--off-white);
+        }
+
+        .stream-item {
+            position: absolute;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--gray-light);
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* Coordinate display */
+        .coordinate-display {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            font-family: 'Retron2000', 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--gray-mid);
+            letter-spacing: 0.1em;
+            text-transform: lowercase;
+            text-align: right;
+            line-height: 1.6;
+            z-index: 10;
+        }
+
+        /* Content Pages (hidden by default) */
+        .page {
+            display: none;
+            padding: 4rem;
+            max-width: 1200px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-title {
             font-family: 'Retron2000', 'Space Mono', monospace;
             font-size: clamp(2rem, 4vw, 3rem);
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
             letter-spacing: 0.05em;
             text-transform: lowercase;
             border-bottom: 2px solid var(--gray-light);
             padding-bottom: 1rem;
         }
 
-        /* File List */
-        .file-list {
-            list-style: none;
-        }
-
-        .file-item {
-            opacity: 0;
-            transform: translateX(-20px);
-        }
-
-        .file-item:nth-child(1) {
-            animation: slideIn 0.6s ease-out 1.5s forwards;
-        }
-
-        .file-item:nth-child(2) {
-            animation: slideIn 0.6s ease-out 1.7s forwards;
-        }
-
-        @keyframes slideIn {
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .file-item a {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            padding: 1.5rem 0;
-            border-bottom: 1px solid var(--gray-light);
-            text-decoration: none;
-            color: var(--black);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .file-item a:hover {
-            padding-left: 1rem;
-            background: rgba(0, 0, 0, 0.02);
-        }
-
-        .file-icon {
-            font-family: 'Retron2000', 'Space Mono', monospace;
-            font-size: 1.2rem;
-            width: 40px;
-            text-align: center;
-            color: var(--gray-mid);
-        }
-
-        .file-name {
-            font-family: 'Retron2000', 'Space Mono', monospace;
-            font-size: 1.1rem;
-            letter-spacing: 0.05em;
-            text-transform: lowercase;
-            flex: 1;
-        }
-
-        .file-meta {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--gray-mid);
-            letter-spacing: 0.05em;
-        }
-
-        .file-arrow {
+        .page-content {
             font-size: 1rem;
-            color: var(--gray-light);
-            transition: transform 0.3s ease, color 0.3s ease;
-        }
-
-        .file-item a:hover .file-arrow {
-            transform: translateX(5px);
-            color: var(--black);
-        }
-
-        /* Grid overlay - subtle */
-        .grid-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-            opacity: 0;
-            animation: fadeIn 1s ease-out 2.5s forwards;
-        }
-
-        .grid-line {
-            position: absolute;
-            background: var(--gray-light);
-            opacity: 0.2;
-        }
-
-        .grid-line.v1 {
-            left: 50%;
-            top: 0;
-            width: 1px;
-            height: 100%;
-        }
-
-        /* Coordinates */
-        .coordinate {
-            position: fixed;
-            font-family: 'Retron2000', 'Space Mono', monospace;
-            font-size: 0.7rem;
-            color: var(--gray-mid);
-            letter-spacing: 0.1em;
-            opacity: 0;
-            animation: fadeIn 0.5s ease-out 2s forwards;
-            text-transform: lowercase;
-        }
-
-        .coord-bl {
-            bottom: 2rem;
-            left: 2rem;
-        }
-
-        .coord-br {
-            bottom: 2rem;
-            right: 2rem;
+            line-height: 1.8;
+            color: var(--gray-dark);
         }
 
         /* Responsive */
         @media (max-width: 968px) {
-            nav {
-                padding: 1.5rem 2rem;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
+            .hamburger {
+                display: flex;
             }
 
-            .container {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .page {
                 padding: 2rem;
-                padding-top: 8rem;
+                padding-top: 5rem;
             }
 
-            .file-browser {
-                max-width: 100%;
-            }
-
-            .file-item a {
-                gap: 1rem;
-            }
-
-            .file-icon {
-                font-size: 1rem;
-                width: 30px;
-            }
-
-            .file-name {
-                font-size: 0.95rem;
-            }
-
-            .coordinate,
-            .grid-overlay {
-                display: none;
+            .coordinate-display {
+                bottom: 1rem;
+                right: 1rem;
+                font-size: 0.65rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="signature">
-            <a href="index.html">beau nelson</a>
-        </div>
-        <div class="back-link">
-            <a href="index.html">← back</a>
-        </div>
-    </nav>
-
-    <!-- Grid Overlay -->
-    <div class="grid-overlay">
-        <div class="grid-line v1"></div>
-    </div>
-
-    <!-- Coordinates -->
-    <div class="coordinate coord-bl">~/</div>
-    <div class="coordinate coord-br">2 folders</div>
-
-    <!-- Main Content -->
     <div class="container">
-        <div class="file-browser">
-            <div class="breadcrumb">
-                <span>~/</span>
+        <!-- Hamburger Menu -->
+        <button class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">beau nelson</div>
+                <div class="path">~/</div>
             </div>
 
-            <h1 class="folder-title">home directory</h1>
-
-            <ul class="file-list">
-                <li class="file-item">
-                    <a href="work.html">
-                        <span class="file-icon">📁</span>
-                        <span class="file-name">work</span>
-                        <span class="file-meta">3 items</span>
-                        <span class="file-arrow">→</span>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#home" class="nav-link active" data-page="home">
+                        <span class="nav-icon">~</span>
+                        <span>home</span>
                     </a>
                 </li>
-                <li class="file-item">
-                    <a href="beau-nelson.html">
-                        <span class="file-icon">📁</span>
-                        <span class="file-name">beau-nelson</span>
-                        <span class="file-meta">3 items</span>
-                        <span class="file-arrow">→</span>
+
+                <li class="nav-item folder-header">
+                    <a href="#work" class="nav-link folder" data-page="work">
+                        <span class="nav-icon">▸</span>
+                        <span>work/</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested">
+                    <a href="#data-projects" class="nav-link" data-page="data-projects">
+                        <span class="nav-icon">-</span>
+                        <span>data-projects</span>
+                        <span class="nav-extension">.md</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested">
+                    <a href="#videography" class="nav-link" data-page="videography">
+                        <span class="nav-icon">-</span>
+                        <span>videography</span>
+                        <span class="nav-extension">.mov</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested">
+                    <a href="#photography" class="nav-link" data-page="photography">
+                        <span class="nav-icon">-</span>
+                        <span>photography</span>
+                        <span class="nav-extension">.jpg</span>
+                    </a>
+                </li>
+
+                <li class="nav-item folder-header">
+                    <a href="#about" class="nav-link folder" data-page="about">
+                        <span class="nav-icon">▸</span>
+                        <span>beau-nelson/</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested">
+                    <a href="#bio" class="nav-link" data-page="bio">
+                        <span class="nav-icon">-</span>
+                        <span>bio</span>
+                        <span class="nav-extension">.txt</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested">
+                    <a href="#experience" class="nav-link" data-page="experience">
+                        <span class="nav-icon">-</span>
+                        <span>experience</span>
+                        <span class="nav-extension">.json</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested">
+                    <a href="#vision" class="nav-link" data-page="vision">
+                        <span class="nav-icon">-</span>
+                        <span>vision</span>
+                        <span class="nav-extension">.md</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link" data-page="contact">
+                        <span class="nav-icon">@</span>
+                        <span>contact</span>
                     </a>
                 </li>
             </ul>
-        </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home Page - Data Stream Animation -->
+            <div id="home-page" class="page active">
+                <div class="data-stream" id="dataStream"></div>
+            </div>
+
+            <!-- Work Folder Page -->
+            <div id="work-page" class="page">
+                <h1 class="page-title">work/</h1>
+                <div class="page-content">
+                    <p>select a project from the navigation</p>
+                </div>
+            </div>
+
+            <!-- About Folder Page -->
+            <div id="about-page" class="page">
+                <h1 class="page-title">beau-nelson/</h1>
+                <div class="page-content">
+                    <p>select a file from the navigation</p>
+                </div>
+            </div>
+
+            <!-- Data Projects Page -->
+            <div id="data-projects-page" class="page">
+                <h1 class="page-title">data-projects.md</h1>
+                <div class="page-content">
+                    <p>content for data projects goes here...</p>
+                </div>
+            </div>
+
+            <!-- Videography Page -->
+            <div id="videography-page" class="page">
+                <h1 class="page-title">videography.mov</h1>
+                <div class="page-content">
+                    <p>content for videography goes here...</p>
+                </div>
+            </div>
+
+            <!-- Photography Page -->
+            <div id="photography-page" class="page">
+                <h1 class="page-title">photography.jpg</h1>
+                <div class="page-content">
+                    <p>content for photography goes here...</p>
+                </div>
+            </div>
+
+            <!-- Bio Page -->
+            <div id="bio-page" class="page">
+                <h1 class="page-title">bio.txt</h1>
+                <div class="page-content">
+                    <p>content for bio goes here...</p>
+                </div>
+            </div>
+
+            <!-- Experience Page -->
+            <div id="experience-page" class="page">
+                <h1 class="page-title">experience.json</h1>
+                <div class="page-content">
+                    <p>content for experience goes here...</p>
+                </div>
+            </div>
+
+            <!-- Vision Page -->
+            <div id="vision-page" class="page">
+                <h1 class="page-title">vision.md</h1>
+                <div class="page-content">
+                    <p>content for vision goes here...</p>
+                </div>
+            </div>
+
+            <!-- Contact Page -->
+            <div id="contact-page" class="page">
+                <h1 class="page-title">contact</h1>
+                <div class="page-content">
+                    <p>email: your.email@example.com</p>
+                    <p>linkedin: linkedin.com/in/yourprofile</p>
+                    <p>github: github.com/yourusername</p>
+                </div>
+            </div>
+
+            <!-- Coordinate Display -->
+            <div class="coordinate-display">
+                <div id="timestamp"></div>
+                <div id="location"></div>
+                <div id="status">online</div>
+            </div>
+        </main>
     </div>
+
+    <script>
+        // Navigation
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all links
+                navLinks.forEach(l => l.classList.remove('active'));
+                
+                // Add active class to clicked link
+                link.classList.add('active');
+                
+                // Hide all pages
+                pages.forEach(p => p.classList.remove('active'));
+                
+                // Show selected page
+                const pageId = link.dataset.page + '-page';
+                document.getElementById(pageId).classList.add('active');
+                
+                // Close mobile menu
+                if (window.innerWidth <= 968) {
+                    sidebar.classList.remove('active');
+                    hamburger.classList.remove('active');
+                }
+            });
+        });
+
+        // Hamburger menu
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            sidebar.classList.toggle('active');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 968) {
+                if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+                    sidebar.classList.remove('active');
+                    hamburger.classList.remove('active');
+                }
+            }
+        });
+
+        // Data Stream Animation
+        const dataStream = document.getElementById('dataStream');
+        const streamTypes = ['binary', 'hex', 'coordinates', 'graph'];
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateBinary() {
+            let binary = '';
+            for (let i = 0; i < getRandomInt(8, 32); i++) {
+                binary += Math.random() > 0.5 ? '1' : '0';
+            }
+            return binary;
+        }
+
+        function generateHex() {
+            return '#' + Math.floor(Math.random()*16777215).toString(16).toUpperCase().padStart(6, '0');
+        }
+
+        function generateCoordinates() {
+            const lat = (Math.random() * 180 - 90).toFixed(4);
+            const lon = (Math.random() * 360 - 180).toFixed(4);
+            return `[${lat}, ${lon}]`;
+        }
+
+        function generateGraph() {
+            const chars = ['│', '─', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼'];
+            let graph = '';
+            for (let i = 0; i < getRandomInt(3, 10); i++) {
+                graph += chars[getRandomInt(0, chars.length - 1)];
+            }
+            return graph;
+        }
+
+        function createStreamItem() {
+            const item = document.createElement('div');
+            item.className = 'stream-item';
+            
+            const type = streamTypes[getRandomInt(0, streamTypes.length - 1)];
+            
+            switch(type) {
+                case 'binary':
+                    item.textContent = generateBinary();
+                    break;
+                case 'hex':
+                    item.textContent = generateHex();
+                    break;
+                case 'coordinates':
+                    item.textContent = generateCoordinates();
+                    break;
+                case 'graph':
+                    item.textContent = generateGraph();
+                    item.style.fontSize = '1.2rem';
+                    break;
+            }
+            
+            // Random position
+            item.style.left = getRandomInt(0, 100) + '%';
+            item.style.top = getRandomInt(-10, 110) + '%';
+            
+            // Random opacity
+            const opacity = Math.random() * 0.5 + 0.1;
+            
+            dataStream.appendChild(item);
+            
+            // Animate
+            setTimeout(() => {
+                item.style.opacity = opacity;
+                item.style.transition = 'all 3s ease-out';
+                item.style.transform = `translateY(${getRandomInt(50, 200)}px)`;
+            }, 10);
+            
+            // Remove after animation
+            setTimeout(() => {
+                item.remove();
+            }, 3000);
+        }
+
+        // Create continuous stream
+        let streamActive = true;
+        function streamLoop() {
+            if (streamActive && document.getElementById('home-page').classList.contains('active')) {
+                createStreamItem();
+            }
+            setTimeout(streamLoop, getRandomInt(100, 300));
+        }
+        streamLoop();
+
+        // Update coordinate display
+        function updateCoordinates() {
+            const now = new Date();
+            document.getElementById('timestamp').textContent = now.toISOString().split('T')[1].split('.')[0];
+            document.getElementById('location').textContent = `[${(Math.random() * 180 - 90).toFixed(4)}, ${(Math.random() * 360 - 180).toFixed(4)}]`;
+        }
+        
+        setInterval(updateCoordinates, 2000);
+        updateCoordinates();
+    </script>
 </body>
 </html>
