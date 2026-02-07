@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bio.txt - beau nelson</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Retron2000';
+            src: url('https://cdn.jsdelivr.net/gh/mooniak/retron-2000@master/fonts/webfonts/Retron2000.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/gh/mooniak/retron-2000@master/fonts/webfonts/Retron2000.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #0A0A0A;
+            --gray-dark: #404040;
+            --gray-mid: #808080;
+            --gray-light: #C0C0C0;
+            --off-white: #F8F8F8;
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--off-white);
+            color: var(--black);
+            overflow-x: hidden;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            border-right: 2px solid var(--black);
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 2px solid var(--gray-light);
+        }
+
+        .logo {
+            font-family: 'Retron2000', 'Space Mono', monospace;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            text-transform: lowercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .path {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--gray-mid);
+            letter-spacing: 0.05em;
+        }
+
+        /* Navigation */
+        .nav-list {
+            list-style: none;
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            color: var(--black);
+            font-family: 'Retron2000', 'Space Mono', monospace;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            text-transform: lowercase;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item a:hover,
+        .nav-item a.active {
+            background: var(--off-white);
+            border-left-color: var(--black);
+        }
+
+        .nav-icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-extension {
+            margin-left: auto;
+            font-size: 0.75rem;
+            color: var(--gray-mid);
+        }
+
+        /* Nested items */
+        .nav-item.nested {
+            padding-left: 0;
+        }
+
+        .nav-item.nested a {
+            padding-left: 2.5rem;
+            font-size: 0.85rem;
+        }
+
+        .nav-item.nested .nav-icon {
+            color: var(--gray-light);
+            font-size: 0.85rem;
+        }
+
+        /* Folder headers */
+        .nav-item.folder-header a {
+            font-weight: 400;
+            cursor: pointer;
+        }
+
+        .folder .folder-icon {
+            transition: transform 0.2s;
+        }
+
+        .folder.expanded .folder-icon {
+            transform: rotate(90deg);
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 1001;
+            background: var(--black);
+            border: none;
+            padding: 0.75rem;
+            cursor: pointer;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 2px;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .content-wrapper {
+            padding: 4rem;
+            max-width: 1200px;
+        }
+
+        .page-title {
+            font-family: 'Retron2000', 'Space Mono', monospace;
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 2rem;
+            letter-spacing: 0.05em;
+            text-transform: lowercase;
+            border-bottom: 2px solid var(--gray-light);
+            padding-bottom: 1rem;
+        }
+
+        .page-content {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--gray-dark);
+        }
+
+        .page-content p {
+            margin-bottom: 1.5rem;
+        }
+
+        .page-content h2 {
+            font-family: 'Retron2000', 'Space Mono', monospace;
+            font-size: 1.5rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            text-transform: lowercase;
+            color: var(--black);
+        }
+
+        .page-content h3 {
+            font-family: 'Retron2000', 'Space Mono', monospace;
+            font-size: 1.2rem;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            text-transform: lowercase;
+        }
+
+        .page-content ul {
+            margin: 1rem 0 1.5rem 2rem;
+            line-height: 1.8;
+        }
+
+        .page-content a {
+            color: var(--black);
+            text-decoration: underline;
+            transition: opacity 0.3s;
+        }
+
+        .page-content a:hover {
+            opacity: 0.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .hamburger {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .content-wrapper {
+                padding: 2rem;
+                padding-top: 5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hamburger Menu -->
+        <button class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">beau nelson</div>
+                <div class="path">~/</div>
+            </div>
+
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">
+                        <span class="nav-icon">~</span>
+                        <span>home</span>
+                    </a>
+                </li>
+
+                <li class="nav-item folder-header">
+                    <a href="#" class="nav-link folder expanded" data-folder="work">
+                        <span class="nav-icon folder-icon">▸</span>
+                        <span>work/</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested work-folder">
+                    <a href="data-projects.html" class="nav-link">
+                        <span class="nav-icon">-</span>
+                        <span>data-projects</span>
+                        <span class="nav-extension">.md</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested work-folder">
+                    <a href="videography.html" class="nav-link">
+                        <span class="nav-icon">-</span>
+                        <span>videography</span>
+                        <span class="nav-extension">.mov</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested work-folder">
+                    <a href="photography.html" class="nav-link">
+                        <span class="nav-icon">-</span>
+                        <span>photography</span>
+                        <span class="nav-extension">.jpg</span>
+                    </a>
+                </li>
+
+                <li class="nav-item folder-header">
+                    <a href="#" class="nav-link folder expanded" data-folder="about">
+                        <span class="nav-icon folder-icon">▸</span>
+                        <span>beau-nelson/</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested about-folder">
+                    <a href="bio.html" class="nav-link active">
+                        <span class="nav-icon">-</span>
+                        <span>bio</span>
+                        <span class="nav-extension">.txt</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested about-folder">
+                    <a href="experience.html" class="nav-link">
+                        <span class="nav-icon">-</span>
+                        <span>experience</span>
+                        <span class="nav-extension">.json</span>
+                    </a>
+                </li>
+
+                <li class="nav-item nested about-folder">
+                    <a href="vision.html" class="nav-link">
+                        <span class="nav-icon">-</span>
+                        <span>vision</span>
+                        <span class="nav-extension">.md</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">
+                        <span class="nav-icon">@</span>
+                        <span>contact</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                <h1 class="page-title">bio.txt</h1>
+                
+                <div class="page-content">
+                    <h2>introduction</h2>
+                    <p>i am an institutional research analyst with three great passions: football, creative arts, and analytical thinking. as i've grown, i've learned to blend these skills in every role i take on a team. i genuinely enjoy helping people and sharing knowledge—this site is an extension of those endeavors.</p>
+
+                    <h2>background & education</h2>
+                    <p>born and raised in san diego, i attended westview high school where i played football, basketball, and ran track as a quarterback.</p>
+                    
+                    <p>i then went to carleton college, graduating with a bachelor's degree in statistics. i played football collegiately there, serving as a two-time captain. after briefly playing quarterback, i transitioned to wide receiver and punter.</p>
+                    
+                    <p>during college, i started my photography and videography business under the name beauhawk digital. i worked primarily in marketing with creative projects in between.</p>
+
+                    <h2>current work & focus</h2>
+                    <p>after college, i moved back to san diego and started working at palomar college in 2023 as an institutional research analyst, where i currently work. in this role, i primarily function as a data scientist but have also conducted research and analytical work. i have experience programming in python, sql, and dax.</p>
+                    
+                    <p>in 2023, i also began coaching at westview high school, serving as offensive coordinator during the 2023 and 2024 seasons. we reached the cif semifinals both years and came within one score of winning the title in 2024. i have since stepped down from that role.</p>
+
+                    <h2>skills & expertise</h2>
+                    <ul>
+                        <li>problem solving</li>
+                        <li>learning</li>
+                        <li>offensive football</li>
+                        <li>artistic principles</li>
+                        <li>programming (python, sql, dax)</li>
+                    </ul>
+
+                    <h2>interests & hobbies</h2>
+                    <ul>
+                        <li>watching movies</li>
+                        <li>playing basketball</li>
+                        <li>hiking</li>
+                        <li>spending time with friends and family</li>
+                    </ul>
+
+                    <h2>contact</h2>
+                    <p>email: <a href="mailto:nelson.d.beau@gmail.com">nelson.d.beau@gmail.com</a></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Hamburger menu
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            sidebar.classList.toggle('active');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 968) {
+                if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+                    sidebar.classList.remove('active');
+                    hamburger.classList.remove('active');
+                }
+            }
+        });
+
+        // Folder collapse/expand
+        const folderLinks = document.querySelectorAll('.folder');
+        
+        folderLinks.forEach(folder => {
+            folder.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                const folderName = folder.dataset.folder;
+                const folderItems = document.querySelectorAll(`.${folderName}-folder`);
+                
+                // Toggle expanded class
+                folder.classList.toggle('expanded');
+                
+                // Toggle visibility of nested items
+                folderItems.forEach(item => {
+                    if (item.style.display === 'none' || item.style.display === '') {
+                        item.style.display = 'list-item';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
