@@ -139,10 +139,15 @@
         /* Folder headers */
         .nav-item.folder-header a {
             font-weight: 400;
+            cursor: pointer;
         }
 
-        .folder .nav-icon {
+        .folder .folder-icon {
             transition: transform 0.2s;
+        }
+
+        .folder.expanded .folder-icon {
+            transform: rotate(90deg);
         }
 
         /* Hamburger Menu */
@@ -187,11 +192,6 @@
             overflow: hidden;
         }
 
-        .content-area {
-            min-height: 100vh;
-            position: relative;
-        }
-
         /* Home Animation Canvas */
         .data-stream {
             position: relative;
@@ -226,33 +226,6 @@
             z-index: 10;
         }
 
-        /* Content Pages (hidden by default) */
-        .page {
-            display: none;
-            padding: 4rem;
-            max-width: 1200px;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        .page-title {
-            font-family: 'Retron2000', 'Space Mono', monospace;
-            font-size: clamp(2rem, 4vw, 3rem);
-            margin-bottom: 2rem;
-            letter-spacing: 0.05em;
-            text-transform: lowercase;
-            border-bottom: 2px solid var(--gray-light);
-            padding-bottom: 1rem;
-        }
-
-        .page-content {
-            font-size: 1rem;
-            line-height: 1.8;
-            color: var(--gray-dark);
-        }
-
         /* Responsive */
         @media (max-width: 968px) {
             .hamburger {
@@ -269,11 +242,6 @@
 
             .main-content {
                 margin-left: 0;
-            }
-
-            .page {
-                padding: 2rem;
-                padding-top: 5rem;
             }
 
             .coordinate-display {
@@ -302,37 +270,37 @@
 
             <ul class="nav-list">
                 <li class="nav-item">
-                    <a href="#home" class="nav-link active" data-page="home">
+                    <a href="index.html" class="nav-link active">
                         <span class="nav-icon">~</span>
                         <span>home</span>
                     </a>
                 </li>
 
                 <li class="nav-item folder-header">
-                    <a href="#work" class="nav-link folder" data-page="work">
-                        <span class="nav-icon">▸</span>
+                    <a href="#" class="nav-link folder" data-folder="work">
+                        <span class="nav-icon folder-icon">▸</span>
                         <span>work/</span>
                     </a>
                 </li>
 
-                <li class="nav-item nested">
-                    <a href="#data-projects" class="nav-link" data-page="data-projects">
+                <li class="nav-item nested work-folder" style="display: none;">
+                    <a href="data-projects.html" class="nav-link">
                         <span class="nav-icon">-</span>
                         <span>data-projects</span>
                         <span class="nav-extension">.md</span>
                     </a>
                 </li>
 
-                <li class="nav-item nested">
-                    <a href="#videography" class="nav-link" data-page="videography">
+                <li class="nav-item nested work-folder" style="display: none;">
+                    <a href="videography.html" class="nav-link">
                         <span class="nav-icon">-</span>
                         <span>videography</span>
                         <span class="nav-extension">.mov</span>
                     </a>
                 </li>
 
-                <li class="nav-item nested">
-                    <a href="#photography" class="nav-link" data-page="photography">
+                <li class="nav-item nested work-folder" style="display: none;">
+                    <a href="photography.html" class="nav-link">
                         <span class="nav-icon">-</span>
                         <span>photography</span>
                         <span class="nav-extension">.jpg</span>
@@ -340,30 +308,30 @@
                 </li>
 
                 <li class="nav-item folder-header">
-                    <a href="#about" class="nav-link folder" data-page="about">
-                        <span class="nav-icon">▸</span>
+                    <a href="#" class="nav-link folder" data-folder="about">
+                        <span class="nav-icon folder-icon">▸</span>
                         <span>beau-nelson/</span>
                     </a>
                 </li>
 
-                <li class="nav-item nested">
-                    <a href="#bio" class="nav-link" data-page="bio">
+                <li class="nav-item nested about-folder" style="display: none;">
+                    <a href="bio.html" class="nav-link">
                         <span class="nav-icon">-</span>
                         <span>bio</span>
                         <span class="nav-extension">.txt</span>
                     </a>
                 </li>
 
-                <li class="nav-item nested">
-                    <a href="#experience" class="nav-link" data-page="experience">
+                <li class="nav-item nested about-folder" style="display: none;">
+                    <a href="experience.html" class="nav-link">
                         <span class="nav-icon">-</span>
                         <span>experience</span>
                         <span class="nav-extension">.json</span>
                     </a>
                 </li>
 
-                <li class="nav-item nested">
-                    <a href="#vision" class="nav-link" data-page="vision">
+                <li class="nav-item nested about-folder" style="display: none;">
+                    <a href="vision.html" class="nav-link">
                         <span class="nav-icon">-</span>
                         <span>vision</span>
                         <span class="nav-extension">.md</span>
@@ -371,7 +339,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a href="#contact" class="nav-link" data-page="contact">
+                    <a href="contact.html" class="nav-link">
                         <span class="nav-icon">@</span>
                         <span>contact</span>
                     </a>
@@ -381,84 +349,7 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Home Page - Data Stream Animation -->
-            <div id="home-page" class="page active">
-                <div class="data-stream" id="dataStream"></div>
-            </div>
-
-            <!-- Work Folder Page -->
-            <div id="work-page" class="page">
-                <h1 class="page-title">work/</h1>
-                <div class="page-content">
-                    <p>select a project from the navigation</p>
-                </div>
-            </div>
-
-            <!-- About Folder Page -->
-            <div id="about-page" class="page">
-                <h1 class="page-title">beau-nelson/</h1>
-                <div class="page-content">
-                    <p>select a file from the navigation</p>
-                </div>
-            </div>
-
-            <!-- Data Projects Page -->
-            <div id="data-projects-page" class="page">
-                <h1 class="page-title">data-projects.md</h1>
-                <div class="page-content">
-                    <p>content for data projects goes here...</p>
-                </div>
-            </div>
-
-            <!-- Videography Page -->
-            <div id="videography-page" class="page">
-                <h1 class="page-title">videography.mov</h1>
-                <div class="page-content">
-                    <p>content for videography goes here...</p>
-                </div>
-            </div>
-
-            <!-- Photography Page -->
-            <div id="photography-page" class="page">
-                <h1 class="page-title">photography.jpg</h1>
-                <div class="page-content">
-                    <p>content for photography goes here...</p>
-                </div>
-            </div>
-
-            <!-- Bio Page -->
-            <div id="bio-page" class="page">
-                <h1 class="page-title">bio.txt</h1>
-                <div class="page-content">
-                    <p>content for bio goes here...</p>
-                </div>
-            </div>
-
-            <!-- Experience Page -->
-            <div id="experience-page" class="page">
-                <h1 class="page-title">experience.json</h1>
-                <div class="page-content">
-                    <p>content for experience goes here...</p>
-                </div>
-            </div>
-
-            <!-- Vision Page -->
-            <div id="vision-page" class="page">
-                <h1 class="page-title">vision.md</h1>
-                <div class="page-content">
-                    <p>content for vision goes here...</p>
-                </div>
-            </div>
-
-            <!-- Contact Page -->
-            <div id="contact-page" class="page">
-                <h1 class="page-title">contact</h1>
-                <div class="page-content">
-                    <p>email: your.email@example.com</p>
-                    <p>linkedin: linkedin.com/in/yourprofile</p>
-                    <p>github: github.com/yourusername</p>
-                </div>
-            </div>
+            <div class="data-stream" id="dataStream"></div>
 
             <!-- Coordinate Display -->
             <div class="coordinate-display">
@@ -470,38 +361,10 @@
     </div>
 
     <script>
-        // Navigation
-        const navLinks = document.querySelectorAll('.nav-link');
-        const pages = document.querySelectorAll('.page');
+        // Hamburger menu
         const hamburger = document.getElementById('hamburger');
         const sidebar = document.getElementById('sidebar');
 
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                // Remove active class from all links
-                navLinks.forEach(l => l.classList.remove('active'));
-                
-                // Add active class to clicked link
-                link.classList.add('active');
-                
-                // Hide all pages
-                pages.forEach(p => p.classList.remove('active'));
-                
-                // Show selected page
-                const pageId = link.dataset.page + '-page';
-                document.getElementById(pageId).classList.add('active');
-                
-                // Close mobile menu
-                if (window.innerWidth <= 968) {
-                    sidebar.classList.remove('active');
-                    hamburger.classList.remove('active');
-                }
-            });
-        });
-
-        // Hamburger menu
         hamburger.addEventListener('click', () => {
             hamburger.classList.toggle('active');
             sidebar.classList.toggle('active');
@@ -515,6 +378,30 @@
                     hamburger.classList.remove('active');
                 }
             }
+        });
+
+        // Folder collapse/expand
+        const folderLinks = document.querySelectorAll('.folder');
+        
+        folderLinks.forEach(folder => {
+            folder.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                const folderName = folder.dataset.folder;
+                const folderItems = document.querySelectorAll(`.${folderName}-folder`);
+                
+                // Toggle expanded class
+                folder.classList.toggle('expanded');
+                
+                // Toggle visibility of nested items
+                folderItems.forEach(item => {
+                    if (item.style.display === 'none') {
+                        item.style.display = 'list-item';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
         });
 
         // Data Stream Animation
@@ -597,11 +484,8 @@
         }
 
         // Create continuous stream
-        let streamActive = true;
         function streamLoop() {
-            if (streamActive && document.getElementById('home-page').classList.contains('active')) {
-                createStreamItem();
-            }
+            createStreamItem();
             setTimeout(streamLoop, getRandomInt(100, 300));
         }
         streamLoop();
