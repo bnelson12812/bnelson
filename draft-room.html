@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>draft-room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script>(function(){var t='light';try{t=localStorage.getItem('beauos_theme')||'light';}catch(e){}document.documentElement.setAttribute('data-theme',t);})();</script>
+<style>
+:root{--off-white:#F8F8F8;--black:#0A0A0A;--bg:#F8F8F8;--panel:#ffffff;--panel2:#ffffff;--line:#0A0A0A;--ink:#0A0A0A;--muted:#808080;--dim:#C0C0C0;--qb:var(--ink);--rb:var(--ink);--wr:var(--ink);--te:var(--ink);--gold:var(--ink);--goldsoft:var(--bg);--mono:'Space Mono',monospace;--sans:'Space Mono',monospace;--halo:none;}[data-theme=dark]{--bg:#0d0d0d;--panel:#151515;--panel2:#151515;--line:#F5F5F5;--ink:#F5F5F5;--muted:#8f8f8f;--dim:#3a3a3a;--halo:0 0 5px rgba(245,245,245,.45);}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased}
+body{padding:0 clamp(10px,2vw,22px) 40px}
+h1,h2,h3{margin:0;font-weight:650}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* command bar */
+.bar{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,var(--bg) 78%,transparent);
+  padding:14px 0 10px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font-size:19px;letter-spacing:.02em}
+.brand span{font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
+.ctrls{display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap}
+.field{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);
+  border-radius:8px;padding:5px 9px;font-size:12px;color:var(--muted)}
+.field input{width:46px;background:transparent;border:0;color:var(--ink);font-family:var(--mono);
+  font-size:14px;text-align:center}
+.field input:focus{outline:2px solid var(--gold);outline-offset:2px;border-radius:3px}
+button{font-family:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel2);
+  color:var(--ink);border-radius:8px;padding:7px 12px;font-size:12.5px;transition:.12s}
+button:hover{border-color:var(--dim)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.undo{color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent;color:var(--muted);padding:7px 12px;font-weight:600}
+.seg button[aria-pressed=true]{background:var(--gold);color:var(--bg)}
+.fit{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;font-weight:700;padding:2px 6px;border-radius:5px}
+.fit.starts{color:var(--ink)}
+.fit.depth{color:var(--ink)}
+.divergent{font-size:12px;color:var(--gold);margin-top:8px;line-height:1.4}
+
+/* clock hero */
+.clock{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:6px 0 16px;
+  background:radial-gradient(120% 140% at 0% 0%,var(--panel2),var(--panel))}
+.clock.mine{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 8px 40px -18px var(--gold)}
+.clock .top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.pill{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.clock.mine .pill{color:var(--gold)}
+.now{font-size:13px;color:var(--muted)}
+.rec{margin-top:12px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.recname{font-size:26px;font-weight:700;letter-spacing:-.01em}
+.recwhy{font-size:13.5px;color:var(--muted);max-width:52ch;line-height:1.45}
+.recwhy b{color:var(--ink);font-weight:600}
+.vonabig{font-family:var(--mono);font-size:30px;font-weight:600;color:var(--gold);line-height:1}
+.vonabig small{display:block;font-size:10px;letter-spacing:.14em;color:var(--muted);
+  text-transform:uppercase;margin-top:3px;font-family:var(--sans)}
+.waiting .recname{color:var(--muted);font-size:20px}
+
+/* layout */
+.grid{display:grid;grid-template-columns:1fr 300px;gap:18px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.phead{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;
+  border-bottom:1px solid var(--line)}
+.phead h2{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+
+/* filters */
+.filters{display:flex;gap:6px;padding:10px 12px;flex-wrap:wrap;align-items:center}
+.filters input[type=search]{flex:1;min-width:120px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:8px;padding:7px 10px;color:var(--ink);font-size:13px}
+.filters input:focus{outline:2px solid var(--gold);outline-offset:1px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:20px;padding:5px 11px;
+  font-size:12px;color:var(--muted);font-weight:600}
+.chip[aria-pressed=true]{color:var(--ink);border-color:currentColor}
+.chip.qb[aria-pressed=true]{color:var(--qb)} .chip.rb[aria-pressed=true]{color:var(--rb)}
+.chip.wr[aria-pressed=true]{color:var(--wr)} .chip.te[aria-pressed=true]{color:var(--te)}
+.sortseg{margin-left:auto}
+.sortseg button{font-size:11.5px;padding:6px 10px}
+
+/* player rows */
+.rows{max-height:64vh;overflow:auto}
+.row{display:grid;grid-template-columns:34px 1fr auto auto auto auto auto 66px;gap:10px;align-items:center;
+  padding:9px 14px;border-bottom:1px solid var(--dim);font-size:13.5px}
+.row:hover{background:var(--panel2)}
+.posc{font-family:var(--mono);font-size:11px;font-weight:700;text-align:center;border-radius:6px;
+  padding:3px 0;letter-spacing:.02em}
+.posc.qb{color:var(--ink)} .posc.rb{color:var(--ink)}
+.posc.wr{color:var(--ink)} .posc.te{color:var(--ink)}
+.pname{font-weight:600}
+.psub{font-size:11px;color:var(--dim)}
+.cliffflag{color:var(--gold);font-size:10.5px;letter-spacing:.06em;font-weight:700;margin-left:6px}
+.metric{font-family:var(--mono);font-size:14px;text-align:right;min-width:44px}
+.metric small{display:block;font-size:9px;color:var(--dim);letter-spacing:.1em;font-family:var(--sans)}
+.m-vona{color:var(--gold);font-weight:600;font-size:15px}
+
+.take{padding:6px 0;width:100%;font-size:12px;font-weight:600}
+.row.top .m-vona{font-weight:700}
+
+/* roster + scarcity */
+.side{display:flex;flex-direction:column;gap:18px}
+.roster{padding:6px 0}
+.rslot{display:flex;justify-content:space-between;padding:7px 14px;font-size:13px;border-bottom:1px solid var(--dim)}
+.rslot .lab{color:var(--muted);font-size:11px;letter-spacing:.08em}
+.rslot .val{font-weight:600}
+.rslot .empty{color:var(--dim);font-weight:400}
+.scar{padding:4px 0}
+.sbar{display:flex;align-items:center;gap:10px;padding:8px 14px}
+.sbar .pl{width:28px;font-family:var(--mono);font-size:11px;font-weight:700}
+.sbar .track{flex:1;height:7px;background:var(--panel2);border-radius:4px;overflow:hidden}
+.sbar .fill{height:100%;border-radius:4px}
+.sbar .n{font-family:var(--mono);font-size:12px;color:var(--muted);width:58px;text-align:right}
+.legend{font-size:11px;color:var(--dim);padding:6px 14px 12px;line-height:1.5}
+footer{color:var(--dim);font-size:11px;margin-top:22px;line-height:1.5}
+
+/* ===== beaunelson HUD skin (light default, dark syncs with OS) ===== */
+@font-face{font-family:'Retron2000';src:url('https://cdn.jsdelivr.net/gh/mooniak/retron-2000@master/fonts/webfonts/Retron2000.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/mooniak/retron-2000@master/fonts/webfonts/Retron2000.woff') format('woff');font-weight:normal;font-style:normal;}
+html,body{background:var(--bg)!important;color:var(--ink)!important;font-family:'Space Mono',monospace!important}
+body{padding:14px 16px 30px!important}
+.bar{background:var(--bg)!important;border-bottom:2px solid var(--line)!important;border-radius:0!important}
+.panel,.clock{border:2px solid var(--line)!important;background:var(--panel)!important;border-radius:0!important;position:relative}
+.clock::before,.panel::before{content:'';position:absolute;top:-2px;left:-2px;width:10px;height:10px;border-top:3px solid var(--line);border-left:3px solid var(--line);pointer-events:none;z-index:2}
+.clock::after,.panel::after{content:'';position:absolute;bottom:-2px;right:-2px;width:10px;height:10px;border-bottom:3px solid var(--line);border-right:3px solid var(--line);pointer-events:none;z-index:2}
+.clock.mine{border-width:4px!important;box-shadow:none!important}
+.clock.mine .pill{background:var(--ink)!important;color:var(--bg)!important;padding:3px 8px}
+.brand b{font-family:'Retron2000','Space Mono',monospace!important;text-transform:lowercase;text-shadow:var(--halo)}
+.brand span,.now,.metric small,.pill,.wcode{text-transform:lowercase}
+.phead h2{font-family:'Retron2000','Space Mono',monospace!important}
+.recname{font-family:'Retron2000','Space Mono',monospace!important;color:var(--ink)!important;text-shadow:var(--halo)}
+.vonabig{color:var(--ink)!important;text-shadow:var(--halo)!important}
+.vonabig small{color:var(--muted)!important}
+.m-vona{color:var(--ink)!important;text-decoration:underline;text-underline-offset:2px}
+.row.top .m-vona{text-shadow:var(--halo)!important}
+button,.chip,.field,.seg,.filters input[type=search]{border:2px solid var(--line)!important;background:var(--panel)!important;color:var(--ink)!important;border-radius:0!important;font-family:'Retron2000','Space Mono',monospace!important;text-transform:lowercase}
+.field input,.filters input[type=search]{font-family:'Space Mono',monospace!important}
+button:hover,.chip:hover{background:var(--line)!important;color:var(--bg)!important}
+.seg button[aria-pressed=true],.chip[aria-pressed=true]{background:var(--line)!important;color:var(--bg)!important}
+.seg button{border:0!important}
+.row:hover{background:var(--bg)!important}
+.row.top{border-left:3px solid var(--line)!important;background:var(--bg)!important}
+.posc{text-transform:lowercase;font-weight:700;border-radius:0!important}
+.posc.qb{background:var(--ink)!important;color:var(--bg)!important}
+.posc.rb{background:var(--panel)!important;color:var(--ink)!important;border:2px solid var(--line)!important}
+.posc.wr{background:var(--muted)!important;color:var(--bg)!important}
+.posc.te{background:var(--panel)!important;color:var(--ink)!important;border:2px dotted var(--line)!important}
+.fit{border:1px solid var(--line)!important;text-transform:lowercase;border-radius:0!important}
+.fit.starts{background:var(--panel)!important;color:var(--ink)!important}
+.fit.depth{background:var(--ink)!important;color:var(--bg)!important}
+.cliffflag{background:var(--ink)!important;color:var(--bg)!important;text-transform:lowercase}
+.sbar .track{background:var(--bg)!important;border:1px solid var(--dim)!important;border-radius:0!important}
+.divergent{color:var(--ink)!important;border-left:3px solid var(--line)}
+.legend,footer{color:var(--muted)!important}
+.grain{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.06;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:150px 150px;animation:grain 1.1s steps(4) infinite}
+[data-theme=dark] .grain{mix-blend-mode:screen;opacity:.10}
+@keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-2%)}100%{transform:translate(0,0)}}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="brand"><b>draft-room</b><span>vona · full-ppr · 12-team</span></div>
+  <div class="ctrls">
+    <div class="field">Teams <input id="teams" type="number" min="8" max="16" value="12"></div>
+    <div class="field">My slot <input id="slot" type="number" min="1" max="16" value="7"></div>
+    <div class="seg" role="group" aria-label="Recommendation mode">
+      <button id="mVona" aria-pressed="true">Max VONA</button>
+      <button id="mSafe" aria-pressed="false">Roster-safe</button>
+    </div>
+    <button class="undo" id="undo">↶ Undo pick</button>
+    <button id="reset">Reset</button>
+  </div>
+</div>
+
+<div class="clock" id="clock"></div>
+
+<div class="grid">
+  <div class="panel">
+    <div class="filters">
+      <input type="search" id="search" placeholder="Find a player to draft…" autocomplete="off">
+      <button class="chip qb" data-pos="QB" aria-pressed="false">QB</button>
+      <button class="chip rb" data-pos="RB" aria-pressed="false">RB</button>
+      <button class="chip wr" data-pos="WR" aria-pressed="false">WR</button>
+      <button class="chip te" data-pos="TE" aria-pressed="false">TE</button>
+      <span class="chip" style="border:0;color:var(--dim);padding-right:2px">Sort</span>
+      <span class="seg sortseg" role="group" aria-label="Sort by">
+        <button data-sort="vona" aria-pressed="true">VONA</button>
+        <button data-sort="proj" aria-pressed="false">Proj</button>
+        <button data-sort="vbd" aria-pressed="false">VBD</button>
+      </span>
+    </div>
+    <div class="rows" id="rows"></div>
+  </div>
+
+  <div class="side">
+    <div class="panel">
+      <div class="phead"><h2>My roster</h2><span class="mono" id="pickcount" style="font-size:12px;color:var(--muted)"></span></div>
+      <div class="roster" id="roster"></div>
+    </div>
+    <div class="panel">
+      <div class="phead"><h2>Tier scarcity</h2></div>
+      <div class="scar" id="scar"></div>
+      <div class="legend">Bar = players left in the <b>best available tier</b> at each position. A short bar means that tier is about to empty — wait and you fall a cliff.</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  VONA = a player's projected points minus the best player at his position you'd expect to still be available at your next pick (top-ADP players assumed gone in between). It re-prices scarcity live: pass on a cliffing position and VONA drops; deep positions stay flat. Built on PFF projections + ESPN ADP; projections compress the middle, so trust the top-tier cliffs most.
+</footer>
+
+<script>
+const DATA = {"players": [{"name": "Jahmyr Gibbs", "pos": "RB", "proj": 342.7, "vbd": 158.8, "adp": 1.4, "posRank": 1, "tier": 1}, {"name": "Bijan Robinson", "pos": "RB", "proj": 336.0, "vbd": 152.1, "adp": 2.5, "posRank": 2, "tier": 1}, {"name": "Puka Nacua", "pos": "WR", "proj": 323.9, "vbd": 142.6, "adp": 5.2, "posRank": 1, "tier": 1}, {"name": "Ja'Marr Chase", "pos": "WR", "proj": 323.4, "vbd": 142.1, "adp": 3.9, "posRank": 2, "tier": 1}, {"name": "Christian McCaffrey", "pos": "RB", "proj": 323.9, "vbd": 140.0, "adp": 7.3, "posRank": 3, "tier": 1}, {"name": "Jaxon Smith-Njigba", "pos": "WR", "proj": 317.0, "vbd": 135.7, "adp": 5.7, "posRank": 3, "tier": 1}, {"name": "Jonathan Taylor", "pos": "RB", "proj": 318.6, "vbd": 134.7, "adp": 7.6, "posRank": 4, "tier": 1}, {"name": "Justin Jefferson", "pos": "WR", "proj": 290.2, "vbd": 108.8, "adp": 12.1, "posRank": 4, "tier": 2}, {"name": "Amon-Ra St. Brown", "pos": "WR", "proj": 289.1, "vbd": 107.7, "adp": 8.2, "posRank": 5, "tier": 2}, {"name": "De'Von Achane", "pos": "RB", "proj": 289.0, "vbd": 105.1, "adp": 12.0, "posRank": 5, "tier": 2}, {"name": "CeeDee Lamb", "pos": "WR", "proj": 284.8, "vbd": 103.4, "adp": 10.7, "posRank": 6, "tier": 2}, {"name": "Drake London", "pos": "WR", "proj": 284.4, "vbd": 103.1, "adp": 18.5, "posRank": 7, "tier": 2}, {"name": "James Cook", "pos": "RB", "proj": 285.9, "vbd": 102.0, "adp": 12.4, "posRank": 6, "tier": 2}, {"name": "Ashton Jeanty", "pos": "RB", "proj": 275.3, "vbd": 91.4, "adp": 17.4, "posRank": 7, "tier": 2}, {"name": "Chase Brown", "pos": "RB", "proj": 272.3, "vbd": 88.4, "adp": 22.3, "posRank": 8, "tier": 2}, {"name": "Kenneth Walker III", "pos": "RB", "proj": 261.9, "vbd": 78.0, "adp": 22.2, "posRank": 9, "tier": 2}, {"name": "A.J. Brown", "pos": "WR", "proj": 252.7, "vbd": 71.4, "adp": 26.8, "posRank": 8, "tier": 3}, {"name": "Trey McBride", "pos": "TE", "proj": 246.1, "vbd": 70.5, "adp": 20.6, "posRank": 1, "tier": 1}, {"name": "DeVonta Smith", "pos": "WR", "proj": 248.0, "vbd": 66.7, "adp": 40.8, "posRank": 9, "tier": 3}, {"name": "Nico Collins", "pos": "WR", "proj": 247.8, "vbd": 66.4, "adp": 26.9, "posRank": 10, "tier": 3}, {"name": "Omarion Hampton", "pos": "RB", "proj": 246.7, "vbd": 62.8, "adp": 25.6, "posRank": 10, "tier": 3}, {"name": "Saquon Barkley", "pos": "RB", "proj": 246.2, "vbd": 62.3, "adp": 15.5, "posRank": 11, "tier": 3}, {"name": "Chris Olave", "pos": "WR", "proj": 239.9, "vbd": 58.6, "adp": 31.0, "posRank": 11, "tier": 3}, {"name": "George Pickens", "pos": "WR", "proj": 239.8, "vbd": 58.5, "adp": 30.7, "posRank": 12, "tier": 3}, {"name": "Brock Bowers", "pos": "TE", "proj": 233.3, "vbd": 57.7, "adp": 24.3, "posRank": 2, "tier": 2}, {"name": "Garrett Wilson", "pos": "WR", "proj": 238.2, "vbd": 56.9, "adp": 36.4, "posRank": 13, "tier": 3}, {"name": "Zay Flowers", "pos": "WR", "proj": 237.3, "vbd": 56.0, "adp": 40.7, "posRank": 14, "tier": 3}, {"name": "Kyren Williams", "pos": "RB", "proj": 238.7, "vbd": 54.7, "adp": 41.7, "posRank": 12, "tier": 3}, {"name": "Tetairoa McMillan", "pos": "WR", "proj": 235.9, "vbd": 54.6, "adp": 41.5, "posRank": 15, "tier": 3}, {"name": "Derrick Henry", "pos": "RB", "proj": 238.0, "vbd": 54.1, "adp": 18.8, "posRank": 13, "tier": 3}, {"name": "Josh Jacobs", "pos": "RB", "proj": 237.6, "vbd": 53.7, "adp": 37.0, "posRank": 14, "tier": 3}, {"name": "Breece Hall", "pos": "RB", "proj": 237.4, "vbd": 53.5, "adp": 33.7, "posRank": 15, "tier": 3}, {"name": "Jeremiyah Love", "pos": "RB", "proj": 237.1, "vbd": 53.2, "adp": 22.8, "posRank": 16, "tier": 3}, {"name": "Malik Nabers", "pos": "WR", "proj": 232.9, "vbd": 51.6, "adp": 34.0, "posRank": 16, "tier": 3}, {"name": "Rashee Rice", "pos": "WR", "proj": 232.6, "vbd": 51.2, "adp": 22.1, "posRank": 17, "tier": 3}, {"name": "Javonte Williams", "pos": "RB", "proj": 234.7, "vbd": 50.8, "adp": 35.4, "posRank": 17, "tier": 3}, {"name": "Ladd McConkey", "pos": "WR", "proj": 231.5, "vbd": 50.2, "adp": 50.5, "posRank": 18, "tier": 3}, {"name": "Josh Allen", "pos": "QB", "proj": 302.3, "vbd": 44.6, "adp": 22.1, "posRank": 1, "tier": 1}, {"name": "Luther Burden III", "pos": "WR", "proj": 223.6, "vbd": 42.3, "adp": 76.7, "posRank": 19, "tier": 3}, {"name": "Emeka Egbuka", "pos": "WR", "proj": 223.0, "vbd": 41.7, "adp": 48.0, "posRank": 20, "tier": 3}, {"name": "Tee Higgins", "pos": "WR", "proj": 222.7, "vbd": 41.3, "adp": 55.5, "posRank": 21, "tier": 3}, {"name": "Jaylen Waddle", "pos": "WR", "proj": 221.3, "vbd": 40.0, "adp": 56.7, "posRank": 22, "tier": 3}, {"name": "Terry McLaurin", "pos": "WR", "proj": 221.2, "vbd": 39.9, "adp": 59.8, "posRank": 23, "tier": 3}, {"name": "Jameson Williams", "pos": "WR", "proj": 218.0, "vbd": 36.6, "adp": 67.2, "posRank": 24, "tier": 3}, {"name": "Quinshon Judkins", "pos": "RB", "proj": 220.4, "vbd": 36.5, "adp": 54.7, "posRank": 18, "tier": 4}, {"name": "Carnell Tate", "pos": "WR", "proj": 217.4, "vbd": 36.1, "adp": 78.1, "posRank": 25, "tier": 3}, {"name": "Jalen Hurts", "pos": "QB", "proj": 293.7, "vbd": 35.9, "adp": 51.3, "posRank": 2, "tier": 2}, {"name": "Drake Maye", "pos": "QB", "proj": 292.0, "vbd": 34.2, "adp": 47.4, "posRank": 3, "tier": 2}, {"name": "DJ Moore", "pos": "WR", "proj": 215.3, "vbd": 33.9, "adp": 62.7, "posRank": 26, "tier": 3}, {"name": "Colston Loveland", "pos": "TE", "proj": 209.4, "vbd": 33.8, "adp": 45.0, "posRank": 3, "tier": 3}, {"name": "Tucker Kraft", "pos": "TE", "proj": 209.0, "vbd": 33.4, "adp": 89.3, "posRank": 4, "tier": 3}, {"name": "Bucky Irving", "pos": "RB", "proj": 217.3, "vbd": 33.4, "adp": 53.6, "posRank": 19, "tier": 4}, {"name": "Lamar Jackson", "pos": "QB", "proj": 290.3, "vbd": 32.5, "adp": 38.6, "posRank": 4, "tier": 2}, {"name": "Davante Adams", "pos": "WR", "proj": 213.0, "vbd": 31.7, "adp": 46.0, "posRank": 27, "tier": 3}, {"name": "Christian Watson", "pos": "WR", "proj": 212.5, "vbd": 31.1, "adp": 95.5, "posRank": 28, "tier": 3}, {"name": "Harold Fannin Jr.", "pos": "TE", "proj": 204.8, "vbd": 29.2, "adp": 75.3, "posRank": 5, "tier": 3}, {"name": "Parker Washington", "pos": "WR", "proj": 210.2, "vbd": 28.8, "adp": 94.6, "posRank": 29, "tier": 3}, {"name": "Sam LaPorta", "pos": "TE", "proj": 203.6, "vbd": 27.9, "adp": 70.9, "posRank": 6, "tier": 3}, {"name": "Jayden Daniels", "pos": "QB", "proj": 285.3, "vbd": 27.5, "adp": 50.9, "posRank": 5, "tier": 2}, {"name": "Rome Odunze", "pos": "WR", "proj": 208.2, "vbd": 26.9, "adp": 64.4, "posRank": 30, "tier": 3}, {"name": "Joe Burrow", "pos": "QB", "proj": 283.2, "vbd": 25.5, "adp": 58.7, "posRank": 6, "tier": 2}, {"name": "Mike Evans", "pos": "WR", "proj": 206.6, "vbd": 25.3, "adp": 94.0, "posRank": 31, "tier": 3}, {"name": "Tyler Warren", "pos": "TE", "proj": 196.8, "vbd": 21.1, "adp": 50.3, "posRank": 7, "tier": 3}, {"name": "D'Andre Swift", "pos": "RB", "proj": 202.4, "vbd": 18.5, "adp": 64.3, "posRank": 20, "tier": 5}, {"name": "Kyle Pitts", "pos": "TE", "proj": 193.4, "vbd": 17.8, "adp": 64.9, "posRank": 8, "tier": 3}, {"name": "David Montgomery", "pos": "RB", "proj": 200.1, "vbd": 16.2, "adp": 69.8, "posRank": 21, "tier": 5}, {"name": "George Kittle", "pos": "TE", "proj": 191.4, "vbd": 15.8, "adp": 94.5, "posRank": 9, "tier": 3}, {"name": "Rhamondre Stevenson", "pos": "RB", "proj": 198.4, "vbd": 14.5, "adp": 84.0, "posRank": 23, "tier": 5}, {"name": "Travis Etienne Jr.", "pos": "RB", "proj": 198.4, "vbd": 14.5, "adp": 43.8, "posRank": 22, "tier": 5}, {"name": "Travis Kelce", "pos": "TE", "proj": 188.4, "vbd": 12.8, "adp": 96.9, "posRank": 10, "tier": 3}, {"name": "Justin Herbert", "pos": "QB", "proj": 269.1, "vbd": 11.3, "adp": 106.6, "posRank": 7, "tier": 3}, {"name": "D.K. Metcalf", "pos": "WR", "proj": 191.0, "vbd": 9.7, "adp": 86.6, "posRank": 32, "tier": 4}, {"name": "Brock Purdy", "pos": "QB", "proj": 263.6, "vbd": 5.9, "adp": 102.8, "posRank": 8, "tier": 3}, {"name": "Trevor Lawrence", "pos": "QB", "proj": 262.1, "vbd": 4.3, "adp": 92.7, "posRank": 9, "tier": 3}, {"name": "Michael Wilson", "pos": "WR", "proj": 184.2, "vbd": 2.8, "adp": 103.4, "posRank": 33, "tier": 4}, {"name": "Dak Prescott", "pos": "QB", "proj": 259.8, "vbd": 2.1, "adp": 85.2, "posRank": 10, "tier": 3}, {"name": "Caleb Williams", "pos": "QB", "proj": 259.4, "vbd": 1.7, "adp": 92.3, "posRank": 11, "tier": 3}, {"name": "Cam Skattebo", "pos": "RB", "proj": 185.4, "vbd": 1.5, "adp": 44.0, "posRank": 24, "tier": 6}, {"name": "Dalton Kincaid", "pos": "TE", "proj": 176.4, "vbd": 0.8, "adp": 131.7, "posRank": 11, "tier": 4}, {"name": "TreVeyon Henderson", "pos": "RB", "proj": 184.2, "vbd": 0.3, "adp": 78.2, "posRank": 25, "tier": 6}, {"name": "Kyler Murray", "pos": "QB", "proj": 257.8, "vbd": 0.0, "adp": 146.5, "posRank": 12, "tier": 3}, {"name": "Bhayshul Tuten", "pos": "RB", "proj": 183.9, "vbd": 0.0, "adp": 72.7, "posRank": 26, "tier": 6}, {"name": "Marvin Harrison Jr.", "pos": "WR", "proj": 181.3, "vbd": 0.0, "adp": 85.6, "posRank": 34, "tier": 4}, {"name": "Mark Andrews", "pos": "TE", "proj": 175.6, "vbd": 0.0, "adp": 121.0, "posRank": 12, "tier": 4}, {"name": "Patrick Mahomes", "pos": "QB", "proj": 257.0, "vbd": -0.7, "adp": 106.8, "posRank": 13, "tier": 3}, {"name": "Isaiah Likely", "pos": "TE", "proj": 174.8, "vbd": -0.8, "adp": 127.6, "posRank": 13, "tier": 4}, {"name": "Bo Nix", "pos": "QB", "proj": 256.7, "vbd": -1.1, "adp": 86.7, "posRank": 14, "tier": 3}, {"name": "Jake Ferguson", "pos": "TE", "proj": 173.7, "vbd": -1.9, "adp": 111.3, "posRank": 14, "tier": 4}, {"name": "Brian Thomas Jr.", "pos": "WR", "proj": 177.7, "vbd": -3.6, "adp": 102.9, "posRank": 35, "tier": 4}, {"name": "Jaxson Dart", "pos": "QB", "proj": 253.7, "vbd": -4.1, "adp": 76.2, "posRank": 15, "tier": 3}, {"name": "Tony Pollard", "pos": "RB", "proj": 179.7, "vbd": -4.2, "adp": 106.5, "posRank": 27, "tier": 6}, {"name": "Rico Dowdle", "pos": "RB", "proj": 179.3, "vbd": -4.6, "adp": 103.7, "posRank": 28, "tier": 6}, {"name": "Michael Pittman Jr.", "pos": "WR", "proj": 175.4, "vbd": -5.9, "adp": 91.1, "posRank": 36, "tier": 4}, {"name": "Matthew Stafford", "pos": "QB", "proj": 251.8, "vbd": -5.9, "adp": 80.2, "posRank": 16, "tier": 3}, {"name": "Wan'Dale Robinson", "pos": "WR", "proj": 175.4, "vbd": -6.0, "adp": 113.9, "posRank": 37, "tier": 4}, {"name": "Chris Godwin", "pos": "WR", "proj": 174.9, "vbd": -6.4, "adp": 143.0, "posRank": 38, "tier": 4}, {"name": "Jared Goff", "pos": "QB", "proj": 251.3, "vbd": -6.4, "adp": 137.1, "posRank": 17, "tier": 3}, {"name": "Jadarian Price", "pos": "RB", "proj": 176.3, "vbd": -7.6, "adp": 76.1, "posRank": 29, "tier": 6}, {"name": "Josh Downs", "pos": "WR", "proj": 171.3, "vbd": -10.1, "adp": 135.2, "posRank": 39, "tier": 4}, {"name": "Baker Mayfield", "pos": "QB", "proj": 247.4, "vbd": -10.3, "adp": 148.1, "posRank": 18, "tier": 3}, {"name": "Courtland Sutton", "pos": "WR", "proj": 170.9, "vbd": -10.4, "adp": 80.0, "posRank": 40, "tier": 4}, {"name": "Alec Pierce", "pos": "WR", "proj": 170.9, "vbd": -10.5, "adp": 101.6, "posRank": 41, "tier": 4}, {"name": "Makai Lemon", "pos": "WR", "proj": 170.5, "vbd": -10.8, "adp": 142.1, "posRank": 42, "tier": 4}, {"name": "Jayden Reed", "pos": "WR", "proj": 170.4, "vbd": -10.9, "adp": 125.3, "posRank": 43, "tier": 4}, {"name": "Jaylen Warren", "pos": "RB", "proj": 172.7, "vbd": -11.3, "adp": 98.1, "posRank": 30, "tier": 6}, {"name": "Dallas Goedert", "pos": "TE", "proj": 164.3, "vbd": -11.3, "adp": 98.3, "posRank": 15, "tier": 5}, {"name": "Jordan Love", "pos": "QB", "proj": 246.1, "vbd": -11.7, "adp": 158.3, "posRank": 19, "tier": 3}, {"name": "Xavier Worthy", "pos": "WR", "proj": 169.3, "vbd": -12.0, "adp": 122.8, "posRank": 44, "tier": 4}, {"name": "Quentin Johnston", "pos": "WR", "proj": 168.1, "vbd": -13.3, "adp": 137.8, "posRank": 45, "tier": 4}, {"name": "Jonathon Brooks", "pos": "RB", "proj": 168.3, "vbd": -15.6, "adp": 116.1, "posRank": 31, "tier": 6}, {"name": "Malik Willis", "pos": "QB", "proj": 242.2, "vbd": -15.6, "adp": 166.7, "posRank": 20, "tier": 3}, {"name": "Stefon Diggs", "pos": "WR", "proj": 165.5, "vbd": -15.8, "adp": 127.0, "posRank": 46, "tier": 4}, {"name": "Jalen Coker", "pos": "WR", "proj": 165.0, "vbd": -16.3, "adp": 159.7, "posRank": 47, "tier": 4}, {"name": "KC Concepcion", "pos": "WR", "proj": 164.6, "vbd": -16.8, "adp": 144.7, "posRank": 48, "tier": 4}, {"name": "Tyler Shough", "pos": "QB", "proj": 240.9, "vbd": -16.8, "adp": 155.6, "posRank": 21, "tier": 3}, {"name": "Sam Darnold", "pos": "QB", "proj": 239.7, "vbd": -18.1, "adp": 162.2, "posRank": 22, "tier": 3}, {"name": "C.J. Stroud", "pos": "QB", "proj": 238.4, "vbd": -19.4, "adp": 165.4, "posRank": 23, "tier": 3}, {"name": "Chigoziem Okonkwo", "pos": "TE", "proj": 153.9, "vbd": -21.7, "adp": 169.8, "posRank": 16, "tier": 6}, {"name": "Brenton Strange", "pos": "TE", "proj": 153.2, "vbd": -22.4, "adp": 167.9, "posRank": 17, "tier": 6}, {"name": "Rashid Shaheed", "pos": "WR", "proj": 158.8, "vbd": -22.6, "adp": 154.7, "posRank": 49, "tier": 4}, {"name": "Kenneth Gainwell", "pos": "RB", "proj": 161.2, "vbd": -22.8, "adp": 117.4, "posRank": 32, "tier": 6}, {"name": "Denzel Boston", "pos": "WR", "proj": 157.0, "vbd": -24.4, "adp": 165.9, "posRank": 50, "tier": 4}, {"name": "Deebo Samuel", "pos": "WR", "proj": 156.8, "vbd": -24.6, "adp": 130.5, "posRank": 51, "tier": 4}, {"name": "Matthew Golden", "pos": "WR", "proj": 156.5, "vbd": -24.8, "adp": 102.4, "posRank": 52, "tier": 4}, {"name": "Romeo Doubs", "pos": "WR", "proj": 156.5, "vbd": -24.8, "adp": 151.1, "posRank": 53, "tier": 4}, {"name": "Jakobi Meyers", "pos": "WR", "proj": 156.1, "vbd": -25.3, "adp": 113.1, "posRank": 54, "tier": 4}, {"name": "J.K. Dobbins", "pos": "RB", "proj": 157.2, "vbd": -26.8, "adp": 116.4, "posRank": 33, "tier": 6}, {"name": "Jauan Jennings", "pos": "WR", "proj": 154.5, "vbd": -26.9, "adp": 170.9, "posRank": 55, "tier": 4}, {"name": "Chuba Hubbard", "pos": "RB", "proj": 156.9, "vbd": -27.0, "adp": 122.1, "posRank": 34, "tier": 6}, {"name": "Hunter Henry", "pos": "TE", "proj": 147.8, "vbd": -27.8, "adp": 142.8, "posRank": 18, "tier": 6}, {"name": "Jordan Mason", "pos": "RB", "proj": 155.4, "vbd": -28.5, "adp": 139.7, "posRank": 35, "tier": 6}, {"name": "Juwan Johnson", "pos": "TE", "proj": 147.1, "vbd": -28.5, "adp": 163.2, "posRank": 19, "tier": 6}, {"name": "Daniel Jones", "pos": "QB", "proj": 228.1, "vbd": -29.7, "adp": 158.4, "posRank": 24, "tier": 4}, {"name": "Tre Tucker", "pos": "WR", "proj": 151.5, "vbd": -29.8, "adp": 168.1, "posRank": 56, "tier": 4}, {"name": "RJ Harvey", "pos": "RB", "proj": 153.6, "vbd": -30.3, "adp": 138.3, "posRank": 36, "tier": 6}, {"name": "Aaron Rodgers", "pos": "QB", "proj": 227.4, "vbd": -30.3, "adp": 169.2, "posRank": 25, "tier": 4}, {"name": "Jacoby Brissett", "pos": "QB", "proj": 227.4, "vbd": -30.3, "adp": 170.1, "posRank": 26, "tier": 4}, {"name": "Kenyon Sadiq", "pos": "TE", "proj": 144.9, "vbd": -30.7, "adp": 147.0, "posRank": 20, "tier": 6}, {"name": "Khalil Shakir", "pos": "WR", "proj": 150.0, "vbd": -31.3, "adp": 124.2, "posRank": 57, "tier": 4}, {"name": "Kayshon Boutte", "pos": "WR", "proj": 149.9, "vbd": -31.4, "adp": 170.7, "posRank": 58, "tier": 4}, {"name": "Greg Dulcich", "pos": "TE", "proj": 143.3, "vbd": -32.3, "adp": 170.4, "posRank": 21, "tier": 6}, {"name": "Malik Washington", "pos": "WR", "proj": 148.9, "vbd": -32.5, "adp": 170.3, "posRank": 59, "tier": 4}, {"name": "Bryce Young", "pos": "QB", "proj": 221.9, "vbd": -35.8, "adp": 168.8, "posRank": 27, "tier": 4}, {"name": "Jacory Croskey-Merritt", "pos": "RB", "proj": 147.4, "vbd": -36.5, "adp": 131.6, "posRank": 37, "tier": 6}, {"name": "Blake Corum", "pos": "RB", "proj": 146.9, "vbd": -37.0, "adp": 136.0, "posRank": 38, "tier": 6}, {"name": "Jalen Nailor", "pos": "WR", "proj": 143.5, "vbd": -37.8, "adp": 170.6, "posRank": 60, "tier": 4}, {"name": "Jordan Addison", "pos": "WR", "proj": 142.6, "vbd": -38.8, "adp": 114.8, "posRank": 61, "tier": 4}, {"name": "Aaron Jones", "pos": "RB", "proj": 144.2, "vbd": -39.7, "adp": 132.5, "posRank": 39, "tier": 6}, {"name": "Kyle Monangai", "pos": "RB", "proj": 143.0, "vbd": -40.9, "adp": 128.2, "posRank": 40, "tier": 6}, {"name": "Caleb Douglas", "pos": "WR", "proj": 139.4, "vbd": -41.9, "adp": 169.4, "posRank": 62, "tier": 4}, {"name": "AJ Barner", "pos": "TE", "proj": 133.4, "vbd": -42.2, "adp": 169.4, "posRank": 22, "tier": 7}, {"name": "T.J. Hockenson", "pos": "TE", "proj": 132.8, "vbd": -42.8, "adp": 132.8, "posRank": 23, "tier": 7}, {"name": "Dalton Schultz", "pos": "TE", "proj": 131.9, "vbd": -43.7, "adp": 168.0, "posRank": 24, "tier": 7}, {"name": "Cam Ward", "pos": "QB", "proj": 205.8, "vbd": -51.9, "adp": 169.1, "posRank": 28, "tier": 5}, {"name": "Pat Freiermuth", "pos": "TE", "proj": 122.8, "vbd": -52.8, "adp": 169.1, "posRank": 25, "tier": 8}, {"name": "Geno Smith", "pos": "QB", "proj": 204.5, "vbd": -53.2, "adp": 170.2, "posRank": 29, "tier": 5}, {"name": "Gunnar Helm", "pos": "TE", "proj": 120.3, "vbd": -55.3, "adp": 170.5, "posRank": 26, "tier": 8}, {"name": "Jalen McMillan", "pos": "WR", "proj": 126.0, "vbd": -55.3, "adp": 168.6, "posRank": 63, "tier": 5}, {"name": "Adonai Mitchell", "pos": "WR", "proj": 124.1, "vbd": -57.2, "adp": 169.9, "posRank": 64, "tier": 5}, {"name": "Rachaad White", "pos": "RB", "proj": 126.2, "vbd": -57.7, "adp": 136.2, "posRank": 41, "tier": 7}, {"name": "Devaughn Vele", "pos": "WR", "proj": 123.0, "vbd": -58.3, "adp": 171.5, "posRank": 65, "tier": 5}, {"name": "Cade Otton", "pos": "TE", "proj": 116.7, "vbd": -58.9, "adp": 170.5, "posRank": 27, "tier": 8}, {"name": "Mike Gesicki", "pos": "TE", "proj": 116.1, "vbd": -59.5, "adp": 170.4, "posRank": 28, "tier": 8}, {"name": "Jordyn Tyson", "pos": "WR", "proj": 120.9, "vbd": -60.4, "adp": 166.4, "posRank": 66, "tier": 5}, {"name": "Calvin Ridley", "pos": "WR", "proj": 120.8, "vbd": -60.5, "adp": 168.1, "posRank": 67, "tier": 5}, {"name": "Ryan Flournoy", "pos": "WR", "proj": 118.0, "vbd": -63.3, "adp": 170.9, "posRank": 68, "tier": 5}, {"name": "Terrance Ferguson", "pos": "TE", "proj": 110.1, "vbd": -65.5, "adp": 165.4, "posRank": 29, "tier": 8}, {"name": "Jerry Jeudy", "pos": "WR", "proj": 112.8, "vbd": -68.5, "adp": 165.5, "posRank": 69, "tier": 5}, {"name": "Keenan Allen", "pos": "WR", "proj": 112.0, "vbd": -69.3, "adp": 167.1, "posRank": 70, "tier": 5}, {"name": "Deshaun Watson", "pos": "QB", "proj": 188.3, "vbd": -69.5, "adp": 170.1, "posRank": 30, "tier": 6}, {"name": "Tre Harris", "pos": "WR", "proj": 110.8, "vbd": -70.6, "adp": 171.0, "posRank": 71, "tier": 5}, {"name": "Evan Engram", "pos": "TE", "proj": 104.6, "vbd": -71.0, "adp": 170.0, "posRank": 30, "tier": 8}, {"name": "Zach Charbonnet", "pos": "RB", "proj": 111.6, "vbd": -72.3, "adp": 156.4, "posRank": 42, "tier": 8}, {"name": "Travis Hunter", "pos": "WR", "proj": 107.8, "vbd": -73.5, "adp": 120.9, "posRank": 72, "tier": 5}, {"name": "De'Zhaun Stribling", "pos": "WR", "proj": 107.3, "vbd": -74.0, "adp": 150.5, "posRank": 73, "tier": 5}, {"name": "Keaton Mitchell", "pos": "RB", "proj": 109.4, "vbd": -74.5, "adp": 168.8, "posRank": 43, "tier": 8}, {"name": "Chris Rodriguez Jr.", "pos": "RB", "proj": 109.2, "vbd": -74.7, "adp": 165.9, "posRank": 44, "tier": 8}, {"name": "Cooper Kupp", "pos": "WR", "proj": 106.0, "vbd": -75.4, "adp": 168.9, "posRank": 74, "tier": 5}, {"name": "Charlie Kolar", "pos": "TE", "proj": 99.0, "vbd": -76.6, "adp": 170.0, "posRank": 31, "tier": 8}, {"name": "Michael Mayer", "pos": "TE", "proj": 98.8, "vbd": -76.8, "adp": 170.4, "posRank": 32, "tier": 8}, {"name": "Xavier Legette", "pos": "WR", "proj": 103.2, "vbd": -78.2, "adp": 170.6, "posRank": 75, "tier": 5}, {"name": "Dylan Sampson", "pos": "RB", "proj": 105.4, "vbd": -78.5, "adp": 171.0, "posRank": 45, "tier": 8}, {"name": "Woody Marks", "pos": "RB", "proj": 102.3, "vbd": -81.6, "adp": 148.9, "posRank": 46, "tier": 8}, {"name": "Darren Waller", "pos": "TE", "proj": 93.9, "vbd": -81.8, "adp": 170.3, "posRank": 33, "tier": 8}, {"name": "Kendrick Bourne", "pos": "WR", "proj": 99.5, "vbd": -81.8, "adp": 170.0, "posRank": 76, "tier": 5}, {"name": "Ja'Kobi Lane", "pos": "WR", "proj": 98.5, "vbd": -82.9, "adp": 167.4, "posRank": 77, "tier": 5}, {"name": "Jack Bech", "pos": "WR", "proj": 97.8, "vbd": -83.5, "adp": 170.3, "posRank": 78, "tier": 5}, {"name": "Tyjae Spears", "pos": "RB", "proj": 100.2, "vbd": -83.7, "adp": 160.3, "posRank": 47, "tier": 8}, {"name": "Isiah Pacheco", "pos": "RB", "proj": 99.8, "vbd": -84.1, "adp": 163.9, "posRank": 48, "tier": 8}, {"name": "Justice Hill", "pos": "RB", "proj": 99.1, "vbd": -84.8, "adp": 170.9, "posRank": 49, "tier": 8}, {"name": "Malachi Fields", "pos": "WR", "proj": 96.2, "vbd": -85.2, "adp": 169.9, "posRank": 79, "tier": 5}, {"name": "Alvin Kamara", "pos": "RB", "proj": 98.7, "vbd": -85.2, "adp": 160.3, "posRank": 50, "tier": 8}, {"name": "Zachariah Branch", "pos": "WR", "proj": 95.5, "vbd": -85.8, "adp": 170.8, "posRank": 80, "tier": 5}, {"name": "Jahan Dotson", "pos": "WR", "proj": 95.0, "vbd": -86.4, "adp": 170.6, "posRank": 81, "tier": 5}, {"name": "Jaylin Noel", "pos": "WR", "proj": 93.1, "vbd": -88.3, "adp": 171.5, "posRank": 82, "tier": 5}, {"name": "Brian Robinson", "pos": "RB", "proj": 94.7, "vbd": -89.2, "adp": 164.7, "posRank": 51, "tier": 8}, {"name": "Demario Douglas", "pos": "WR", "proj": 92.0, "vbd": -89.4, "adp": 170.1, "posRank": 83, "tier": 5}, {"name": "Rashod Bateman", "pos": "WR", "proj": 91.3, "vbd": -90.1, "adp": 171.2, "posRank": 84, "tier": 5}, {"name": "Germie Bernard", "pos": "WR", "proj": 90.9, "vbd": -90.5, "adp": 171.3, "posRank": 85, "tier": 5}, {"name": "Andrei Iosivas", "pos": "WR", "proj": 89.5, "vbd": -91.8, "adp": 170.1, "posRank": 86, "tier": 5}], "replacement": {"QB": 257.8, "RB": 183.9, "WR": 181.3, "TE": 175.6, "K": 0.0, "DST": 0.0}};
+const PLAYERS = DATA.players.map((p,i)=>({...p,id:i}));
+const REPL = DATA.replacement;
+const POSES = ["QB","RB","WR","TE"];
+const POSCOLOR = {QB:"var(--qb)",RB:"var(--rb)",WR:"var(--wr)",TE:"var(--te)"};
+
+let state = { picks: [], teams:12, slot:7, filterPos:new Set(), search:"", sortKey:"vona", mode:"vona" };
+
+const $ = s=>document.querySelector(s);
+const snakePick=(slot,teams,rnd)=> (rnd-1)*teams + (rnd%2===1?slot:teams-slot+1);
+function myPicks(slot,teams,rounds=16){const a=[];for(let r=1;r<=rounds;r++)a.push(snakePick(slot,teams,r));return a;}
+function teamOnClock(pick,teams){const rnd=Math.ceil(pick/teams);const pir=pick-(rnd-1)*teams;return rnd%2===1?pir:teams-pir+1;}
+
+function currentPick(){return state.picks.length+1;}
+function draftedIds(){return new Set(state.picks.map(p=>p.id));}
+function available(){const d=draftedIds();return PLAYERS.filter(p=>!d.has(p.id));}
+
+function horizonK(){
+  const cur=currentPick(), mp=myPicks(state.slot,state.teams);
+  const decision=mp.find(p=>p>=cur) ?? cur;
+  const after=mp.find(p=>p>decision);
+  return after? Math.max(after-decision-1,0) : available().length;
+}
+function computeVONA(avail){
+  const k=horizonK();
+  const gone=new Set([...avail].filter(p=>p.adp!=null).sort((a,b)=>a.adp-b.adp).slice(0,k).map(p=>p.id));
+  const survivors=avail.filter(p=>!gone.has(p.id));
+  return avail.map(p=>{
+    const sp=survivors.filter(s=>s.pos===p.pos && s.id!==p.id);
+    const next=sp.length? Math.max(...sp.map(s=>s.proj)) : (REPL[p.pos]||0);
+    return {...p, vona:+(p.proj-next).toFixed(1)};
+  });
+}
+// best available tier per position, and how many remain in it
+function tierScarcity(avail){
+  const out={};
+  for(const pos of POSES){
+    const pl=avail.filter(p=>p.pos===pos);
+    if(!pl.length){out[pos]={left:0,tier:null,total:0};continue;}
+    const bestTier=Math.min(...pl.map(p=>p.tier));
+    out[pos]={left:pl.filter(p=>p.tier===bestTier).length,tier:bestTier,
+              total:pl.filter(p=>p.tier===bestTier).length};
+  }
+  return out;
+}
+
+function optimalLineup(roster){
+  const byp={QB:[],RB:[],WR:[],TE:[]};
+  roster.forEach(p=>{if(byp[p.pos])byp[p.pos].push(p);});
+  for(const k in byp) byp[k].sort((a,b)=>b.proj-a.proj);
+  const st=[],used=new Set();
+  const take=(pos,n)=>{let c=0;for(const p of byp[pos]){if(c>=n)break;if(!used.has(p.id)){st.push(p);used.add(p.id);c++;}}};
+  take("QB",1);take("RB",2);take("WR",2);take("TE",1);
+  const flex=["RB","WR","TE"].flatMap(p=>byp[p]).filter(p=>!used.has(p.id)).sort((a,b)=>b.proj-a.proj);
+  if(flex.length){st.push(flex[0]);used.add(flex[0].id);}
+  return st;
+}
+function myRoster(){return state.picks.filter(p=>p.mine).map(p=>PLAYERS[p.id]);}
+function startsForMe(cand,roster){
+  const l=optimalLineup([...roster,cand]);return l.some(p=>p.id===cand.id);
+}
+function isMyPick(pick){return teamOnClock(pick,state.teams)===state.slot;}
+
+function draft(id){
+  const cur=currentPick();
+  state.picks.push({id, pick:cur, team:teamOnClock(cur,state.teams), mine:isMyPick(cur)});
+  render();
+}
+function undo(){state.picks.pop();render();}
+
+function render(){
+  state.teams=+$("#teams").value||12; state.slot=+$("#slot").value||7;
+  const avail=available();
+  const scored=computeVONA(avail);
+  const scar=tierScarcity(avail);
+  const roster=myRoster();
+  scored.forEach(p=>{ p.starts=startsForMe(p,roster); });
+
+  // ---- clock hero ----
+  const cur=currentPick(), mine=isMyPick(cur), team=teamOnClock(cur,state.teams);
+  const byV=[...scored].sort((a,b)=>b.vona-a.vona);
+  const safeSort=[...scored].sort((a,b)=>(b.starts-a.starts)||(b.vona-a.vona));
+  const vonaTop=byV[0];
+  const top = state.mode==="safe" ? safeSort[0] : vonaTop;
+  const clock=$("#clock");
+  clock.className="clock"+(mine?" mine":" waiting");
+  let why="";
+  if(top){
+    const s=scar[top.pos];
+    const scarce = s && s.left<=2;
+    const nextPos = byV.find(p=>p.pos===top.pos && p.id!==top.id);
+    const drop = nextPos? (top.proj-nextPos.proj).toFixed(0):"—";
+    const diverge = state.mode==="safe" && vonaTop && !vonaTop.starts && top && top.id!==vonaTop.id;
+    why = scarce
+      ? `<b>${top.pos} is about to cliff</b> — only ${s.left} left in the top available tier. Waiting costs you the drop-off. `
+      : `${top.pos} still has depth, but this is the highest value-over-waiting on the board. `;
+    why += top.vona>=25? `Pass and your next ${top.pos} is ~${drop} proj pts worse.`
+                       : `Value is close here — a defensible spot to take need or the deeper position.`;
+  }
+  clock.innerHTML = `
+    <div class="top">
+      <span class="pill">${mine? "★ You're on the clock":"Pick "+cur+" · Team "+team}</span>
+      <span class="now">Pick ${cur} · Round ${Math.ceil(cur/state.teams)} · ${horizonK()} players until your next pick</span>
+    </div>
+    <div class="rec">
+      <div class="vonabig">${top?(top.vona>0?"+":"")+top.vona:"—"}<small>top VONA</small></div>
+      <div>
+        <div class="recname" style="color:${top?POSCOLOR[top.pos]:''}">${top? top.name : "Draft complete"}</div>
+        <div class="recwhy">${top? `${top.pos}${top.posRank} · Tier ${top.tier} · ${why}`:""}</div>
+        ${ (state.mode==="safe" && vonaTop && !vonaTop.starts && top && top.id!==vonaTop.id)
+           ? `<div class="divergent">◆ Max-VONA pick is <b>${vonaTop.name}</b> (+${vonaTop.vona}), but he'd be <b>depth</b> behind your ${vonaTop.pos} — roster-safe pick above avoids doubling up.</div>` : "" }
+      </div>
+    </div>`;
+
+  // ---- player rows ----
+  const keyval=p=> state.sortKey==="proj"? p.proj : state.sortKey==="vbd"? p.vbd : p.vona;
+  const baseSort=[...scored].sort((a,b)=>keyval(b)-keyval(a));
+  let list = state.mode==="safe"
+             ? [...scored].sort((a,b)=>(b.starts-a.starts)||(keyval(b)-keyval(a)))
+             : baseSort;
+  if(state.filterPos.size) list=list.filter(p=>state.filterPos.has(p.pos));
+  if(state.search){const q=state.search.toLowerCase();list=list.filter(p=>p.name.toLowerCase().includes(q));}
+  list=list.slice(0,120);
+  const rows=$("#rows");
+  rows.innerHTML = list.map((p,i)=>{
+    const s=scar[p.pos];
+    const lastInTier = s && s.tier===p.tier && s.left<=2;
+    const adp = p.adp!=null? p.adp.toFixed(0):"—";
+    const gap = p.adp!=null? Math.round(p.adp - (byV.findIndex(x=>x.id===p.id)+1)) : null;
+    // gap vs overall VBD board rank is noisy; show ADP directly + value flag instead
+    const posc=p.pos.toLowerCase();
+    return `<div class="row ${state.mode==="vona"&&state.sortKey==="vona"&&i===0?'top':''}">
+      <div class="posc ${posc}">${p.pos}</div>
+      <div><span class="pname">${p.name}</span>
+        <span class="psub">${p.pos}${p.posRank} · T${p.tier}</span>
+        ${lastInTier?'<span class="cliffflag">◂ LAST IN TIER</span>':''}</div>
+      <div class="metric m-vona">${p.vona>0?'+':''}${p.vona}<small>VONA</small></div>
+      <div class="metric">${p.proj.toFixed(0)}<small>PROJ</small></div>
+      <div>${ roster.length && !p.starts
+              ? '<span class="fit depth">DEPTH</span>'
+              : (roster.length? '<span class="fit starts">STARTS</span>':'<span class="fit"></span>') }</div>
+      <div class="metric">${adp}<small>ADP</small></div>
+      <button class="take" onclick="draft(${p.id})">Draft</button>
+    </div>`;
+  }).join("");
+
+  // ---- roster ----
+  const mineList=state.picks.filter(p=>p.mine).map(p=>PLAYERS[p.id]);
+  const rosterEl=$("#roster");
+  rosterEl.innerHTML = mineList.length? mineList.map((p,i)=>`
+    <div class="rslot"><span class="lab">R${myPicks(state.slot,state.teams).indexOf(state.picks.filter(x=>x.mine)[i].pick)+1} · ${p.pos}${p.posRank}</span>
+    <span class="val" style="color:${POSCOLOR[p.pos]}">${p.name}</span></div>`).join("")
+    : `<div class="rslot"><span class="empty">No picks yet — draft to your slot and they land here.</span></div>`;
+  $("#pickcount").textContent = `pick ${cur}`;
+
+  // ---- scarcity bars ----
+  const maxTierSize=12;
+  $("#scar").innerHTML = POSES.map(pos=>{
+    const s=scar[pos]; const w=Math.min(100,(s.left/maxTierSize)*100);
+    return `<div class="sbar"><span class="pl" style="color:${POSCOLOR[pos]}">${pos}</span>
+      <span class="track"><span class="fill" style="width:${w}%;background:${POSCOLOR[pos]}"></span></span>
+      <span class="n">${s.left} left${s.tier?` · T${s.tier}`:''}</span></div>`;
+  }).join("");
+}
+
+// events
+$("#rows"); window.draft=draft;
+$("#undo").onclick=undo;
+$("#reset").onclick=()=>{state.picks=[];render();};
+$("#teams").oninput=render; $("#slot").oninput=render;
+$("#search").oninput=e=>{state.search=e.target.value;render();};
+document.querySelectorAll(".chip[data-pos]").forEach(c=>c.onclick=()=>{
+  const p=c.dataset.pos; state.filterPos.has(p)?state.filterPos.delete(p):state.filterPos.add(p);
+  c.setAttribute("aria-pressed",state.filterPos.has(p)); render();
+});
+$("#mVona").onclick=()=>{state.mode="vona";$("#mVona").setAttribute("aria-pressed",true);$("#mSafe").setAttribute("aria-pressed",false);render();};
+$("#mSafe").onclick=()=>{state.mode="safe";$("#mSafe").setAttribute("aria-pressed",true);$("#mVona").setAttribute("aria-pressed",false);render();};
+document.querySelectorAll(".sortseg button").forEach(b=>b.onclick=()=>{
+  state.sortKey=b.dataset.sort;
+  document.querySelectorAll(".sortseg button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  render();});
+render();
+</script>
+<div class="grain"></div>
+<script>window.addEventListener('storage',function(e){if(e.key==='beauos_theme'){document.documentElement.setAttribute('data-theme',e.newValue||'light');}});</script>
+</body></html>
