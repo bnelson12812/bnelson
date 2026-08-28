@@ -237,11 +237,20 @@ function computeVONA(avail){
   const k=horizonK();
   const gone=new Set([...avail].filter(p=>p.adp!=null).sort((a,b)=>a.adp-b.adp).slice(0,k).map(p=>p.id));
   const survivors=avail.filter(p=>!gone.has(p.id));
-  return avail.map(p=>{
+  const scored=avail.map(p=>{
     const sp=survivors.filter(s=>s.pos===p.pos && s.id!==p.id);
     const next=sp.length? Math.max(...sp.map(s=>s.proj)) : (REPL[p.pos]||0);
     return {...p, vona:+(p.proj-next).toFixed(1)};
   });
+  // FIX: a better-projected AVAILABLE player must never rank below a worse same-position one.
+  // (ADP can flag a fallen stud as 'gone' and inflate the next guy — this stops that.)
+  const byPos={};
+  scored.forEach(p=>{(byPos[p.pos]=byPos[p.pos]||[]).push(p);});
+  Object.keys(byPos).forEach(k=>{
+    byPos[k].sort((a,b)=>a.proj-b.proj); let run=-Infinity;
+    byPos[k].forEach(p=>{run=Math.max(run,p.vona);p.vona=+run.toFixed(1);});
+  });
+  return scored;
 }
 // best available tier per position, and how many remain in it
 function tierScarcity(avail){
@@ -290,8 +299,8 @@ function render(){
 
   // ---- clock hero ----
   const cur=currentPick(), mine=isMyPick(cur), team=teamOnClock(cur,state.teams);
-  const byV=[...scored].sort((a,b)=>b.vona-a.vona);
-  const safeSort=[...scored].sort((a,b)=>(b.starts-a.starts)||(b.vona-a.vona));
+  const byV=[...scored].sort((a,b)=>(b.vona-a.vona)||(b.proj-a.proj));
+  const safeSort=[...scored].sort((a,b)=>(b.starts-a.starts)||(b.vona-a.vona)||(b.proj-a.proj));
   const vonaTop=byV[0];
   const top = state.mode==="safe" ? safeSort[0] : vonaTop;
   const clock=$("#clock");
