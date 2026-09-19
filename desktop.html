@@ -192,10 +192,12 @@ const APP='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16"/><p
 const FS={
   'root':{type:'folder',label:'/',children:['work','beau-nelson','contact']},
   'work':{type:'folder',label:'work/',children:['data-projects','videography','photography']},
-  'data-projects':{type:'folder',label:'data-projects/',children:['fantasy-football']},
+  'data-projects':{type:'folder',label:'data-projects/',children:['fantasy-football','football']},
   'fantasy-football':{type:'folder',label:'fantasy-football/',children:['draft-tool','documentation']},
   'draft-tool':{type:'app',label:'draft-tool',ext:'.app',src:'draft-room.html',max:true},
   'documentation':{type:'file',label:'documentation',ext:'.md',src:null},
+  'football':{type:'folder',label:'football/',children:['playbook']},
+  'playbook':{type:'app',label:'playbook',ext:'.app',src:'playbook.html',max:true},
   'videography':{type:'file',label:'videography',ext:'.mov',src:'videography.html'},
   'photography':{type:'file',label:'photography',ext:'.jpg',src:'photography.html'},
   'beau-nelson':{type:'folder',label:'beau-nelson/',children:['bio','experience','vision']},
@@ -403,4 +405,3 @@ renderTaskbar();
 <div class="grain"></div>
 </body>
 </html>
- 
