@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>playbook // draw</title>
+<script>(function(){var t='light';try{t=localStorage.getItem('beauos_theme')||'light';}catch(e){}document.documentElement.setAttribute('data-theme',t);})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -14,7 +15,14 @@
   font-weight:normal;font-style:normal;}
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--black:#0A0A0A;--gray-dark:#404040;--gray-mid:#808080;--gray-light:#C0C0C0;--off-white:#F8F8F8;
-  --panel:#ffffff;--call:#C0392B;--field:#FBFBFA;}
+  --panel:#ffffff;--call:#C0392B;--field:#FBFBFA;
+  --side:#F1F1EF;--hover:#fff;--grid:rgba(10,10,10,.03);--hl:#2E7DD1;--shadow:rgba(10,10,10,.14);--scrim:rgba(10,10,10,.35);
+  --sideline:#DCDCDA;--hashtick:#C4C4C4;--numguide:#EBEBE9;--balltick:#0A0A0A;}
+/* dark: follows the desktop's theme toggle (beauos_theme) — same tokens as desktop.html */
+[data-theme=dark]{--black:#F5F5F5;--off-white:#0d0d0d;--gray-dark:#cfcfcf;--gray-mid:#8f8f8f;--gray-light:#3a3a3a;
+  --panel:#151515;--field:#101010;--side:#131313;--hover:#1f1f1f;--grid:rgba(245,245,245,.035);--call:#E0564A;--hl:#4A9BEA;
+  --shadow:rgba(0,0,0,.5);--scrim:rgba(0,0,0,.55);--sideline:#2e2e2e;--hashtick:#3d3d3d;--numguide:#1c1c1c;--balltick:#F5F5F5;}
+.sl{stroke:var(--sideline)} .ht{stroke:var(--hashtick)} .ng{stroke:var(--numguide)} .bt{stroke:var(--balltick)}
 html,body{height:100%;background:var(--off-white);color:var(--black);font-family:'Space Mono',monospace;overflow:hidden}
 .lc{text-transform:lowercase}
 button,select{font-family:inherit;cursor:pointer}
@@ -23,7 +31,7 @@ button,select{font-family:inherit;cursor:pointer}
 
 /* ---------- sidebar (bucketed controls) ---------- */
 #side{flex:0 0 210px;display:flex;flex-direction:column;overflow-y:auto;
-  background:#F1F1EF;border-right:1px solid var(--gray-light)}
+  background:var(--side);border-right:1px solid var(--gray-light)}
 #side .brand{font-family:'Retron2000','Space Mono',monospace;font-size:.72rem;letter-spacing:.1em;
   padding:13px 14px 11px;color:var(--black)}
 #main{flex:1;display:flex;flex-direction:column;min-width:0}
@@ -43,7 +51,7 @@ button,select{font-family:inherit;cursor:pointer}
 select.pick{flex:1;min-width:0;border:0;background:var(--panel);color:var(--black);
   font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.02em;padding:6px 6px;
   box-shadow:inset 0 -1px 0 var(--gray-light);outline:none;cursor:pointer}
-select.pick:hover{background:#fff;box-shadow:inset 0 -1px 0 var(--gray-mid)}
+select.pick:hover{background:var(--hover);box-shadow:inset 0 -1px 0 var(--gray-mid)}
 select.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
 
 /* segmented controls = uniform connectedness (shared container, hairline gaps) */
@@ -52,7 +60,7 @@ select.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
 .bucket>.grp{margin-top:6px}
 .grp>button{flex:1;min-width:0;border:0;background:var(--panel);color:var(--gray-dark);
   font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.02em;padding:6px 2px;line-height:1}
-.grp>button:hover{background:#fff;color:var(--black)}
+.grp>button:hover{background:var(--hover);color:var(--black)}
 .grp>button.on{background:var(--black);color:var(--off-white)}
 
 /* admin */
@@ -71,16 +79,16 @@ select.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
 
 /* ---------- stage ---------- */
 #stage{flex:1;position:relative;overflow:hidden;background:
-  repeating-linear-gradient(0deg,transparent 0 39px,rgba(10,10,10,.03) 39px 40px),
-  repeating-linear-gradient(90deg,transparent 0 39px,rgba(10,10,10,.03) 39px 40px),var(--field)}
+  repeating-linear-gradient(0deg,transparent 0 39px,var(--grid) 39px 40px),
+  repeating-linear-gradient(90deg,transparent 0 39px,var(--grid) 39px 40px),var(--field)}
 svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #field.pen{cursor:crosshair}
 
 .puck circle,.puck polygon{stroke:var(--black);stroke-width:2.2;fill:var(--field)}
 .puck rect.olsq{stroke:var(--black);stroke-width:2.2;fill:var(--field)}
-.hlring{fill:none;stroke:#2E7DD1;stroke-width:3}
-#menu button.hl{color:#2E7DD1;font-weight:700}
-#menu button.hl:hover{background:#2E7DD1;color:#fff}
+.hlring{fill:none;stroke:var(--hl);stroke-width:3}
+#menu button.hl{color:var(--hl);font-weight:700}
+#menu button.hl:hover{background:var(--hl);color:#fff}
 .puck.claimed rect.olsq{stroke:var(--gray-mid)}
 .puck.def polygon{fill:var(--off-white)}
 .puck text{font-family:'Space Mono',monospace;font-weight:700;font-size:14px;fill:var(--black);
@@ -116,7 +124,7 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 
 /* ---------- dropdown ---------- */
 #menu{position:absolute;z-index:50;min-width:186px;background:var(--panel);border:2px solid var(--black);
-  box-shadow:5px 5px 0 -1px rgba(10,10,10,.14);display:none;font-size:.74rem}
+  box-shadow:5px 5px 0 -1px var(--shadow);display:none;font-size:.74rem}
 #menu.open{display:block}
 #menu .head{border-bottom:1px solid var(--gray-light);padding:6px 10px;font-family:'Retron2000','Space Mono',monospace;
   font-size:.7rem;letter-spacing:.08em;color:var(--gray-mid)}
@@ -141,10 +149,10 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 
 /* ---------- play-data panel (json in/out) ---------- */
 #dataPanel{position:absolute;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
-  background:rgba(10,10,10,.35)}
+  background:var(--scrim)}
 #dataPanel.open{display:flex}
 #dataPanel .card{width:min(560px,92%);max-height:82%;background:var(--panel);border:2px solid var(--black);
-  box-shadow:6px 6px 0 -1px rgba(10,10,10,.18);display:flex;flex-direction:column}
+  box-shadow:6px 6px 0 -1px var(--shadow);display:flex;flex-direction:column}
 #dataPanel .top{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:2px solid var(--black)}
 #dataPanel .top b{font-family:'Retron2000','Space Mono',monospace;font-size:.78rem;letter-spacing:.06em}
 #dataPanel .hint2{font-size:.6rem;letter-spacing:.1em;color:var(--gray-mid)}
@@ -170,27 +178,35 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
       <div class="ctl"><label class="lc">form</label>
         <select class="pick lc" id="formPick">
           <option value="slot" selected>default</option>
-          <option value="str">str</option>
-          <option value="stch">stch</option>
-          <option value="wk">wk</option>
-          <option value="bnch">bnch</option>
-          <option value="flx">flx</option>
-          <option value="blx">blx</option>
-          <option value="blk">blk</option>
-          <option value="nsty">nsty</option>
-          <option value="ntr">ntr</option>
-          <option value="nod">nod</option>
-          <option value="clst">clst</option>
-          <option value="clik">clik</option>
+          <option value="str">strong</option>
+          <option value="wk">weak</option>
+          <option value="flx">flex</option>
+          <option value="bnch">bunch</option>
+          <option value="stch">brung</option>
+          <option value="blx">blex</option>
+          <option value="blk">bleak</option>
+          <option value="nsty">nasty</option>
+          <option value="ntr">nitro</option>
+          <option value="clst">cluster</option>
+          <option value="clik">click</option>
           <option value="chex">chex</option>
+          <option value="add">add</option>
+          <option value="nod">astrid</option>
+          <option value="axe">axe</option>
         </select></div>
       <div class="ctl"><label class="lc">h</label>
         <select class="pick lc" id="hPick">
           <option value="i" selected>i</option>
-          <option value="ws">ws</option><option value="wo">wo</option><option value="wu">wu</option>
-          <option value="ww">ww</option><option value="wb">wb</option>
-          <option value="ss">ss</option><option value="so">so</option><option value="su">su</option>
-          <option value="sw">sw</option><option value="sb">sb</option>
+          <option value="ws">west</option>
+          <option value="wo">work</option>
+          <option value="wu">wut</option>
+          <option value="ww">wwing</option>
+          <option value="wb">web</option>
+          <option value="ss">sass</option>
+          <option value="so">solar</option>
+          <option value="su">surf</option>
+          <option value="sw">swarm</option>
+          <option value="sb">snob</option>
         </select></div>
       <div class="ctl"><label class="lc">qb</label>
         <div class="grp" id="qbGrp">
@@ -342,14 +358,44 @@ const HWK   ={ ws:[258,393], wo:[360,396], wu:[64,478], ww:[180,411], wb:[71,553
 const HSLOT ={ ws:[250,388], wo:[390,401], wu:[60,487], ww:[135,407], wb:[76,551],
                ss:[177,394], so:[402,384], su:[68,480], sw:[138,405], sb:[86,541] };
 const HNSTY ={ ws:[145,402] };   // nasty forms slot the H inside the tight X
-const HNOD  ={ ws:[142,399] };
-const HTABLES={ str:HSTR, stch:HSTCH, wk:HWK, slot:HSLOT, bnch:HBUNCH, blk:HBLK, blx:HBLX, nsty:HNSTY, nod:HNOD };
+// add / astrid(nod) / axe: charted exact per cell from Beau's sheet (9/22)
+const HNOD ={ ws:[153,411], wo:[221,406], wu:[65,485], ww:[127,412], wb:[81,548], ss:[212,404], so:[237,405], su:[67,486], sw:[183,404], sb:[77,549] };
+const HADD ={ ws:[155,408], wo:[218,402], wu:[70,486], ww:[128,400], wb:[73,548], ss:[216,401], so:[268,408], su:[76,484], sw:[130,398], sb:[85,551] };
+const HAXE ={ ws:[153,404], wo:[216,400], wu:[60,477], ww:[133,400], wb:[69,480], so:[265,405], su:[68,475], sw:[119,416], sb:[86,545] };   // ss uncharted -> generic
+// flex: charted exact per cell (9/22 flex_fix)
+const HFLX ={ ws:[250,388], wo:[370,403], wu:[65,482], ww:[133,408], wb:[67,482], ss:[190,395], so:[392,394], su:[69,486], sw:[133,402], sb:[88,546] };
+const HTABLES={ str:HSTR, stch:HSTCH, wk:HWK, slot:HSLOT, bnch:HBUNCH, blk:HBLK, blx:HBLX, nsty:HNSTY, nod:HNOD, add:HADD, axe:HAXE, flx:HFLX };
 // per (form|hTag) receiver repositioning — e.g. weak-outside H bumps the split end into the slot
 const RECV_OVERRIDE={
   'str|wo':  { X:['W',255,372] },                        // weak-outside H bumps split end to slot
   'wk|so':   { X:['S',215,372], Z:['S',306,398] },       // strong-outside H tucks X and Z in
   'slot|ss': { Y:['S',277,375], Z:['S',380,397] },       // strong-slot H shifts Y/Z out
   'slot|so': { Y:['S',221,374], Z:['S',310,389] },       // strong-outside H tucks Y/Z in
+  'flx|wo':    { Y:['W',263,372] },
+  'flx|ss':    { X:['S',277,372] },
+  'flx|so':    { X:['S',217,372], Z:['S',309,391] },
+  // add / astrid(nod) / axe — exact per cell (9/22 sheet)
+  'nod|ss':    { Z:['S',253,404] },
+  'nod|sw':    { Z:['S',230,407] },
+  'add|ws':    { Y:['S',173,372], Z:['S',207,404] },
+  'add|wo':    { Y:['S',170,372], Z:['S',209,403] },
+  'add|wu':    { Y:['S',175,372], Z:['S',217,406] },
+  'add|ww':    { Y:['S',176,372], Z:['S',218,402] },
+  'add|wb':    { Y:['S',175,372], Z:['S',214,403] },
+  'add|ss':    { Y:['S',177,372], Z:['S',260,401] },
+  'add|so':    { Y:['S',175,372], Z:['S',217,407] },
+  'add|su':    { Y:['S',170,372], Z:['S',211,403] },
+  'add|sw':    { Y:['S',180,372], Z:['S',222,400] },
+  'add|sb':    { Y:['S',173,372], Z:['S',211,407] },
+  'axe|ws':    { Y:['W',186,372], X:['S',188,374], Z:['S',227,400] },
+  'axe|wo':    { Y:['W',176,372], X:['S',181,373], Z:['S',227,397] },
+  'axe|wu':    { Y:['W',172,373], X:['S',182,372] },
+  'axe|ww':    { Y:['W',207,372], X:['S',175,373], Z:['S',214,401] },
+  'axe|wb':    { Y:['W',176,372], X:['S',185,372], Z:['S',228,398] },
+  'axe|so':    { Y:['W',167,372], X:['S',177,372], Z:['S',216,405] },
+  'axe|su':    { Y:['W',171,372], X:['S',177,372], Z:['S',216,405] },
+  'axe|sw':    { Y:['W',175,372], X:['S',177,372], Z:['S',216,405] },
+  'axe|sb':    { Y:['W',183,372], X:['S',177,372], Z:['S',216,405] },
 };
 // back (T) — a/b offset near QB, LF/RF flared deep (constant across forms, no reflow)
 const BACKPOS={ a:[454,521], b:[603,526], lf:[291,483], rf:[736,503] };
@@ -388,8 +434,14 @@ const YTAGS={
   clst:{Y:['S',253,372], X:['W',370,372], Z:['S',290,408]}, // cluster strong (Y on ball, Z tight behind)
   clik:{Y:['W',144,372], X:['S',275,372], Z:['S',316,405]}, // Y weak inline + cluster strong
   chex:{Y:['W',364,372], X:['S',293,372], Z:['S',325,402]}, // Y far weak split + cluster strong
+  add: {Y:['S',167,372], X:['W',185,372], Z:['S',218,405]}, // 'A' adds to the box: nasty X, Y on ball wider, Z off
+  axe: {Y:['W',176,373], X:['S',172,372], Z:['S',226,397]}, // Y nasty weak on ball, X tight strong on ball, Z off
 };
-const YTAG_ORDER=['slot','str','stch','wk','bnch','flx','blx','blk','nsty','ntr','nod','clst','clik','chex'];
+const YTAG_ORDER=['slot','str','wk','flx','bnch','stch','blx','blk','nsty','ntr','clst','clik','chex','add','nod','axe'];
+// display names (dropdown + auto-title). internal keys stay stable so old plays load.
+const FORM_LABEL={ slot:'default', str:'strong', wk:'weak', flx:'flex', bnch:'bunch', stch:'brung', blx:'blex', blk:'bleak',
+  nsty:'nasty', ntr:'nitro', clst:'cluster', clik:'click', chex:'chex', add:'add', nod:'astrid', axe:'axe' };
+const H_LABEL={ i:'i', ws:'west', wo:'work', wu:'wut', ww:'wwing', wb:'web', ss:'sass', so:'solar', su:'surf', sw:'swarm', sb:'snob' };
 
 function buildOffense(strength,yTag,hTag,qbTag,backTag){
   const strong = strength==='rt' ? +1 : -1;          // +1 => strong is to the right
@@ -531,10 +583,24 @@ function load(){
   buildOffense(strength,yTag,hTag,qbTag,backTag).forEach(q=>{players.push(q);P[q.id]=q;});
   (FRONTS[curDef]||FRONTS.over).forEach(p=>{const q={...p,side:'def',kind:'def',cx:p.x,cy:p.y};players.push(q);P[q.id]=q;});
   applyShell();
+  // defensive strength (fronts/shells authored strong-right). rules:
+  //  - inline-TE forms: strength sets to the Y (wherever he resolves)
+  //  - no-inline-TE forms: strength goes to the call side, unless the H is a wing
+  //    (ww wwing / sw swarm) -> strength sets to the H
+  if(defStrongLeft()) players.forEach(p=>{ if(p.side==='def'){ p.x=p.cx=mirror(p.cx); } });
   const dx=BALLDX[ballSpot]||0;                         // slide onto the hash; keep a boundary margin
   players.forEach(p=>{p.x=p.cx=Math.max(SL_L+96,Math.min(SL_R-96,p.x+dx));});
   marks=[]; instances={}; assign={}; sel=null; draft=null; history=[]; highlighted={};
   drawHashes(); renderAll();
+}
+const NO_TE_FORMS=['slot','flx','blx','nsty','clst','chex','add','axe'];
+const WING_H=['ww','sw'];
+function defStrongLeft(){
+  if(NO_TE_FORMS.includes(yTag)){
+    if(WING_H.includes(hTag) && P.H) return P.H.cx<B;
+    return strength==='lt';
+  }
+  return !!(P.Y && P.Y.cx<B);
 }
 function applyShell(){
   const s=SHELLS[shell]||SHELLS.open;
@@ -542,15 +608,15 @@ function applyShell(){
 }
 function drawHashes(){
   const g=$('#hashes'); g.innerHTML='';
-  g.appendChild(el('line',{x1:SL_L,y1:20,x2:SL_L,y2:700,stroke:'#DCDCDA','stroke-width':2}));   // sidelines
-  g.appendChild(el('line',{x1:SL_R,y1:20,x2:SL_R,y2:700,stroke:'#DCDCDA','stroke-width':2}));
+  g.appendChild(el('line',{x1:SL_L,y1:20,x2:SL_L,y2:700,stroke:'#DCDCDA',class:'sl','stroke-width':2}));   // sidelines
+  g.appendChild(el('line',{x1:SL_R,y1:20,x2:SL_R,y2:700,stroke:'#DCDCDA',class:'sl','stroke-width':2}));
   [HASH_L,HASH_R].forEach(hx=>{                          // two rows of hash ticks
-    for(let y=40;y<=700;y+=26) g.appendChild(el('line',{x1:hx-6,y1:y,x2:hx+6,y2:y,stroke:'#C4C4C4','stroke-width':1}));
+    for(let y=40;y<=700;y+=26) g.appendChild(el('line',{x1:hx-6,y1:y,x2:hx+6,y2:y,stroke:'#C4C4C4',class:'ht','stroke-width':1}));
   });
   [NUM_L,NUM_R].forEach(nx=>                             // faint guides: where field numbers sit
-    g.appendChild(el('line',{x1:nx,y1:24,x2:nx,y2:696,stroke:'#EBEBE9','stroke-width':1,'stroke-dasharray':'2 10'})));
+    g.appendChild(el('line',{x1:nx,y1:24,x2:nx,y2:696,stroke:'#EBEBE9',class:'ng','stroke-width':1,'stroke-dasharray':'2 10'})));
   const bx=520+(BALLDX[ballSpot]||0);                    // bold tick marks the ball spot
-  g.appendChild(el('line',{x1:bx-8,y1:LOS,x2:bx+8,y2:LOS,stroke:'#0A0A0A','stroke-width':3}));
+  g.appendChild(el('line',{x1:bx-8,y1:LOS,x2:bx+8,y2:LOS,stroke:'#0A0A0A',class:'bt','stroke-width':3}));
 }
 
 /* ============================================================
@@ -990,10 +1056,10 @@ $('#exportBtn').onclick=async ()=>{
 let lastAuto='';                          // the formation call string we last wrote into the title
 function callString(){                     // slot / under-center / default-back are silent defaults
   const p=[strength];
-  if(yTag!=='slot') p.push(yTag);
+  if(yTag!=='slot') p.push(FORM_LABEL[yTag]||yTag);
   if(qbTag==='gun') p.push('gun');
   if(backTag!=='default') p.push(backTag);
-  p.push(hTag);
+  p.push(H_LABEL[hTag]||hTag);
   return p.join(' ');
 }
 function autoTitle(){                       // fill the title unless the user typed their own
@@ -1061,6 +1127,7 @@ $('#dataApply').onclick=()=>{let obj;try{obj=JSON.parse(dataText.value);}catch(e
 
 /* ---------- boot ---------- */
 syncFormUI(); load(); syncLineCap(); autoTitle();
+window.addEventListener('storage',e=>{ if(e.key==='beauos_theme') document.documentElement.setAttribute('data-theme',e.newValue||'light'); });
 </script>
 </body>
 </html>
