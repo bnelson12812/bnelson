@@ -167,6 +167,12 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   font-family:'Space Mono',monospace;font-size:.7rem;line-height:1.5;padding:12px;color:var(--black);
   background:var(--field);white-space:pre;overflow:auto;outline:none}
 #dataPanel .row{display:flex;gap:6px;padding:8px 12px}
+
+/* ---------- drop a play .json anywhere to load it ---------- */
+#stage.dropping::after{content:'drop play .json to load';position:absolute;inset:12px;z-index:70;
+  display:flex;align-items:center;justify-content:center;pointer-events:none;
+  border:2px dashed var(--black);background:var(--scrim);color:var(--black);
+  font-family:'Retron2000','Space Mono',monospace;font-size:.8rem;letter-spacing:.12em}
 </style>
 </head>
 <body>
@@ -1059,7 +1065,9 @@ $('#exportBtn').onclick=async ()=>{
     const s=3, c=document.createElement('canvas'); c.width=1040*s; c.height=720*s;
     const ctx=c.getContext('2d'); ctx.scale(s,s); ctx.drawImage(img,0,0);
     c.toBlob(b=>{const a=document.createElement('a');a.download=slug()+'.png';
-      a.href=URL.createObjectURL(b);a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);},'image/png');
+      a.href=URL.createObjectURL(b);a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+      downloadJSON();                                 // same-named .json twin: the picture + its data, always a pair
+    },'image/png');
   };
   img.onerror=()=>alert('export hiccup — try again once the field has fully rendered.');
   img.src=svg;
@@ -1136,11 +1144,31 @@ $('#dataBtn').onclick=()=>{dataText.value=JSON.stringify(playJSON(),null,1);
 $('#dataClose').onclick=()=>dataPanel.classList.remove('open');
 $('#dataCopy').onclick=async()=>{try{await navigator.clipboard.writeText(dataText.value);}
   catch(e){dataText.select();try{document.execCommand('copy');}catch(_){}}flash($('#dataCopy'),'copied');};
-$('#dataSave').onclick=()=>{const blob=new Blob([JSON.stringify(playJSON(),null,1)],{type:'application/json'});
+function downloadJSON(){const blob=new Blob([JSON.stringify(playJSON(),null,1)],{type:'application/json'});
   const a=document.createElement('a');a.download=slug()+'.json';a.href=URL.createObjectURL(blob);a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1500);};
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
+$('#dataSave').onclick=downloadJSON;
 $('#dataApply').onclick=()=>{let obj;try{obj=JSON.parse(dataText.value);}catch(e){flash($('#dataApply'),'bad json');return;}
   loadJSON(obj)?dataPanel.classList.remove('open'):flash($('#dataApply'),'load failed');};
+
+/* ---------- drag a play .json onto the tool to load it (same path as paste + apply) ---------- */
+const stageEl=$('#stage');
+let dragDepth=0, hintTimer=null;
+function hintFlash(txt){const h=$('#hint');if(!hintTimer)h.dataset.prev=h.textContent;
+  h.textContent=txt;clearTimeout(hintTimer);
+  hintTimer=setTimeout(()=>{h.textContent=h.dataset.prev||'';hintTimer=null;},2400);}
+const hasFiles=e=>!!(e.dataTransfer&&Array.from(e.dataTransfer.types||[]).includes('Files'));
+function endDrag(){dragDepth=0;stageEl.classList.remove('dropping');}
+document.addEventListener('dragenter',e=>{if(!hasFiles(e))return;e.preventDefault();dragDepth++;stageEl.classList.add('dropping');});
+document.addEventListener('dragover', e=>{if(!hasFiles(e))return;e.preventDefault();e.dataTransfer.dropEffect='copy';});
+document.addEventListener('dragleave',e=>{if(!hasFiles(e))return;if(--dragDepth<=0)endDrag();});
+document.addEventListener('drop',async e=>{if(!hasFiles(e))return;e.preventDefault();endDrag();
+  const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(!f)return;
+  if(!/\.json$/i.test(f.name||'')&&f.type!=='application/json'){hintFlash('drop the play .json — not '+(f.name||'that file'));return;}
+  let obj;try{obj=JSON.parse(await f.text());}catch(_){hintFlash('bad json — '+f.name);return;}
+  if(!obj||typeof obj!=='object'||!(obj.formation||obj.players)){hintFlash("that json isn't a play — "+f.name);return;}
+  if(loadJSON(obj)){dataPanel.classList.remove('open');hintFlash('loaded '+f.name);}
+  else hintFlash('load failed — '+f.name);});
 
 /* ---------- boot ---------- */
 syncFormUI(); load(); syncLineCap(); autoTitle();
