@@ -86,7 +86,6 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 
 .puck circle,.puck polygon{stroke:var(--black);stroke-width:2.2;fill:var(--field)}
 .puck rect.olsq{stroke:var(--black);stroke-width:2.2;fill:var(--field)}
-.hlring{fill:none;stroke:var(--hl);stroke-width:3}
 #menu button.hl{color:var(--hl);font-weight:700}
 #menu button.hl:hover{background:var(--hl);color:#fff}
 .puck.claimed rect.olsq{stroke:var(--gray-mid)}
@@ -98,6 +97,14 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 .puck.grabbing{cursor:grabbing}
 .puck.claimed circle,.puck.claimed polygon{stroke:var(--gray-mid)}
 .puck.claimed text{fill:var(--gray-mid)}
+
+/* highlight: solid accent fill, no outline, soft glow — carries to the player's own marks */
+.puck.hl circle,.puck.hl polygon,.puck.def.hl polygon,.puck.hl rect.olsq{fill:var(--hl);stroke:none;filter:url(#hlglow)}
+.puck.hl text{fill:#fff}
+.mark.hlm,.cap.hlm{stroke:var(--hl);filter:url(#hlglow)}
+#arrow path{fill:var(--black)} #arrowHL path{fill:var(--hl)}
+.shd{fill:var(--black)} .puck.hl .shd{fill:#fff;opacity:.9}
+.los{stroke:var(--black)}
 
 /* needs-a-job glow (ui only, stripped on export) */
 .glow{fill:none;stroke:var(--gray-mid);stroke-width:1.4;stroke-dasharray:3 4;opacity:.55;
@@ -285,10 +292,17 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
       <defs>
         <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5"
                 orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0A0A0A"/></marker>
+        <marker id="arrowHL" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5"
+                orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2E7DD1"/></marker>
+        <filter id="hlglow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
+          <feComponentTransfer in="b" result="g"><feFuncA type="linear" slope="0.75"/></feComponentTransfer>
+          <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
       </defs>
       <g id="fieldLayer">
         <!-- line of scrimmage -->
-        <line x1="70" y1="340" x2="970" y2="340" stroke="#0A0A0A" stroke-width="1.4"/>
+        <line class="los" x1="70" y1="340" x2="970" y2="340" stroke="#0A0A0A" stroke-width="1.4"/>
         <!-- hash marks -->
         <g id="hashes"></g>
       </g>
@@ -693,7 +707,7 @@ function shadeNode(o,side){                     // clipped fill inside the puck 
   if(side==='mohawk')      sh=el('rect',{x:o.cx-4, y:o.cy-15,width:8, height:30});
   else if(side==='left')   sh=el('rect',{x:o.cx-15,y:o.cy-15,width:15,height:30});
   else                     sh=el('rect',{x:o.cx,   y:o.cy-15,width:15,height:30});
-  sh.setAttribute('fill','#0A0A0A'); sh.setAttribute('clip-path','url(#'+cid+')');
+  sh.setAttribute('fill','#0A0A0A'); sh.setAttribute('class','shd'); sh.setAttribute('clip-path','url(#'+cid+')');
   return [cp,sh];
 }
 
@@ -702,10 +716,11 @@ function renderMarks(){
   marks.forEach(m=>{
     const pts=livePts(m);
     const d=m.smooth?smoothPath(pts):polyPath(pts);
-    const path=el('path',{class:'mark'+(m.line==='dash'?' dash':'')+(m.id===sel?' sel':''),d});
-    if(m.cap==='arrow')path.setAttribute('marker-end','url(#arrow)');
+    const hl=!!(m.owner&&highlighted[m.owner]);          // highlighted player -> his marks go accent too
+    const path=el('path',{class:'mark'+(m.line==='dash'?' dash':'')+(m.id===sel?' sel':'')+(hl?' hlm':''),d});
+    if(m.cap==='arrow')path.setAttribute('marker-end',hl?'url(#arrowHL)':'url(#arrow)');
     markLayer.appendChild(path);
-    const cap=capShape(pts,m.cap); if(cap)markLayer.appendChild(cap);
+    const cap=capShape(pts,m.cap); if(cap){ if(hl)cap.classList.add('hlm'); markLayer.appendChild(cap); }
     // fat invisible hit line for selection
     const hit=el('path',{class:'hit',d}); hit.dataset.mid=m.id;
     hit.addEventListener('pointerdown',e=>{if(mode==='select'){e.stopPropagation();selectMark(m.id);}});
@@ -738,8 +753,7 @@ function renderCalls(){
 function renderPucks(){
   puckLayer.innerHTML='';
   players.forEach(p=>{
-    const g=el('g',{class:'puck '+(p.side==='def'?'def ':'')+(assign[p.id]?'claimed':''),'data-id':p.id});
-    if(highlighted[p.id]) g.appendChild(el('circle',{class:'hlring',cx:p.cx,cy:p.cy,r:19}));  // color accent
+    const g=el('g',{class:'puck '+(p.side==='def'?'def ':'')+(assign[p.id]?'claimed ':'')+(highlighted[p.id]?'hl':''),'data-id':p.id});
     if(p.side==='def'){                      // defense = triangle
       const s=13;
       g.appendChild(el('polygon',{points:`${p.cx},${p.cy-s} ${p.cx-s},${p.cy+s*0.85} ${p.cx+s},${p.cy+s*0.85}`}));
@@ -752,7 +766,7 @@ function renderPucks(){
       // interior linemen stay unlettered — the shade carries the info; skill/backs keep letters
       if(p.kind!=='ol'){
         const t=el('text',{x:p.cx,y:p.cy});t.textContent=p.label;
-        if(d){t.setAttribute('stroke','#FBFBFA');t.setAttribute('stroke-width','3');
+        if(d&&!highlighted[p.id]){t.setAttribute('stroke','#FBFBFA');t.setAttribute('style','stroke:var(--field)');t.setAttribute('stroke-width','3');
               t.setAttribute('paint-order','stroke');}   // stays legible over a fill
         g.appendChild(t);
       }
@@ -1028,8 +1042,11 @@ $('#exportBtn').onclick=async ()=>{
     .cap{fill:none;stroke:#0A0A0A;stroke-width:2.4;stroke-linecap:round}
     .puck circle,.puck polygon{stroke:#0A0A0A;stroke-width:2.2;fill:#FBFBFA}
     .puck rect.olsq{stroke:#0A0A0A;stroke-width:2.2;fill:#FBFBFA}
-    .hlring{fill:none;stroke:#2E7DD1;stroke-width:3}
+    .puck.hl text{fill:#fff}
+    .puck.hl .shd{fill:#fff;opacity:.9}
+    .mark.hlm,.cap.hlm{stroke:#2E7DD1;filter:url(#hlglow)}
     .puck.def polygon{fill:#F8F8F8}
+    .puck.hl circle,.puck.hl polygon,.puck.def.hl polygon,.puck.hl rect.olsq{fill:#2E7DD1;stroke:none;filter:url(#hlglow)}
     .puck text{font-weight:700;font-size:14px;fill:#0A0A0A;text-anchor:middle;dominant-baseline:central}
     .bracket{fill:none;stroke:#C0392B;stroke-width:1.8}
     .calltag{font-weight:700;font-size:12px;fill:#C0392B;text-anchor:middle;letter-spacing:.06em}
