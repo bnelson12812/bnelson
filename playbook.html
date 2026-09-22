@@ -192,9 +192,18 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
           <option value="ss">ss</option><option value="so">so</option><option value="su">su</option>
           <option value="sw">sw</option><option value="sb">sb</option>
         </select></div>
+      <div class="ctl"><label class="lc">qb</label>
+        <div class="grp" id="qbGrp">
+          <button data-qb="uc" class="on lc">under</button>
+          <button data-qb="gun" class="lc">gun</button>
+        </div></div>
       <div class="ctl"><label class="lc">back</label>
         <select class="pick lc" id="backPick">
-          <option value="uc" selected>default</option><option value="a">a</option><option value="b">b</option><option value="pst">pistol</option>
+          <option value="default" selected>default</option>
+          <option value="a">a</option><option value="b">b</option>
+          <option value="lf">lf</option><option value="rf">rf</option>
+          <option value="l1">l1</option><option value="l2">l2</option><option value="l3">l3</option><option value="lw">lw</option>
+          <option value="rw">rw</option><option value="r3">r3</option><option value="r2">r2</option><option value="r1">r1</option>
         </select></div>
       <div class="ctl"><label class="lc">ball</label>
         <select class="pick lc" id="ballPick">
@@ -332,13 +341,36 @@ const HWK   ={ ws:[258,393], wo:[360,396], wu:[64,478], ww:[180,411], wb:[71,553
                ss:[177,408], so:[405,396], su:[65,484], sw:[136,409], sb:[87,543] };
 const HSLOT ={ ws:[250,388], wo:[390,401], wu:[60,487], ww:[135,407], wb:[76,551],
                ss:[177,394], so:[402,384], su:[68,480], sw:[138,405], sb:[86,541] };
-const HTABLES={ str:HSTR, stch:HSTCH, wk:HWK, slot:HSLOT, bnch:HBUNCH, blk:HBLK, blx:HBLX };
+const HNSTY ={ ws:[145,402] };   // nasty forms slot the H inside the tight X
+const HNOD  ={ ws:[142,399] };
+const HTABLES={ str:HSTR, stch:HSTCH, wk:HWK, slot:HSLOT, bnch:HBUNCH, blk:HBLK, blx:HBLX, nsty:HNSTY, nod:HNOD };
 // per (form|hTag) receiver repositioning — e.g. weak-outside H bumps the split end into the slot
 const RECV_OVERRIDE={
   'str|wo':  { X:['W',255,372] },                        // weak-outside H bumps split end to slot
   'wk|so':   { X:['S',215,372], Z:['S',306,398] },       // strong-outside H tucks X and Z in
   'slot|ss': { Y:['S',277,375], Z:['S',380,397] },       // strong-slot H shifts Y/Z out
   'slot|so': { Y:['S',221,374], Z:['S',310,389] },       // strong-outside H tucks Y/Z in
+};
+// back (T) — a/b offset near QB, LF/RF flared deep (constant across forms, no reflow)
+const BACKPOS={ a:[454,521], b:[603,526], lf:[291,483], rf:[736,503] };
+const EMPTIES=['l1','l2','l3','lw','rw','r3','r2','r1'];
+// empties: T becomes a receiver and the side-mates reflow to seat him. Per form (charted full),
+// each empty = {T + moved side-mates}; strength rt. Uncharted (form,empty) falls back to slot.
+const REFLOW={
+  slot:{ l1:{T:[89,399],X:[178,372],H:[308,399]}, l2:{T:[229,396],X:[144,372],H:[337,397]}, l3:{T:[340,386],X:[144,372],H:[234,392]}, lw:{T:[384,393],X:[144,372],H:[283,395]}, rw:{T:[653,396]}, r3:{T:[703,386],Y:[799,386]}, r2:{T:[806,389],Y:[721,384]}, r1:{T:[893,392],Y:[721,384],Z:[805,372]} },
+  str:{ l1:{T:[142,393],X:[227,372],H:[320,397]}, l2:{T:[229,396],H:[327,396]}, l3:{T:[340,386],H:[250,388]}, lw:{T:[384,393]}, rw:{T:[699,403]}, r2:{T:[774,393]}, r1:{T:[893,392],Z:[790,392]} },
+  stch:{ l1:{T:[120,399],H:[183,399]}, l2:{T:[151,408],X:[125,372],H:[197,409]}, l3:{T:[222,410]}, lw:{T:[384,393]}, rw:{T:[696,402],Z:[741,402]}, r2:{T:[686,400],Z:[732,401]}, r1:{T:[758,405]} },
+  wk:{ l1:{T:[120,399]}, l2:{T:[326,393]}, lw:{T:[337,397]}, rw:{T:[653,396]}, r3:{T:[703,386],X:[802,372]}, r2:{T:[806,389],X:[721,372]}, r1:{T:[906,393],X:[734,372],Z:[816,396]} },
+  bnch:{ l1:{T:[119,406]}, l2:{T:[183,398],H:[225,398]}, l3:{T:[233,405]}, lw:{T:[384,393]}, rw:{T:[653,396]}, r2:{T:[728,404],Z:[773,408]}, r1:{T:[764,409]} },
+  flx:{ l1:{T:[120,399],Y:[197,372],H:[284,397]}, l2:{T:[229,396],H:[308,396]}, l3:{T:[340,386],H:[243,390]}, lw:{T:[384,393]}, rw:{T:[653,396]}, r3:{T:[703,386],X:[797,372]}, r2:{T:[806,389],X:[721,372]}, r1:{T:[893,392],X:[737,372],Z:[813,396]} },
+  blx:{ l1:{T:[120,399],H:[189,401]}, l2:{T:[192,401],H:[231,402]}, l3:{T:[241,408]}, lw:{T:[384,393]}, r3:{T:[659,404]}, r2:{T:[738,399],Z:[782,398]}, r1:{T:[779,404]} },
+  blk:{ l1:{T:[149,408]}, l3:{T:[322,407]}, lw:{T:[344,406]}, r3:{T:[662,407]}, r2:{T:[732,403],Z:[773,404]}, r1:{T:[785,408]} },
+  nsty:{ l1:{T:[120,399],H:[379,398]}, l2:{T:[330,394],X:[298,372],H:[374,394]}, lw:{T:[384,393],X:[307,372],H:[343,395]}, rw:{T:[653,396],H:[371,402]}, r3:{T:[703,386],Y:[805,389],H:[372,400]}, r2:{T:[806,389],Y:[732,391],H:[376,404]}, r1:{T:[893,392],Y:[733,389],Z:[811,373],H:[373,406]} },
+  ntr:{ l1:{T:[120,399],H:[376,395]}, l2:{T:[334,395],X:[294,372],H:[389,394]}, lw:{T:[384,393],X:[307,372],H:[342,395]}, rw:{T:[703,404],H:[369,400]}, r2:{T:[806,389],H:[368,397]}, r1:{T:[893,392],Z:[788,398],H:[365,403]} },
+  nod:{ l1:{T:[120,399],H:[378,404]}, lw:{T:[392,400],H:[357,399]}, rw:{T:[697,401],Z:[739,402],H:[270,388]}, r2:{T:[684,403],Z:[732,403],H:[376,401]}, r1:{T:[760,406],H:[374,398]} },
+  clst:{ l1:{T:[100,399],X:[202,372],H:[302,396]}, l2:{T:[229,396]}, l3:{T:[340,386],H:[244,386]}, lw:{T:[384,393]}, rw:{T:[653,396]}, r3:{T:[744,408]}, r2:{T:[813,398],Z:[858,397]}, r1:{T:[859,411]} },
+  clik:{ l1:{T:[120,399]}, l2:{T:[324,393]}, lw:{T:[344,399]}, rw:{T:[653,396]}, r3:{T:[755,404]}, r2:{T:[824,404],Z:[866,405]}, r1:{T:[883,406]} },
+  chex:{ l1:{T:[120,399],Y:[194,372],Z:[870,408],H:[277,398]}, l2:{T:[229,396],Z:[870,408],H:[316,398]}, l3:{T:[340,386],Z:[870,408],H:[250,390]}, lw:{T:[384,393],Z:[870,408]}, rw:{T:[653,396],Z:[856,401]}, r3:{T:[783,402],Z:[856,401]}, r2:{T:[854,399],Z:[895,399]}, r1:{T:[896,402],Z:[850,401]} },
 };
 // per Y-tag placement of Y/X/Z, strength-relative: [side,'off',y]
 const YTAGS={
@@ -355,11 +387,11 @@ const YTAGS={
   nod: {Y:['S',144,372], X:['W',185,372], Z:['S',190,402]}, // stch (tight Z) w/ nasty X
   clst:{Y:['S',253,372], X:['W',370,372], Z:['S',290,408]}, // cluster strong (Y on ball, Z tight behind)
   clik:{Y:['W',144,372], X:['S',275,372], Z:['S',316,405]}, // Y weak inline + cluster strong
-  chex:{Y:['W',364,372], X:['S',293,372], Z:['S',350,408]}, // Y far weak split + cluster strong
+  chex:{Y:['W',364,372], X:['S',293,372], Z:['S',325,402]}, // Y far weak split + cluster strong
 };
 const YTAG_ORDER=['slot','str','stch','wk','bnch','flx','blx','blk','nsty','ntr','nod','clst','clik','chex'];
 
-function buildOffense(strength,yTag,hTag,backTag){
+function buildOffense(strength,yTag,hTag,qbTag,backTag){
   const strong = strength==='rt' ? +1 : -1;          // +1 => strong is to the right
   const sgn = s => (s==='S'? strong : -strong);      // side letter -> screen direction
   const px  = (s,off)=> Math.round(B + sgn(s)*off);
@@ -367,16 +399,16 @@ function buildOffense(strength,yTag,hTag,backTag){
   // interior line (fixed, symmetric)
   push('LT','T','ol',B-96,372); push('LG','G','ol',B-48,372); push('C','C','ol',B,372);
   push('RG','G','ol',B+48,372); push('RT','T','ol',B+96,372);
-  // QB — under center (fine as-is), gun (deeper), or pistol
-  const gun = backTag==='a' || backTag==='b';
-  const pistol = backTag==='pst';
-  const qbY = gun?496 : pistol?482 : 420;
+  // QB — independent of the back now: under center or gun
+  const gun = qbTag==='gun';
+  const qbY = gun?496:420;
   push('Q','Q','back', B, qbY);
-  // T (the back): a=gun left, b=gun right (beside QB), pst=directly behind, else tailback depth
-  if(backTag==='a')      push('T','T','back', B-66, 521);
-  else if(backTag==='b') push('T','T','back', B+83, 526);
-  else if(pistol)        push('T','T','back', B, 560);
-  else                   push('T','T','back', B, 548);
+  // T (the back): a/b/LF/RF (BACKPOS), empties (per-form T, slot fallback), or default behind QB
+  const empty = EMPTIES.includes(backTag);
+  const erf = empty ? ((REFLOW[yTag]&&REFLOW[yTag][backTag]) || REFLOW.slot[backTag]) : null;
+  if(BACKPOS[backTag])  push('T','T','back', BACKPOS[backTag][0], BACKPOS[backTag][1]);
+  else if(erf)          push('T','T','back', erf.T[0], erf.T[1]);
+  else                  push('T','T','back', B, gun?566:548);
   // Y / X / Z by Y tag (strength-relative)
   const t=YTAGS[yTag]||YTAGS.slot;
   ['Y','X','Z'].forEach(id=>{const[s,off,y]=t[id]; push(id,id, id==='Y'?'te':'skill', px(s,off), y);});
@@ -394,6 +426,11 @@ function buildOffense(strength,yTag,hTag,backTag){
   const ov=RECV_OVERRIDE[yTag+'|'+hTag];                                        // rare receiver bumps
   if(ov) for(const id in ov){ const p=out.find(o=>o.id===id);
     if(p){ const[s,off,y]=ov[id]; p.cx=p.x=px(s,off); p.cy=p.y=y; } }
+  // empty reflow — re-space the side-mates to seat the split-out T (charted per form, strength rt)
+  if(strength==='rt' && empty && REFLOW[yTag] && REFLOW[yTag][backTag]){
+    const rf=REFLOW[yTag][backTag];
+    for(const id in rf){ if(id==='T')continue; const p=out.find(o=>o.id===id); if(p){ p.cx=p.x=rf[id][0]; p.cy=p.y=rf[id][1]; } }
+  }
   return out;
 }
 
@@ -450,7 +487,8 @@ let mode='select';          // 'select' | 'pen'
 let strength='rt';          // 'rt' | 'lt' — named by the Y's side
 let yTag='str';             // Y tag / form: str (strong-I baseline) slot wk bnch flx blx blk
 let hTag='i';               // H (move) tag: i (I-back) or side(s/w)+spot(s/o/u/w/b) — REQUIRED
-let backTag='uc';           // back tag: uc (under center, default) | gna (gun T left) | gnb (gun T right)
+let qbTag='uc';             // QB tag: uc (under center) | gun
+let backTag='default';      // back (T): default | a b | lf rf | l1 l2 l3 lw rw r3 r2 r1
 let curDef='over';          // current front
 let shell='open';           // 'open' | 'closed' coverage shell
 let ballSpot='mid';         // ball on the hash: left | lmid | mid | rmid | right
@@ -490,7 +528,7 @@ const BALLDX={left:HASH_L-520, lmid:Math.round((HASH_L-520)/2), mid:0,
 const OFF_LINE=372, DEF_LINE=311;                      // neutral zone: OL front / DL front
 function load(){
   players=[]; Object.keys(P).forEach(k=>delete P[k]);
-  buildOffense(strength,yTag,hTag,backTag).forEach(q=>{players.push(q);P[q.id]=q;});
+  buildOffense(strength,yTag,hTag,qbTag,backTag).forEach(q=>{players.push(q);P[q.id]=q;});
   (FRONTS[curDef]||FRONTS.over).forEach(p=>{const q={...p,side:'def',kind:'def',cx:p.x,cy:p.y};players.push(q);P[q.id]=q;});
   applyShell();
   const dx=BALLDX[ballSpot]||0;                         // slide onto the hash; keep a boundary margin
@@ -891,13 +929,15 @@ $('#smoothGrp').addEventListener('click',()=>{pen.smooth=!pen.smooth;
 $('#undoBtn').onclick=undo;
 window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='z'){e.preventDefault();undo();}});
 $('#clearBtn').onclick=()=>{                              // reset to the Strong-I vs 4-3 Over baseline
-  strength='rt'; yTag='str'; hTag='i'; backTag='uc'; curDef='over'; shell='open'; ballSpot='mid';
+  strength='rt'; yTag='str'; hTag='i'; qbTag='uc'; backTag='default'; curDef='over'; shell='open'; ballSpot='mid';
   syncFormUI(); load();};
 $('#strGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   strength=b.dataset.str; $('#strGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); load(); autoTitle();});
 $('#formPick').onchange=e=>{yTag=e.target.value; load(); autoTitle();};
 $('#hPick').onchange=e=>{hTag=e.target.value; load(); autoTitle();};
 $('#backPick').onchange=e=>{backTag=e.target.value; load(); autoTitle();};
+$('#qbGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  qbTag=b.dataset.qb; $('#qbGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); load(); autoTitle();});
 $('#defPick').onchange=e=>{curDef=e.target.value; load();};
 $('#ballPick').onchange=e=>{ballSpot=e.target.value; load();};
 $('#shellGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
@@ -948,10 +988,11 @@ $('#exportBtn').onclick=async ()=>{
    the round-trip the PNG can't do — and the format Claude reads.
    ============================================================ */
 let lastAuto='';                          // the formation call string we last wrote into the title
-function callString(){                     // slot + under-center are the silent defaults
+function callString(){                     // slot / under-center / default-back are silent defaults
   const p=[strength];
   if(yTag!=='slot') p.push(yTag);
-  if(backTag!=='uc') p.push(backTag);
+  if(qbTag==='gun') p.push('gun');
+  if(backTag!=='default') p.push(backTag);
   p.push(hTag);
   return p.join(' ');
 }
@@ -963,7 +1004,7 @@ function slug(){const t=($('#playTitle').value||'').trim().toLowerCase()
   .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); return t||'play';}
 function playJSON(){
   return {v:1, title:$('#playTitle').value||'', note:$('#playNote').value||'',
-    formation:{strength,yTag,hTag,backTag}, def:curDef, shell, ballSpot, highlights:Object.keys(highlighted),
+    formation:{strength,yTag,hTag,qbTag,backTag}, def:curDef, shell, ballSpot, highlights:Object.keys(highlighted),
     players:players.map(p=>({id:p.id,cx:p.cx,cy:p.cy})),
     marks, instances, assign};
 }
@@ -972,6 +1013,7 @@ function syncShellButtons(){
 function syncFormUI(){
   $('#strGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.str===strength));
   $('#formPick').value=yTag; $('#hPick').value=hTag; $('#backPick').value=backTag; $('#defPick').value=curDef;
+  $('#qbGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.qb===qbTag));
   $('#ballPick').value=ballSpot;
   syncShellButtons();
 }
@@ -981,7 +1023,12 @@ function loadJSON(obj){
     if(f.strength) strength=f.strength;
     if(f.yTag)     yTag=f.yTag;
     if(f.hTag)     hTag=f.hTag;
-    if(f.backTag)  backTag=f.backTag;
+    // QB/back: new plays carry qbTag; old plays carry only the merged backTag (uc/a/b/pst)
+    if(f.qbTag){ qbTag=f.qbTag; backTag=f.backTag||'default'; }
+    else if(f.backTag==='a'){ qbTag='gun'; backTag='a'; }
+    else if(f.backTag==='b'){ qbTag='gun'; backTag='b'; }
+    else if(f.backTag==='pst'){ qbTag='gun'; backTag='default'; }
+    else { qbTag='uc'; backTag='default'; }
     if(obj.def&&FRONTS[obj.def]) curDef=obj.def;
     shell=(obj.shell==='closed')?'closed':'open';
     if(BALLDX[obj.ballSpot]!==undefined) ballSpot=obj.ballSpot;
