@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>playbook // draw</title>
+<script>(function(){var t='light';try{t=localStorage.getItem('beauos_theme')||'light';}catch(e){}document.documentElement.setAttribute('data-theme',t);})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:'Retron2000';
+  src:url('https://cdn.jsdelivr.net/gh/mooniak/retron-2000@master/fonts/webfonts/Retron2000.woff2') format('woff2'),
+      url('https://cdn.jsdelivr.net/gh/mooniak/retron-2000@master/fonts/webfonts/Retron2000.woff') format('woff');
+  font-weight:normal;font-style:normal;}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--black:#0A0A0A;--gray-dark:#404040;--gray-mid:#808080;--gray-light:#C0C0C0;--off-white:#F8F8F8;
+  --panel:#ffffff;--call:#C0392B;--field:#FBFBFA;
+  --side:#F1F1EF;--hover:#fff;--grid:rgba(10,10,10,.03);--hl:#2E7DD1;--shadow:rgba(10,10,10,.14);--scrim:rgba(10,10,10,.35);
+  --sideline:#DCDCDA;--hashtick:#C4C4C4;--numguide:#EBEBE9;--balltick:#0A0A0A;}
+/* dark: follows the desktop's theme toggle (beauos_theme) — same tokens as desktop.html */
+[data-theme=dark]{--black:#F5F5F5;--off-white:#0d0d0d;--gray-dark:#cfcfcf;--gray-mid:#8f8f8f;--gray-light:#3a3a3a;
+  --panel:#151515;--field:#101010;--side:#131313;--hover:#1f1f1f;--grid:rgba(245,245,245,.035);--call:#E0564A;--hl:#4A9BEA;
+  --shadow:rgba(0,0,0,.5);--scrim:rgba(0,0,0,.55);--sideline:#2e2e2e;--hashtick:#3d3d3d;--numguide:#1c1c1c;--balltick:#F5F5F5;}
+.sl{stroke:var(--sideline)} .ht{stroke:var(--hashtick)} .ng{stroke:var(--numguide)} .bt{stroke:var(--balltick)}
+html,body{height:100%;background:var(--off-white);color:var(--black);font-family:'Space Mono',monospace;overflow:hidden}
+.lc{text-transform:lowercase}
+button,select{font-family:inherit;cursor:pointer}
+
+#app{position:fixed;inset:0;display:flex;flex-direction:row}
+
+/* ---------- sidebar (bucketed controls) ---------- */
+#side{flex:0 0 210px;display:flex;flex-direction:column;overflow-y:auto;
+  background:var(--side);border-right:1px solid var(--gray-light)}
+#side .brand{font-family:'Retron2000','Space Mono',monospace;font-size:.72rem;letter-spacing:.1em;
+  padding:13px 14px 11px;color:var(--black)}
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+
+/* buckets = common region: tracked label + hairline separator */
+.bucket{padding:11px 14px 13px;border-top:1px solid var(--gray-light)}
+.bucket.admin{margin-top:auto}
+.bhead{font-family:'Retron2000','Space Mono',monospace;font-size:.58rem;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--gray-mid);margin-bottom:9px}
+
+/* labeled control row */
+.ctl{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ctl:last-child{margin-bottom:0}
+.ctl>label{flex:0 0 30px;font-size:.58rem;letter-spacing:.1em;color:var(--gray-mid)}
+
+/* borderless slicers — flat fill + underline affordance */
+select.pick{flex:1;min-width:0;border:0;background:var(--panel);color:var(--black);
+  font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.02em;padding:6px 6px;
+  box-shadow:inset 0 -1px 0 var(--gray-light);outline:none;cursor:pointer}
+select.pick:hover{background:var(--hover);box-shadow:inset 0 -1px 0 var(--gray-mid)}
+select.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
+
+/* segmented controls = uniform connectedness (shared container, hairline gaps) */
+.grp{display:flex;gap:1px;background:var(--gray-light);padding:1px}
+.ctl>.grp{flex:1;min-width:0}
+.bucket>.grp{margin-top:6px}
+.grp>button{flex:1;min-width:0;border:0;background:var(--panel);color:var(--gray-dark);
+  font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.02em;padding:6px 2px;line-height:1}
+.grp>button:hover{background:var(--hover);color:var(--black)}
+.grp>button.on{background:var(--black);color:var(--off-white)}
+
+/* admin */
+.admin input{width:100%;border:0;background:var(--panel);font-family:'Space Mono',monospace;
+  padding:6px 8px;color:var(--black);outline:none;box-shadow:inset 0 -1px 0 var(--gray-light);margin-bottom:6px}
+.admin input#playTitle{font-weight:700;font-size:.76rem}
+.admin input#playNote{font-size:.66rem;color:var(--gray-dark)}
+.admin input::placeholder{color:var(--gray-light);font-weight:400}
+.admin-btns{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:3px}
+.act{border:0;background:var(--panel);color:var(--black);font-family:'Space Mono',monospace;
+  font-size:.66rem;letter-spacing:.03em;padding:8px 6px;box-shadow:inset 0 0 0 1px var(--gray-light);cursor:pointer}
+.act:hover{background:var(--black);color:var(--off-white);box-shadow:none}
+.act.solid{background:var(--black);color:var(--off-white);box-shadow:none}
+.act.solid:hover{background:var(--gray-dark)}
+.sep{flex:1}
+
+/* ---------- stage ---------- */
+#stage{flex:1;position:relative;overflow:hidden;background:
+  repeating-linear-gradient(0deg,transparent 0 39px,var(--grid) 39px 40px),
+  repeating-linear-gradient(90deg,transparent 0 39px,var(--grid) 39px 40px),var(--field)}
+svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#field.pen{cursor:crosshair}
+
+.puck circle,.puck polygon{stroke:var(--black);stroke-width:2.2;fill:var(--field)}
+.puck rect.olsq{stroke:var(--black);stroke-width:2.2;fill:var(--field)}
+#menu button.hl{color:var(--hl);font-weight:700}
+#menu button.hl:hover{background:var(--hl);color:#fff}
+.puck.claimed rect.olsq{stroke:var(--gray-mid)}
+.puck.def polygon{fill:var(--off-white)}
+.puck text{font-family:'Space Mono',monospace;font-weight:700;font-size:14px;fill:var(--black);
+  text-anchor:middle;dominant-baseline:central;pointer-events:none;user-select:none}
+.puck .sub{font-size:9px;fill:var(--gray-mid);font-weight:400}
+.puck{cursor:pointer}
+.puck.grabbing{cursor:grabbing}
+.puck.claimed circle,.puck.claimed polygon{stroke:var(--gray-mid)}
+.puck.claimed text{fill:var(--gray-mid)}
+
+/* highlight: solid accent fill, no outline, soft glow — carries to the player's own marks */
+.puck.hl circle,.puck.hl polygon,.puck.def.hl polygon,.puck.hl rect.olsq{fill:var(--hl);stroke:none;filter:url(#hlglow)}
+.puck.hl text{fill:#fff}
+.mark.hlm,.cap.hlm{stroke:var(--hl);filter:url(#hlglow)}
+#arrow path{fill:var(--black)} #arrowHL path{fill:var(--hl)}
+.shd{fill:var(--black)} .puck.hl .shd{fill:#fff;opacity:.9}
+.los{stroke:var(--black)}
+
+/* needs-a-job glow (ui only, stripped on export) */
+.glow{fill:none;stroke:var(--gray-mid);stroke-width:1.4;stroke-dasharray:3 4;opacity:.55;
+  animation:pulse 2.4s ease-in-out infinite;pointer-events:none}
+@keyframes pulse{0%,100%{opacity:.22}50%{opacity:.7}}
+
+.mark{fill:none;stroke:var(--black);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+.mark.dash{stroke-dasharray:9 6}
+.mark.sel{stroke:var(--gray-dark)}
+.cap{fill:none;stroke:var(--black);stroke-width:2.4;stroke-linecap:round}
+.hit{fill:none;stroke:transparent;stroke-width:16;cursor:pointer}
+
+.bracket{fill:none;stroke:var(--call);stroke-width:1.8}
+.calltag{font-family:'Space Mono',monospace;font-weight:700;font-size:12px;fill:var(--call);
+  text-anchor:middle;letter-spacing:.06em;user-select:none}
+.as013tag{font-family:'Space Mono',monospace;font-weight:700;font-size:11px;fill:var(--call);text-anchor:middle}
+
+.handle{fill:var(--off-white);stroke:var(--gray-dark);stroke-width:1.6;cursor:grab}
+.handle:hover{stroke:var(--black)}
+
+/* rubber band while drawing */
+.band{fill:none;stroke:var(--gray-mid);stroke-width:1.6;stroke-dasharray:2 5;pointer-events:none}
+.vtx{fill:var(--black);pointer-events:none}
+
+/* ---------- dropdown ---------- */
+#menu{position:absolute;z-index:50;min-width:186px;background:var(--panel);border:2px solid var(--black);
+  box-shadow:5px 5px 0 -1px var(--shadow);display:none;font-size:.74rem}
+#menu.open{display:block}
+#menu .head{border-bottom:1px solid var(--gray-light);padding:6px 10px;font-family:'Retron2000','Space Mono',monospace;
+  font-size:.7rem;letter-spacing:.08em;color:var(--gray-mid)}
+#menu .head b{color:var(--black)}
+#menu button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--black);
+  padding:7px 10px;letter-spacing:.02em;border-bottom:1px solid var(--gray-light)}
+#menu button:last-child{border-bottom:0}
+#menu button:hover{background:var(--black);color:var(--off-white)}
+#menu button .k{color:var(--call);font-weight:700}
+#menu button:hover .k{color:var(--off-white)}
+#menu button.mut{color:var(--gray-mid)}
+
+/* ---------- footer ---------- */
+.foot{flex:none;height:26px;border-top:1px solid var(--gray-light);display:flex;align-items:center;gap:16px;
+  padding:0 14px;font-size:.58rem;letter-spacing:.12em;color:var(--gray-mid);background:var(--off-white)}
+.foot .hint{color:var(--gray-dark)}
+.pill{padding:1px 6px;box-shadow:inset 0 0 0 1px var(--gray-light)}
+.pill.warn{color:var(--call);box-shadow:inset 0 0 0 1px var(--call)}
+
+@media(max-width:840px){#side{flex-basis:184px}}
+@media(max-width:680px){.foot .hint{display:none}}
+
+/* ---------- play-data panel (json in/out) ---------- */
+#dataPanel{position:absolute;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+  background:var(--scrim)}
+#dataPanel.open{display:flex}
+#dataPanel .card{width:min(560px,92%);max-height:82%;background:var(--panel);border:2px solid var(--black);
+  box-shadow:6px 6px 0 -1px var(--shadow);display:flex;flex-direction:column}
+#dataPanel .top{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:2px solid var(--black)}
+#dataPanel .top b{font-family:'Retron2000','Space Mono',monospace;font-size:.78rem;letter-spacing:.06em}
+#dataPanel .hint2{font-size:.6rem;letter-spacing:.1em;color:var(--gray-mid)}
+#dataText{flex:1;min-height:240px;border:0;border-bottom:1px solid var(--gray-light);resize:none;
+  font-family:'Space Mono',monospace;font-size:.7rem;line-height:1.5;padding:12px;color:var(--black);
+  background:var(--field);white-space:pre;overflow:auto;outline:none}
+#dataPanel .row{display:flex;gap:6px;padding:8px 12px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="side">
+    <div class="brand lc">beaunelson // playbook</div>
+
+    <section class="bucket">
+      <div class="bhead">offense</div>
+      <div class="ctl"><label class="lc">str</label>
+        <div class="grp" id="strGrp">
+          <button data-str="rt" class="on lc">rt</button>
+          <button data-str="lt" class="lc">lt</button>
+        </div></div>
+      <div class="ctl"><label class="lc">form</label>
+        <select class="pick lc" id="formPick">
+          <option value="slot" selected>default</option>
+          <option value="str">strong</option>
+          <option value="wk">weak</option>
+          <option value="flx">flex</option>
+          <option value="bnch">bunch</option>
+          <option value="stch">brung</option>
+          <option value="blx">blex</option>
+          <option value="blk">bleak</option>
+          <option value="nsty">nasty</option>
+          <option value="ntr">nitro</option>
+          <option value="clst">cluster</option>
+          <option value="clik">click</option>
+          <option value="chex">chex</option>
+          <option value="add">add</option>
+          <option value="nod">astrid</option>
+          <option value="axe">axe</option>
+        </select></div>
+      <div class="ctl"><label class="lc">h</label>
+        <select class="pick lc" id="hPick">
+          <option value="i" selected>i</option>
+          <option value="ws">west</option>
+          <option value="wo">work</option>
+          <option value="wu">wut</option>
+          <option value="ww">wwing</option>
+          <option value="wb">web</option>
+          <option value="ss">sass</option>
+          <option value="so">solar</option>
+          <option value="su">surf</option>
+          <option value="sw">swarm</option>
+          <option value="sb">snob</option>
+        </select></div>
+      <div class="ctl"><label class="lc">qb</label>
+        <div class="grp" id="qbGrp">
+          <button data-qb="uc" class="on lc">under</button>
+          <button data-qb="gun" class="lc">gun</button>
+        </div></div>
+      <div class="ctl"><label class="lc">back</label>
+        <select class="pick lc" id="backPick">
+          <option value="default" selected>default</option>
+          <option value="a">a</option><option value="b">b</option>
+          <option value="lf">lf</option><option value="rf">rf</option>
+          <option value="l1">l1</option><option value="l2">l2</option><option value="l3">l3</option><option value="lw">lw</option>
+          <option value="rw">rw</option><option value="r3">r3</option><option value="r2">r2</option><option value="r1">r1</option>
+        </select></div>
+      <div class="ctl"><label class="lc">ball</label>
+        <select class="pick lc" id="ballPick">
+          <option value="left">left hash</option>
+          <option value="lmid">l-mid</option>
+          <option value="mid" selected>middle</option>
+          <option value="rmid">r-mid</option>
+          <option value="right">right hash</option>
+        </select></div>
+    </section>
+
+    <section class="bucket">
+      <div class="bhead">defense</div>
+      <div class="ctl"><label class="lc">front</label>
+        <select class="pick lc" id="defPick"><option value="over">4-3 over</option></select></div>
+      <div class="ctl"><label class="lc">shell</label>
+        <div class="grp" id="shellGrp">
+          <button data-shell="open" class="on lc">open</button>
+          <button data-shell="closed" class="lc">closed</button>
+        </div></div>
+    </section>
+
+    <section class="bucket">
+      <div class="bhead">drawing</div>
+      <div class="grp" id="tools">
+        <button data-mode="select" class="on lc">select</button>
+        <button data-preset="route" class="lc">route</button>
+        <button data-preset="block" class="lc">block</button>
+        <button data-preset="motion" class="lc">motion</button>
+        <button data-preset="zone" class="lc">zone</button>
+      </div>
+      <div class="ctl"><label class="lc">line</label>
+        <div class="grp" id="lineGrp">
+          <button data-line="solid" class="on lc">solid</button>
+          <button data-line="dash" class="lc">dash</button>
+        </div></div>
+      <div class="ctl"><label class="lc">cap</label>
+        <div class="grp" id="capGrp">
+          <button data-cap="arrow" class="on lc">arrow</button>
+          <button data-cap="tee" class="lc">tee</button>
+          <button data-cap="hook" class="lc">hook</button>
+          <button data-cap="none" class="lc">none</button>
+        </div></div>
+      <div class="grp" id="smoothGrp"><button data-smooth class="lc">smooth</button></div>
+    </section>
+
+    <section class="bucket admin">
+      <div class="bhead">admin</div>
+      <input id="playTitle" placeholder="play title (file name)" spellcheck="false">
+      <input id="playNote" placeholder="note — game, situation, system…" spellcheck="false">
+      <div class="admin-btns">
+        <button class="act lc" id="undoBtn">undo</button>
+        <button class="act lc" id="clearBtn">clear</button>
+        <button class="act lc" id="dataBtn">data</button>
+        <button class="act solid lc" id="exportBtn">export</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="main">
+  <div id="stage">
+    <svg id="field" viewBox="0 0 1040 720" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5"
+                orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0A0A0A"/></marker>
+        <marker id="arrowHL" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5"
+                orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2E7DD1"/></marker>
+        <filter id="hlglow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
+          <feComponentTransfer in="b" result="g"><feFuncA type="linear" slope="0.75"/></feComponentTransfer>
+          <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <g id="fieldLayer">
+        <!-- line of scrimmage -->
+        <line class="los" x1="70" y1="340" x2="970" y2="340" stroke="#0A0A0A" stroke-width="1.4"/>
+        <!-- hash marks -->
+        <g id="hashes"></g>
+      </g>
+      <g id="markLayer"></g>
+      <g id="callLayer"></g>
+      <g id="puckLayer"></g>
+      <g id="uiLayer"></g>
+    </svg>
+    <div id="menu"></div>
+    <div id="dataPanel">
+      <div class="card">
+        <div class="top"><b class="lc">play data</b>
+          <span class="hint2 lc">copy to share · paste json + apply to load</span></div>
+        <textarea id="dataText" spellcheck="false"></textarea>
+        <div class="row">
+          <button class="act lc" id="dataCopy">copy</button>
+          <button class="act lc" id="dataSave">download .json</button>
+          <span style="flex:1"></span>
+          <button class="act lc" id="dataApply">apply</button>
+          <button class="act solid lc" id="dataClose">close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div class="foot lc">
+      <span class="hint" id="hint">select a player to assign · pick a pen to draw</span>
+      <span class="sep" style="flex:1"></span>
+      <span class="pill" id="stateReadout">0 marks · 0 assigned</span>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const NS="http://www.w3.org/2000/svg";
+const $=s=>document.querySelector(s);
+const el=(tag,attrs)=>{const n=document.createElementNS(NS,tag);for(const k in attrs)n.setAttribute(k,attrs[k]);return n;};
+
+/* ============================================================
+   DATA — formations + fronts. players placed in field units.
+   LOS = y340. offense below (y>340), defense above (y<340).
+   ============================================================ */
+/* ---- FORMATION RESOLVER --------------------------------------------------
+   Beau's structuring program: formation = f(strength, Y/form tag, H tag, back tag).
+   The line + Q are the fixed skeleton. Y tag places Y/X/Z (and relocates X on the
+   weak/bunch tags). H tag places the move player. Back tag places T (the back).
+   Positions authored strength-relative: side 'S' = strong, 'W' = weak; strength
+   'rt' makes strong = right (higher x), 'lt' mirrors it.                        */
+const B=520;                                   // ball x
+const mirror=x=>1040-x;
+// H-tag spot -> [offset-from-ball, y]. u/b are backfield (offset handled in code).
+const HSPOT={ s:[250,388], o:[400,372], w:[176,392], u:[40,452], b:[56,520] };
+// bunch H spots calibrated per form from Beau's charted positions: [offset-from-ball, y]
+const HBUNCH={ ws:[333,404], wo:[409,409], wu:[63,474], ww:[129,411], wb:[77,553],
+               ss:[249,410], so:[385,397], su:[68,475], sw:[119,416], sb:[86,545] };
+const HBLK  ={ ws:[251,408], wo:[409,409], wu:[63,474], ww:[184,408], wb:[77,553],
+               ss:[263,412], so:[385,397], su:[68,475], sw:[119,416], sb:[86,545] };
+const HBLX  ={ ws:[324,408], wo:[409,409], wu:[63,474], ww:[129,411], wb:[77,553],
+               ss:[261,410], so:[385,397], su:[68,475], sw:[119,416], sb:[86,545] };
+const HSTR  ={ ws:[250,388], wo:[394,404], wu:[62,481], ww:[134,408], wb:[74,549],
+               ss:[250,388], so:[402,399], su:[72,483], sw:[184,410], sb:[82,549] };
+const HSTCH ={ ws:[338,408], wo:[400,406], wu:[57,480], ww:[134,411], wb:[85,545],
+               ss:[233,405], so:[363,406], su:[69,475], sw:[184,400], sb:[110,545] };
+const HWK   ={ ws:[258,393], wo:[360,396], wu:[64,478], ww:[180,411], wb:[71,553],
+               ss:[177,408], so:[405,396], su:[65,484], sw:[136,409], sb:[87,543] };
+const HSLOT ={ ws:[250,388], wo:[390,401], wu:[60,487], ww:[135,407], wb:[76,551],
+               ss:[177,394], so:[402,384], su:[68,480], sw:[138,405], sb:[86,541] };
+const HNSTY ={ ws:[145,402] };   // nasty forms slot the H inside the tight X
+// add / astrid(nod) / axe: charted exact per cell from Beau's sheet (9/22)
+const HNOD ={ ws:[153,411], wo:[221,406], wu:[65,485], ww:[127,412], wb:[81,548], ss:[212,404], so:[237,405], su:[67,486], sw:[183,404], sb:[77,549] };
+const HADD ={ ws:[155,408], wo:[218,402], wu:[70,486], ww:[128,400], wb:[73,548], ss:[216,401], so:[268,408], su:[76,484], sw:[130,398], sb:[85,551] };
+const HAXE ={ ws:[153,404], wo:[216,400], wu:[60,477], ww:[133,400], wb:[69,480], so:[265,405], su:[68,475], sw:[119,416], sb:[86,545] };   // ss uncharted -> generic
+// flex: charted exact per cell (9/22 flex_fix)
+const HFLX ={ ws:[250,388], wo:[370,403], wu:[65,482], ww:[133,408], wb:[67,482], ss:[190,395], so:[392,394], su:[69,486], sw:[133,402], sb:[88,546] };
+const HTABLES={ str:HSTR, stch:HSTCH, wk:HWK, slot:HSLOT, bnch:HBUNCH, blk:HBLK, blx:HBLX, nsty:HNSTY, nod:HNOD, add:HADD, axe:HAXE, flx:HFLX };
+// per (form|hTag) receiver repositioning — e.g. weak-outside H bumps the split end into the slot
+const RECV_OVERRIDE={
+  'str|wo':  { X:['W',255,372] },                        // weak-outside H bumps split end to slot
+  'wk|so':   { X:['S',215,372], Z:['S',306,398] },       // strong-outside H tucks X and Z in
+  'slot|ss': { Y:['S',277,375], Z:['S',380,397] },       // strong-slot H shifts Y/Z out
+  'slot|so': { Y:['S',221,374], Z:['S',310,389] },       // strong-outside H tucks Y/Z in
+  'flx|wo':    { Y:['W',263,372] },
+  'flx|ss':    { X:['S',277,372] },
+  'flx|so':    { X:['S',217,372], Z:['S',309,391] },
+  // add / astrid(nod) / axe — exact per cell (9/22 sheet)
+  'nod|ss':    { Z:['S',253,404] },
+  'nod|sw':    { Z:['S',230,407] },
+  'add|ws':    { Y:['S',173,372], Z:['S',207,404] },
+  'add|wo':    { Y:['S',170,372], Z:['S',209,403] },
+  'add|wu':    { Y:['S',175,372], Z:['S',217,406] },
+  'add|ww':    { Y:['S',176,372], Z:['S',218,402] },
+  'add|wb':    { Y:['S',175,372], Z:['S',214,403] },
+  'add|ss':    { Y:['S',177,372], Z:['S',260,401] },
+  'add|so':    { Y:['S',175,372], Z:['S',217,407] },
+  'add|su':    { Y:['S',170,372], Z:['S',211,403] },
+  'add|sw':    { Y:['S',180,372], Z:['S',222,400] },
+  'add|sb':    { Y:['S',173,372], Z:['S',211,407] },
+  'axe|ws':    { Y:['W',186,372], X:['S',188,374], Z:['S',227,400] },
+  'axe|wo':    { Y:['W',176,372], X:['S',181,373], Z:['S',227,397] },
+  'axe|wu':    { Y:['W',172,373], X:['S',182,372] },
+  'axe|ww':    { Y:['W',207,372], X:['S',175,373], Z:['S',214,401] },
+  'axe|wb':    { Y:['W',176,372], X:['S',185,372], Z:['S',228,398] },
+  'axe|so':    { Y:['W',167,372], X:['S',177,372], Z:['S',216,405] },
+  'axe|su':    { Y:['W',171,372], X:['S',177,372], Z:['S',216,405] },
+  'axe|sw':    { Y:['W',175,372], X:['S',177,372], Z:['S',216,405] },
+  'axe|sb':    { Y:['W',183,372], X:['S',177,372], Z:['S',216,405] },
+};
+// back (T) — a/b offset near QB, LF/RF flared deep (constant across forms, no reflow)
+const BACKPOS={ a:[454,521], b:[603,526], lf:[291,483], rf:[736,503] };
+const EMPTIES=['l1','l2','l3','lw','rw','r3','r2','r1'];
+// empties: T becomes a receiver and the side-mates reflow to seat him. Per form (charted full),
+// each empty = {T + moved side-mates}; strength rt. Uncharted (form,empty) falls back to slot.
+const REFLOW={
+  slot:{ l1:{T:[89,399],X:[178,372],H:[308,399]}, l2:{T:[229,396],X:[144,372],H:[337,397]}, l3:{T:[340,386],X:[144,372],H:[234,392]}, lw:{T:[384,393],X:[144,372],H:[283,395]}, rw:{T:[653,396]}, r3:{T:[703,386],Y:[799,386]}, r2:{T:[806,389],Y:[721,384]}, r1:{T:[893,392],Y:[721,384],Z:[805,372]} },
+  str:{ l1:{T:[142,393],X:[227,372],H:[320,397]}, l2:{T:[229,396],H:[327,396]}, l3:{T:[340,386],H:[250,388]}, lw:{T:[384,393]}, rw:{T:[699,403]}, r2:{T:[774,393]}, r1:{T:[893,392],Z:[790,392]} },
+  stch:{ l1:{T:[120,399],H:[183,399]}, l2:{T:[151,408],X:[125,372],H:[197,409]}, l3:{T:[222,410]}, lw:{T:[384,393]}, rw:{T:[696,402],Z:[741,402]}, r2:{T:[686,400],Z:[732,401]}, r1:{T:[758,405]} },
+  wk:{ l1:{T:[120,399]}, l2:{T:[326,393]}, lw:{T:[337,397]}, rw:{T:[653,396]}, r3:{T:[703,386],X:[802,372]}, r2:{T:[806,389],X:[721,372]}, r1:{T:[906,393],X:[734,372],Z:[816,396]} },
+  bnch:{ l1:{T:[119,406]}, l2:{T:[183,398],H:[225,398]}, l3:{T:[233,405]}, lw:{T:[384,393]}, rw:{T:[653,396]}, r2:{T:[728,404],Z:[773,408]}, r1:{T:[764,409]} },
+  flx:{ l1:{T:[120,399],Y:[197,372],H:[284,397]}, l2:{T:[229,396],H:[308,396]}, l3:{T:[340,386],H:[243,390]}, lw:{T:[384,393]}, rw:{T:[653,396]}, r3:{T:[703,386],X:[797,372]}, r2:{T:[806,389],X:[721,372]}, r1:{T:[893,392],X:[737,372],Z:[813,396]} },
+  blx:{ l1:{T:[120,399],H:[189,401]}, l2:{T:[192,401],H:[231,402]}, l3:{T:[241,408]}, lw:{T:[384,393]}, r3:{T:[659,404]}, r2:{T:[738,399],Z:[782,398]}, r1:{T:[779,404]} },
+  blk:{ l1:{T:[149,408]}, l3:{T:[322,407]}, lw:{T:[344,406]}, r3:{T:[662,407]}, r2:{T:[732,403],Z:[773,404]}, r1:{T:[785,408]} },
+  nsty:{ l1:{T:[120,399],H:[379,398]}, l2:{T:[330,394],X:[298,372],H:[374,394]}, lw:{T:[384,393],X:[307,372],H:[343,395]}, rw:{T:[653,396],H:[371,402]}, r3:{T:[703,386],Y:[805,389],H:[372,400]}, r2:{T:[806,389],Y:[732,391],H:[376,404]}, r1:{T:[893,392],Y:[733,389],Z:[811,373],H:[373,406]} },
+  ntr:{ l1:{T:[120,399],H:[376,395]}, l2:{T:[334,395],X:[294,372],H:[389,394]}, lw:{T:[384,393],X:[307,372],H:[342,395]}, rw:{T:[703,404],H:[369,400]}, r2:{T:[806,389],H:[368,397]}, r1:{T:[893,392],Z:[788,398],H:[365,403]} },
+  nod:{ l1:{T:[120,399],H:[378,404]}, lw:{T:[392,400],H:[357,399]}, rw:{T:[697,401],Z:[739,402],H:[270,388]}, r2:{T:[684,403],Z:[732,403],H:[376,401]}, r1:{T:[760,406],H:[374,398]} },
+  clst:{ l1:{T:[100,399],X:[202,372],H:[302,396]}, l2:{T:[229,396]}, l3:{T:[340,386],H:[244,386]}, lw:{T:[384,393]}, rw:{T:[653,396]}, r3:{T:[744,408]}, r2:{T:[813,398],Z:[858,397]}, r1:{T:[859,411]} },
+  clik:{ l1:{T:[120,399]}, l2:{T:[324,393]}, lw:{T:[344,399]}, rw:{T:[653,396]}, r3:{T:[755,404]}, r2:{T:[824,404],Z:[866,405]}, r1:{T:[883,406]} },
+  chex:{ l1:{T:[120,399],Y:[194,372],Z:[870,408],H:[277,398]}, l2:{T:[229,396],Z:[870,408],H:[316,398]}, l3:{T:[340,386],Z:[870,408],H:[250,390]}, lw:{T:[384,393],Z:[870,408]}, rw:{T:[653,396],Z:[856,401]}, r3:{T:[783,402],Z:[856,401]}, r2:{T:[854,399],Z:[895,399]}, r1:{T:[896,402],Z:[850,401]} },
+};
+// per Y-tag placement of Y/X/Z, strength-relative: [side,'off',y]
+const YTAGS={
+  slot:{Y:['S',250,388], X:['W',370,372], Z:['S',370,372]}, // DEFAULT: Y in the slot to strength
+  str: {Y:['S',144,372], X:['W',370,372], Z:['S',370,388]}, // Y inline strong (on), X split end (on), Z flanker wide off
+  stch:{Y:['S',144,372], X:['W',370,372], Z:['S',190,402]}, // like str but Z pulled in tight (stack)
+  wk:  {Y:['W',144,372], X:['S',250,372], Z:['S',370,388]}, // Y inline weak ON the ball, X over strong (on), Z flanker off
+  flx: {Y:['W',364,372], X:['S',250,372], Z:['S',370,388]}, // Y flexed OUT weak (far, like blx), X on strong, Z off
+  bnch:{Y:['S',164,372], X:['W',370,372], Z:['S',198,406]}, // Y on-ball point, X weak (on), Z off behind
+  blk: {Y:['W',144,372], X:['S',177,372], Z:['S',214,405]}, // Y weak inline, X+Z bunch strong (X on, Z off)
+  blx: {Y:['W',364,372], X:['S',177,372], Z:['S',216,405]}, // Y flexed OUT weak (far), X+Z bunch strong
+  nsty:{Y:['S',250,388], X:['W',189,372], Z:['S',370,372]}, // slot w/ X in a nasty (tight) split
+  ntr: {Y:['S',144,372], X:['W',200,372], Z:['S',370,388]}, // str w/ X in a nasty split
+  nod: {Y:['S',144,372], X:['W',185,372], Z:['S',190,402]}, // stch (tight Z) w/ nasty X
+  clst:{Y:['S',253,372], X:['W',370,372], Z:['S',290,408]}, // cluster strong (Y on ball, Z tight behind)
+  clik:{Y:['W',144,372], X:['S',275,372], Z:['S',316,405]}, // Y weak inline + cluster strong
+  chex:{Y:['W',364,372], X:['S',293,372], Z:['S',325,402]}, // Y far weak split + cluster strong
+  add: {Y:['S',167,372], X:['W',185,372], Z:['S',218,405]}, // 'A' adds to the box: nasty X, Y on ball wider, Z off
+  axe: {Y:['W',176,373], X:['S',172,372], Z:['S',226,397]}, // Y nasty weak on ball, X tight strong on ball, Z off
+};
+const YTAG_ORDER=['slot','str','wk','flx','bnch','stch','blx','blk','nsty','ntr','clst','clik','chex','add','nod','axe'];
+// display names (dropdown + auto-title). internal keys stay stable so old plays load.
+const FORM_LABEL={ slot:'default', str:'strong', wk:'weak', flx:'flex', bnch:'bunch', stch:'brung', blx:'blex', blk:'bleak',
+  nsty:'nasty', ntr:'nitro', clst:'cluster', clik:'click', chex:'chex', add:'add', nod:'astrid', axe:'axe' };
+const H_LABEL={ i:'i', ws:'west', wo:'work', wu:'wut', ww:'wwing', wb:'web', ss:'sass', so:'solar', su:'surf', sw:'swarm', sb:'snob' };
+
+function buildOffense(strength,yTag,hTag,qbTag,backTag){
+  const strong = strength==='rt' ? +1 : -1;          // +1 => strong is to the right
+  const sgn = s => (s==='S'? strong : -strong);      // side letter -> screen direction
+  const px  = (s,off)=> Math.round(B + sgn(s)*off);
+  const out=[]; const push=(id,label,kind,x,y)=>out.push({id,label,side:'off',kind,x,y,cx:x,cy:y});
+  // interior line (fixed, symmetric)
+  push('LT','T','ol',B-96,372); push('LG','G','ol',B-48,372); push('C','C','ol',B,372);
+  push('RG','G','ol',B+48,372); push('RT','T','ol',B+96,372);
+  // QB — independent of the back now: under center or gun
+  const gun = qbTag==='gun';
+  const qbY = gun?496:420;
+  push('Q','Q','back', B, qbY);
+  // T (the back): a/b/LF/RF (BACKPOS), empties (per-form T, slot fallback), or default behind QB
+  const empty = EMPTIES.includes(backTag);
+  const erf = empty ? ((REFLOW[yTag]&&REFLOW[yTag][backTag]) || REFLOW.slot[backTag]) : null;
+  if(BACKPOS[backTag])  push('T','T','back', BACKPOS[backTag][0], BACKPOS[backTag][1]);
+  else if(erf)          push('T','T','back', erf.T[0], erf.T[1]);
+  else                  push('T','T','back', B, gun?566:548);
+  // Y / X / Z by Y tag (strength-relative)
+  const t=YTAGS[yTag]||YTAGS.slot;
+  ['Y','X','Z'].forEach(id=>{const[s,off,y]=t[id]; push(id,id, id==='Y'?'te':'skill', px(s,off), y);});
+  // H (move player). 'i' = I-back stacked behind the QB; else side(s/w)+spot(s/o/u/w/b)
+  if(hTag==='i'){ push('H','H','back', B, qbY+70); }                            // I-back
+  else{
+    const hs=hTag[0]==='s'?'S':'W', spot=hTag[1]||'s', backfield=(spot==='u'||spot==='b');
+    const tbl=HTABLES[yTag];
+    if(tbl && tbl[hTag]){ const [mag,y]=tbl[hTag];                              // charted bunch spot for this form
+      push('H','H', backfield?'back':'skill', px(hs,mag), y); }
+    else{ const sp=HSPOT[spot]||HSPOT.s;
+      if(backfield) push('H','H','back', B + sgn(hs)*sp[0], sp[1]);
+      else          push('H','H','skill', px(hs,sp[0]), sp[1]); }
+  }
+  const ov=RECV_OVERRIDE[yTag+'|'+hTag];                                        // rare receiver bumps
+  if(ov) for(const id in ov){ const p=out.find(o=>o.id===id);
+    if(p){ const[s,off,y]=ov[id]; p.cx=p.x=px(s,off); p.cy=p.y=y; } }
+  // empty reflow — re-space the side-mates to seat the split-out T (charted per form, strength rt)
+  if(strength==='rt' && empty && REFLOW[yTag] && REFLOW[yTag][backTag]){
+    const rf=REFLOW[yTag][backTag];
+    for(const id in rf){ if(id==='T')continue; const p=out.find(o=>o.id===id); if(p){ p.cx=p.x=rf[id][0]; p.cy=p.y=rf[id][1]; } }
+  }
+  return out;
+}
+
+const FRONTS={
+  over:[ // 4-3 over: 3-tech to strength (offense right / TE side), shade nose weak
+    {id:'DE_W',label:'E', x:404, y:305},
+    {id:'NT',  label:'N', x:498, y:311},
+    {id:'DT',  label:'T', x:586, y:307},
+    {id:'DE_S',label:'E', x:694, y:305},
+    {id:'WILL',label:'W', x:452, y:266},
+    {id:'MIKE',label:'M', x:540, y:262},
+    {id:'SAM', label:'S', x:678, y:260},
+    {id:'CB_W',label:'C', x:150, y:256},
+    {id:'CB_S',label:'C', x:890, y:256},
+    {id:'FS',  label:'F', x:500, y:150},
+    {id:'SS',  label:'$', x:662, y:190},
+  ]
+};
+
+/* coverage shell — repositions the safeties (open = 2-high, closed = 1-high) */
+const SHELLS={
+  open:  {FS:{x:432,y:150}, SS:{x:610,y:150}},   // two deep, symmetric
+  closed:{FS:{x:512,y:128}, SS:{x:648,y:236}},   // one deep middle, $ rolled down strong
+};
+
+/* ============================================================
+   CALLS CATALOG — hand-built for v1.
+   members:'self' = solo (claims clicked player only).
+   A call CLAIMS its members and writes each a job.
+   ============================================================ */
+const CALLS=[
+  {key:'gt_deuce',    name:'GT Deuce',      members:['RG','RT'], tag:'DEUCE', draw:'combo'},
+  {key:'cg_deuce_str',name:'CG Deuce (Str)',members:['C','RG'],  tag:'DEUCE', draw:'combo'},
+  {key:'cg_deuce_wk', name:'CG Deuce (Wk)', members:['C','LG'],  tag:'DEUCE', draw:'combo'},
+  {key:'box',         name:'Box',           members:'self', tag:'BOX',  draw:'base'},
+  {key:'down',        name:'Down',          members:'self', tag:null,   draw:'down'},
+  {key:'reach',       name:'Reach',         members:'self', tag:null,   draw:'reach'},
+  {key:'pull',        name:'Pull',          members:'self', tag:'PULL', draw:'pull'},
+  {key:'base',        name:'Base',          members:'self', tag:null,   draw:'base'},
+];
+const CALLMAP=Object.fromEntries(CALLS.map(c=>[c.key,c]));
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let players=[];             // active players (off + def), each {..., cx, cy live pos}
+const P={};                 // id -> player
+let marks=[];               // {id, owner, anchor, src:'pen'|'assign', instId, line, cap, smooth, pts:[{x,y}]}
+let instances={};           // instId -> {key, tag, members:[ids]}
+let assign={};              // playerId -> instId   (uniqueness: one job per player)
+let uid=1; const nid=()=>'m'+(uid++);
+
+let mode='select';          // 'select' | 'pen'
+let strength='rt';          // 'rt' | 'lt' — named by the Y's side
+let yTag='str';             // Y tag / form: str (strong-I baseline) slot wk bnch flx blx blk
+let hTag='i';               // H (move) tag: i (I-back) or side(s/w)+spot(s/o/u/w/b) — REQUIRED
+let qbTag='uc';             // QB tag: uc (under center) | gun
+let backTag='default';      // back (T): default | a b | lf rf | l1 l2 l3 lw rw r3 r2 r1
+let curDef='over';          // current front
+let shell='open';           // 'open' | 'closed' coverage shell
+let ballSpot='mid';         // ball on the hash: left | lmid | mid | rmid | right
+let highlighted={};         // player ids highlighted with the accent color
+let shadeMap={};            // olId -> defender that shades it (recomputed each render)
+let pen={line:'solid',cap:'arrow',smooth:false};
+let draft=null;             // {owner, pts:[...]} while drawing
+let sel=null;               // selected mark id (select mode)
+
+const field=$('#field'), markLayer=$('#markLayer'), callLayer=$('#callLayer'),
+      puckLayer=$('#puckLayer'), uiLayer=$('#uiLayer'), menu=$('#menu');
+
+/* ============================================================
+   HISTORY — snapshot-based undo (covers draws, calls, moves, clear)
+   ============================================================ */
+let history=[];
+function snapshot(){return JSON.stringify({marks,instances,assign,
+  pos:players.map(p=>({id:p.id,cx:p.cx,cy:p.cy}))});}
+function pushHistory(){history.push(snapshot());if(history.length>80)history.shift();}
+function restore(s){const st=JSON.parse(s);
+  marks=st.marks;instances=st.instances;assign=st.assign;
+  (st.pos||[]).forEach(o=>{if(P[o.id]){P[o.id].cx=P[o.id].x=o.cx;P[o.id].cy=P[o.id].y=o.cy;}});
+  // keep new-id counter ahead of anything restored
+  st.marks.forEach(m=>{const n=+String(m.id).slice(1);if(n>=uid)uid=n+1;});
+  sel=null;renderAll();}
+function undo(){if(history.length)restore(history.pop());}
+
+/* ---------- (re)generate the formation + front + shell ---------- */
+const LOS=340;                                         // line of scrimmage (drawn)
+const SL_L=24, SL_R=1016, FTX=(SL_R-SL_L)/160;         // sidelines = 160 ft (HS/college width)
+const HASH_L=Math.round(SL_L+53.333*FTX);              // hashes 53'4" off each sideline (HS)
+const HASH_R=Math.round(SL_R-53.333*FTX);
+const NUM_L=Math.round(SL_L+27*FTX);                   // field numbers 27 ft off each sideline
+const NUM_R=Math.round(SL_R-27*FTX);
+const BALLDX={left:HASH_L-520, lmid:Math.round((HASH_L-520)/2), mid:0,
+              rmid:Math.round((HASH_R-520)/2), right:HASH_R-520};
+const OFF_LINE=372, DEF_LINE=311;                      // neutral zone: OL front / DL front
+function load(){
+  players=[]; Object.keys(P).forEach(k=>delete P[k]);
+  buildOffense(strength,yTag,hTag,qbTag,backTag).forEach(q=>{players.push(q);P[q.id]=q;});
+  (FRONTS[curDef]||FRONTS.over).forEach(p=>{const q={...p,side:'def',kind:'def',cx:p.x,cy:p.y};players.push(q);P[q.id]=q;});
+  applyShell();
+  // defensive strength (fronts/shells authored strong-right). rules:
+  //  - inline-TE forms: strength sets to the Y (wherever he resolves)
+  //  - no-inline-TE forms: strength goes to the call side, unless the H is a wing
+  //    (ww wwing / sw swarm) -> strength sets to the H
+  if(defStrongLeft()) players.forEach(p=>{ if(p.side==='def'){ p.x=p.cx=mirror(p.cx); } });
+  const dx=BALLDX[ballSpot]||0;                         // slide onto the hash; keep a boundary margin
+  players.forEach(p=>{p.x=p.cx=Math.max(SL_L+96,Math.min(SL_R-96,p.x+dx));});
+  marks=[]; instances={}; assign={}; sel=null; draft=null; history=[]; highlighted={};
+  drawHashes(); renderAll();
+}
+const NO_TE_FORMS=['slot','flx','blx','nsty','clst','chex','add','axe'];
+const WING_H=['ww','sw'];
+function defStrongLeft(){
+  if(NO_TE_FORMS.includes(yTag)){
+    if(WING_H.includes(hTag) && P.H) return P.H.cx<B;
+    return strength==='lt';
+  }
+  return !!(P.Y && P.Y.cx<B);
+}
+function applyShell(){
+  const s=SHELLS[shell]||SHELLS.open;
+  for(const id in s){ if(P[id]){P[id].cx=P[id].x=s[id].x; P[id].cy=P[id].y=s[id].y;} }
+}
+function drawHashes(){
+  const g=$('#hashes'); g.innerHTML='';
+  g.appendChild(el('line',{x1:SL_L,y1:20,x2:SL_L,y2:700,stroke:'#DCDCDA',class:'sl','stroke-width':2}));   // sidelines
+  g.appendChild(el('line',{x1:SL_R,y1:20,x2:SL_R,y2:700,stroke:'#DCDCDA',class:'sl','stroke-width':2}));
+  [HASH_L,HASH_R].forEach(hx=>{                          // two rows of hash ticks
+    for(let y=40;y<=700;y+=26) g.appendChild(el('line',{x1:hx-6,y1:y,x2:hx+6,y2:y,stroke:'#C4C4C4',class:'ht','stroke-width':1}));
+  });
+  [NUM_L,NUM_R].forEach(nx=>                             // faint guides: where field numbers sit
+    g.appendChild(el('line',{x1:nx,y1:24,x2:nx,y2:696,stroke:'#EBEBE9',class:'ng','stroke-width':1,'stroke-dasharray':'2 10'})));
+  const bx=520+(BALLDX[ballSpot]||0);                    // bold tick marks the ball spot
+  g.appendChild(el('line',{x1:bx-8,y1:LOS,x2:bx+8,y2:LOS,stroke:'#0A0A0A',class:'bt','stroke-width':3}));
+}
+
+/* ============================================================
+   GEOMETRY — path building, caps, smoothing
+   ============================================================ */
+function livePts(m){                       // resolve anchored first point to live player pos
+  const pts=m.pts.map(p=>({x:p.x,y:p.y}));
+  if(m.anchor&&P[m.anchor]){pts[0]={x:P[m.anchor].cx,y:P[m.anchor].cy};}
+  return pts;
+}
+function polyPath(pts){return pts.map((p,i)=>(i?'L':'M')+p.x+' '+p.y).join(' ');}
+function smoothPath(pts){                  // Catmull-Rom -> cubic bezier
+  if(pts.length<3)return polyPath(pts);
+  let d='M'+pts[0].x+' '+pts[0].y;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+    const c1x=p1.x+(p2.x-p0.x)/6, c1y=p1.y+(p2.y-p0.y)/6;
+    const c2x=p2.x-(p3.x-p1.x)/6, c2y=p2.y-(p3.y-p1.y)/6;
+    d+=' C'+c1x+' '+c1y+' '+c2x+' '+c2y+' '+p2.x+' '+p2.y;
+  }
+  return d;
+}
+function endDir(pts){                       // unit direction into the final point
+  if(pts.length<2)return{x:1,y:0};
+  const a=pts[pts.length-2], b=pts[pts.length-1];
+  const dx=b.x-a.x, dy=b.y-a.y, L=Math.hypot(dx,dy)||1; return{x:dx/L,y:dy/L};
+}
+function capShape(pts,cap){                 // returns svg node(s) for the end cap, or null
+  if(cap==='none'||cap==='arrow'||pts.length<2)return null;
+  const b=pts[pts.length-1], d=endDir(pts);
+  if(cap==='tee'){                          // perpendicular bar — a block
+    const nx=-d.y, ny=d.x, L=9;
+    return el('line',{class:'cap',x1:b.x-nx*L,y1:b.y-ny*L,x2:b.x+nx*L,y2:b.y+ny*L});
+  }
+  if(cap==='hook'){                         // little curl — a zone drop / hook
+    const nx=-d.y, ny=d.x, r=9;
+    const s={x:b.x, y:b.y};
+    const e={x:b.x-d.x*r+nx*r, y:b.y-d.y*r+ny*r};
+    const p=el('path',{class:'cap'}); 
+    p.setAttribute('d','M'+s.x+' '+s.y+' A'+r+' '+r+' 0 0 1 '+e.x+' '+e.y);
+    return p;
+  }
+  return null;
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderAll(){shadeMap=computeShades();renderMarks();renderCalls();renderPucks();renderUI();updateReadout();}
+
+/* ---------- technique shading: which defender aligns on which O-lineman ----------
+   each down defender claims its single nearest blocker; that blocker renders the
+   shade on his circle. head-up -> mohawk; otherwise the half toward the defender. */
+function computeShades(){
+  const map={};
+  const ols=players.filter(p=>p.side==='off'&&(p.kind==='ol'||p.kind==='te'));
+  players.filter(d=>d.side==='def'&&d.cy>=290&&d.cy<=340).forEach(d=>{
+    let best=null,bd=1e9;
+    ols.forEach(o=>{const dx=Math.abs(d.cx-o.cx);if(dx<bd&&dx<=30){bd=dx;best=o;}});
+    if(best&&(!map[best.id]||Math.abs(d.cx-best.cx)<Math.abs(map[best.id].cx-best.cx)))map[best.id]=d;
+  });
+  return map;
+}
+function shadeSide(o,d){                       // 'mohawk' if head-up, else the half toward the defender
+  const dx=d.cx-o.cx;
+  if(Math.abs(dx)<=7)return 'mohawk';
+  return dx<0?'left':'right';                  // fills the side the defender aligns on (inside or outside shade)
+}
+function shadeNode(o,side){                     // clipped fill inside the puck (square for the center)
+  const cid='clip_'+o.id, sq=(o.id==='C');
+  const cp=el('clipPath',{id:cid});
+  cp.appendChild(sq?el('rect',{x:o.cx-14,y:o.cy-14,width:28,height:28}):el('circle',{cx:o.cx,cy:o.cy,r:14}));
+  let sh;
+  if(side==='mohawk')      sh=el('rect',{x:o.cx-4, y:o.cy-15,width:8, height:30});
+  else if(side==='left')   sh=el('rect',{x:o.cx-15,y:o.cy-15,width:15,height:30});
+  else                     sh=el('rect',{x:o.cx,   y:o.cy-15,width:15,height:30});
+  sh.setAttribute('fill','#0A0A0A'); sh.setAttribute('class','shd'); sh.setAttribute('clip-path','url(#'+cid+')');
+  return [cp,sh];
+}
+
+function renderMarks(){
+  markLayer.innerHTML='';
+  marks.forEach(m=>{
+    const pts=livePts(m);
+    const d=m.smooth?smoothPath(pts):polyPath(pts);
+    const hl=!!(m.owner&&highlighted[m.owner]);          // highlighted player -> his marks go accent too
+    const path=el('path',{class:'mark'+(m.line==='dash'?' dash':'')+(m.id===sel?' sel':'')+(hl?' hlm':''),d});
+    if(m.cap==='arrow')path.setAttribute('marker-end',hl?'url(#arrowHL)':'url(#arrow)');
+    markLayer.appendChild(path);
+    const cap=capShape(pts,m.cap); if(cap){ if(hl)cap.classList.add('hlm'); markLayer.appendChild(cap); }
+    // fat invisible hit line for selection
+    const hit=el('path',{class:'hit',d}); hit.dataset.mid=m.id;
+    hit.addEventListener('pointerdown',e=>{if(mode==='select'){e.stopPropagation();selectMark(m.id);}});
+    markLayer.appendChild(hit);
+  });
+}
+
+function renderCalls(){
+  callLayer.innerHTML='';
+  Object.entries(instances).forEach(([iid,inst])=>{
+    if(!inst.tag) return;
+    const mem=inst.members.map(id=>P[id]).filter(Boolean);
+    if(!mem.length) return;
+    if(mem.length>=2){                       // bracket across members
+      const xs=mem.map(p=>p.cx), y=Math.max(...mem.map(p=>p.cy))+22;
+      const x1=Math.min(...xs), x2=Math.max(...xs);
+      const b=el('path',{class:'bracket',
+        d:'M'+x1+' '+(y-6)+' L'+x1+' '+y+' L'+x2+' '+y+' L'+x2+' '+(y-6)});
+      callLayer.appendChild(b);
+      const t=el('text',{class:'calltag',x:(x1+x2)/2,y:y+15}); t.textContent=inst.tag;
+      callLayer.appendChild(t);
+    }else{                                   // solo tag sits under the puck
+      const p=mem[0];
+      const t=el('text',{class:'as013tag',x:p.cx,y:p.cy+34}); t.textContent=inst.tag;
+      callLayer.appendChild(t);
+    }
+  });
+}
+
+function renderPucks(){
+  puckLayer.innerHTML='';
+  players.forEach(p=>{
+    const g=el('g',{class:'puck '+(p.side==='def'?'def ':'')+(assign[p.id]?'claimed ':'')+(highlighted[p.id]?'hl':''),'data-id':p.id});
+    if(p.side==='def'){                      // defense = triangle
+      const s=13;
+      g.appendChild(el('polygon',{points:`${p.cx},${p.cy-s} ${p.cx-s},${p.cy+s*0.85} ${p.cx+s},${p.cy+s*0.85}`}));
+      const t=el('text',{x:p.cx,y:p.cy+3});t.textContent=p.label;g.appendChild(t);
+    }else{                                   // offense = circle; the CENTER is a square (notation)
+      if(p.id==='C') g.appendChild(el('rect',{class:'olsq',x:p.cx-14,y:p.cy-14,width:28,height:28}));
+      else           g.appendChild(el('circle',{cx:p.cx,cy:p.cy,r:14}));
+      const d=shadeMap[p.id];               // technique shade from the aligned defender
+      if(d)shadeNode(p,shadeSide(p,d)).forEach(n=>g.appendChild(n));
+      // interior linemen stay unlettered — the shade carries the info; skill/backs keep letters
+      if(p.kind!=='ol'){
+        const t=el('text',{x:p.cx,y:p.cy});t.textContent=p.label;
+        if(d&&!highlighted[p.id]){t.setAttribute('stroke','#FBFBFA');t.setAttribute('style','stroke:var(--field)');t.setAttribute('stroke-width','3');
+              t.setAttribute('paint-order','stroke');}   // stays legible over a fill
+        g.appendChild(t);
+      }
+    }
+    puckLayer.appendChild(g);
+    g.addEventListener('pointerdown',e=>onPuckDown(e,p));
+  });
+}
+
+function renderUI(){                          // glow rings + edit handles (stripped on export)
+  uiLayer.innerHTML='';
+  // needs-a-job glow: offense with no assignment AND no owned mark
+  players.filter(p=>p.side==='off').forEach(p=>{
+    const owns=marks.some(m=>m.owner===p.id);
+    if(!assign[p.id]&&!owns){
+      uiLayer.appendChild(el('circle',{class:'glow',cx:p.cx,cy:p.cy,r:20}));
+    }
+  });
+  // vertex handles for the selected mark
+  if(sel){
+    const m=marks.find(x=>x.id===sel); if(m){
+      livePts(m).forEach((pt,i)=>{
+        if(i===0&&m.anchor)return;            // anchored start rides the puck
+        const h=el('circle',{class:'handle',cx:pt.x,cy:pt.y,r:5});
+        h.addEventListener('pointerdown',e=>onHandleDown(e,m,i));
+        uiLayer.appendChild(h);
+      });
+    }
+  }
+  // live drawing preview
+  if(draft){
+    const pts=draft.pts.slice();
+    if(draft.cursor)pts.push(draft.cursor);
+    if(pts.length>=2){
+      const d=pen.smooth?smoothPath(pts):polyPath(pts);
+      uiLayer.appendChild(el('path',{class:'band',d}));
+    }
+    draft.pts.forEach(pt=>uiLayer.appendChild(el('circle',{class:'vtx',cx:pt.x,cy:pt.y,r:3})));
+  }
+}
+
+function updateReadout(){
+  const assigned=Object.keys(assign).length;
+  const glow=players.filter(p=>p.side==='off'&&!assign[p.id]&&!marks.some(m=>m.owner===p.id)).length;
+  const onLine=players.filter(p=>p.side==='off'&&p.cy<=382).length;   // 5 OL + the two "ends"
+  const legal=onLine===7;
+  const rd=$('#stateReadout');
+  rd.textContent=`${onLine} on line${legal?'':' — illegal'} · ${marks.length} marks · ${assigned} assigned · ${glow} need a job`;
+  rd.classList.toggle('warn',!legal);
+}
+
+/* ============================================================
+   COORDS — screen -> field units
+   ============================================================ */
+function toField(e){
+  const pt=field.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
+  const m=field.getScreenCTM().inverse(); const q=pt.matrixTransform(m);
+  return{x:Math.round(q.x),y:Math.round(q.y)};
+}
+function hitPlayer(fp){                        // nearest player within radius (for anchoring)
+  let best=null,bd=1e9;
+  players.forEach(p=>{const d=Math.hypot(p.cx-fp.x,p.cy-fp.y);if(d<20&&d<bd){bd=d;best=p;}});
+  return best;
+}
+
+/* ============================================================
+   PEN — click vertices; anchor to a player if you start on one
+   ============================================================ */
+field.addEventListener('pointerdown',e=>{
+  if(mode!=='pen')return;
+  if(e.target.closest('.puck'))return;         // puck handler starts the anchored line
+  const fp=toField(e);
+  if(!draft)draft={owner:null,anchor:false,pts:[fp],cursor:null};
+  else{const last=draft.pts[draft.pts.length-1];
+    if(Math.hypot(fp.x-last.x,fp.y-last.y)>4)draft.pts.push(fp);}
+  renderUI();
+});
+field.addEventListener('pointermove',e=>{
+  if(mode!=='pen'||!draft)return;
+  draft.cursor=toField(e); renderUI();
+});
+field.addEventListener('dblclick',e=>{if(mode==='pen')finishDraft();});
+window.addEventListener('keydown',e=>{
+  if(mode==='pen'&&draft){
+    if(e.key==='Enter'){finishDraft();e.preventDefault();}
+    else if(e.key==='Escape'){draft=null;renderUI();}
+    else if(e.key==='Backspace'){draft.pts.pop();if(!draft.pts.length)draft=null;renderUI();e.preventDefault();}
+  }
+  if(mode==='select'&&sel&&(e.key==='Delete'||e.key==='Backspace')){
+    marks=marks.filter(m=>m.id!==sel);sel=null;renderAll();e.preventDefault();
+  }
+});
+function finishDraft(){
+  if(!draft||draft.pts.length<2){draft=null;renderUI();return;}
+  pushHistory();
+  const m={id:nid(),owner:draft.anchor?draft.owner:null,anchor:draft.anchor?draft.owner:null,
+    src:'pen',instId:null,line:pen.line,cap:pen.cap,smooth:pen.smooth,pts:draft.pts.slice()};
+  marks.push(m); draft=null; renderAll();
+}
+
+/* ============================================================
+   PUCK — pen mode starts an anchored line; select mode drags / opens menu
+   ============================================================ */
+function onPuckDown(e,p){
+  e.stopPropagation();
+  if(mode==='pen'){
+    if(!draft)draft={owner:p.id,anchor:true,pts:[{x:p.cx,y:p.cy}],cursor:null};
+    else{draft.pts.push({x:p.cx,y:p.cy});}
+    renderUI(); return;
+  }
+  // select mode: distinguish click (menu) from drag (move).
+  // track on window — renderAll() rebuilds the puck each frame, so listeners
+  // bound to the puck itself would die on the first move.
+  const start=toField(e); let moved=false; const preMove=snapshot();
+  document.body.style.cursor='grabbing';
+  const mv=ev=>{const fp=toField(ev);
+    if(!moved&&Math.hypot(fp.x-start.x,fp.y-start.y)>3)moved=true;
+    if(moved){p.cx=fp.x;
+      p.cy = p.side==='off' ? Math.max(fp.y, OFF_LINE) : Math.min(fp.y, DEF_LINE);  // neutral zone
+      renderAll();}};
+  const up=ev=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);
+    document.body.style.cursor='';
+    if(!moved)openMenu(p,ev); else{history.push(preMove);p.x=p.cx;p.y=p.cy;renderAll();}};
+  window.addEventListener('pointermove',mv); window.addEventListener('pointerup',up);
+}
+
+/* selected-mark vertex drag — same story: bind to window, not the handle node */
+function onHandleDown(e,m,i){
+  e.stopPropagation();
+  const mv=ev=>{const fp=toField(ev);m.pts[i]={x:fp.x,y:fp.y};renderMarks();renderUI();};
+  const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);};
+  window.addEventListener('pointermove',mv); window.addEventListener('pointerup',up);
+}
+function selectMark(id){sel=id;renderAll();}
+
+/* ============================================================
+   ASSIGNMENTS + CALLS — claim, evict, dissolve-to-unassigned (rule C)
+   ============================================================ */
+function openMenu(p,e){
+  let html='<div class="head lc">'+(p.side==='off'?'assign <b>'+p.id+'</b>':'<b>'+p.id+'</b>')+'</div>';
+  if(p.side==='off'){
+    const opts=CALLS.filter(c=>c.members==='self'||c.members.includes(p.id));
+    opts.forEach(c=>{
+      const who=c.members==='self'?'':' <span class="k">'+c.members.join('+')+'</span>';
+      html+='<button data-call="'+c.key+'">'+c.name.toLowerCase()+who+'</button>';
+    });
+    html+='<button data-call="__custom" class="mut lc">custom — draw it myself</button>';
+    if(assign[p.id])html+='<button data-call="__clear" class="mut lc">clear assignment</button>';
+  }
+  html+='<button data-call="__highlight" class="hl lc">'+(highlighted[p.id]?'remove highlight':'highlight')+'</button>';
+  menu.innerHTML=html; menu.classList.add('open');
+  const r=field.getBoundingClientRect();
+  menu.style.left=Math.min(e.clientX-r.left+8,r.width-200)+'px';
+  menu.style.top=Math.min(e.clientY-r.top+8,r.height-menu.offsetHeight-8)+'px';
+  menu.querySelectorAll('button').forEach(b=>b.onclick=()=>{applyChoice(p,b.dataset.call);closeMenu();});
+}
+function closeMenu(){menu.classList.remove('open');}
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#menu')&&!e.target.closest('.puck'))closeMenu();});
+
+function applyChoice(p,key){
+  if(key==='__highlight'){ if(highlighted[p.id])delete highlighted[p.id]; else highlighted[p.id]=true; renderAll(); return; }
+  if(key==='__custom'){setMode('pen');setPreset('block');return;}
+  if(key==='__clear'){if(assign[p.id]){pushHistory();dissolve(assign[p.id]);renderAll();}return;}
+  applyCall(p,CALLMAP[key]);
+}
+
+function applyCall(clicked,call){
+  pushHistory();
+  const members=call.members==='self'?[clicked.id]:call.members.slice();
+  // 1. claim each member — evicting (and dissolving) any call it currently belongs to
+  members.forEach(id=>{ if(assign[id])dissolve(assign[id]); });
+  // 2. create the instance
+  const iid='i'+(uid++);
+  instances[iid]={key:call.key,tag:call.tag,members:members.slice()};
+  members.forEach(id=>{assign[id]=iid;});
+  // 3. auto-draw a starter mark per member (owned, so it clears the glow + evicts cleanly)
+  members.forEach(id=>autoMark(id,call,members));
+  renderAll();
+}
+
+// dissolving a call frees ALL its members to unassigned (rule C: break it and the call is gone)
+function dissolve(iid){
+  const inst=instances[iid]; if(!inst)return;
+  inst.members.forEach(id=>{ if(assign[id]===iid)delete assign[id]; });
+  marks=marks.filter(m=>m.instId!==iid);
+  delete instances[iid];
+}
+
+function autoMark(id,call,members){
+  const p=P[id]; if(!p)return;
+  marks=marks.filter(m=>!(m.owner===id&&m.src==='assign'));   // one assign-mark per player
+  let pts,line='solid',cap='tee',smooth=false;
+  const inside = p.cx<=520 ? +1 : -1;                          // toward the ball
+  if(call.draw==='reach'){pts=[{x:p.cx,y:p.cy},{x:p.cx-inside*24,y:p.cy-40}];}
+  else if(call.draw==='down'){pts=[{x:p.cx,y:p.cy},{x:p.cx+inside*22,y:p.cy-40}];}
+  else if(call.draw==='pull'){cap='arrow';smooth=true;
+    pts=[{x:p.cx,y:p.cy},{x:p.cx,y:p.cy+14},{x:520+inside*-40,y:p.cy+6},{x:520,y:p.cy-30}];}
+  else if(call.draw==='combo'){                                // converge toward the shared gap
+    const cx=members.reduce((s,m)=>s+P[m].cx,0)/members.length;
+    const dir=p.cx<cx?+1:-1;
+    pts=[{x:p.cx,y:p.cy},{x:p.cx+dir*10,y:p.cy-44}];}
+  else{pts=[{x:p.cx,y:p.cy},{x:p.cx,y:p.cy-42}];}              // base
+  marks.push({id:nid(),owner:id,anchor:id,src:'assign',instId:assign[id],
+    line,cap,smooth,pts});
+}
+
+/* ============================================================
+   TOOLBAR WIRING
+   ============================================================ */
+function setMode(m){mode=m;field.classList.toggle('pen',m==='pen');
+  if(m!=='pen'){draft=null;}
+  if(m!=='select'){sel=null;}
+  $('#tools').querySelectorAll('button').forEach(b=>b.classList.toggle('on',
+    (b.dataset.mode==='select'&&m==='select')));
+  $('#hint').textContent=m==='pen'?'click to place points · enter to finish · backspace undoes a point'
+    :'select a player to assign · drag to move · pick a pen to draw';
+  renderAll();
+}
+const PRESETS={route:{line:'solid',cap:'arrow'},block:{line:'solid',cap:'tee'},
+  motion:{line:'dash',cap:'arrow'},zone:{line:'dash',cap:'hook'}};
+function setPreset(name){
+  const pr=PRESETS[name]; pen.line=pr.line; pen.cap=pr.cap; setMode('pen');
+  $('#tools').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.preset===name));
+  syncLineCap();
+}
+function syncLineCap(){
+  $('#lineGrp').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.line===pen.line));
+  $('#capGrp').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.cap===pen.cap));
+  $('#smoothGrp button').classList.toggle('on',pen.smooth);
+}
+$('#tools').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.mode)setMode('select'); else if(b.dataset.preset)setPreset(b.dataset.preset);});
+$('#lineGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  pen.line=b.dataset.line;if(mode!=='pen')setMode('pen');syncLineCap();});
+$('#capGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  pen.cap=b.dataset.cap;if(mode!=='pen')setMode('pen');syncLineCap();});
+$('#smoothGrp').addEventListener('click',()=>{pen.smooth=!pen.smooth;
+  if(sel){const m=marks.find(x=>x.id===sel);if(m){m.smooth=pen.smooth;renderMarks();}}
+  syncLineCap();});
+$('#undoBtn').onclick=undo;
+window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='z'){e.preventDefault();undo();}});
+$('#clearBtn').onclick=()=>{                              // reset to the Strong-I vs 4-3 Over baseline
+  strength='rt'; yTag='str'; hTag='i'; qbTag='uc'; backTag='default'; curDef='over'; shell='open'; ballSpot='mid';
+  syncFormUI(); load();};
+$('#strGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  strength=b.dataset.str; $('#strGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); load(); autoTitle();});
+$('#formPick').onchange=e=>{yTag=e.target.value; load(); autoTitle();};
+$('#hPick').onchange=e=>{hTag=e.target.value; load(); autoTitle();};
+$('#backPick').onchange=e=>{backTag=e.target.value; load(); autoTitle();};
+$('#qbGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  qbTag=b.dataset.qb; $('#qbGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); load(); autoTitle();});
+$('#defPick').onchange=e=>{curDef=e.target.value; load();};
+$('#ballPick').onchange=e=>{ballSpot=e.target.value; load();};
+$('#shellGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  shell=b.dataset.shell; applyShell();                 // move the safeties, keep the play intact
+  $('#shellGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  renderAll();});
+
+/* ============================================================
+   EXPORT — clean PNG, ui layer stripped, transparent bg, 3x
+   ============================================================ */
+$('#exportBtn').onclick=async ()=>{
+  const clone=field.cloneNode(true);
+  clone.querySelector('#uiLayer').remove();          // drop glow + handles + band
+  clone.querySelectorAll('.hit').forEach(n=>n.remove());
+  clone.setAttribute('width',1040);clone.setAttribute('height',720);
+  clone.setAttribute('xmlns',NS);clone.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink');
+  // class styling lives in the page stylesheet, which the rasterized SVG can't see —
+  // inline the presentation rules (with literal colors) or every mark renders as a black blob
+  const EXPORT_CSS=`text{font-family:'Space Mono',monospace}
+    .mark{fill:none;stroke:#0A0A0A;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+    .mark.dash{stroke-dasharray:9 6}
+    .cap{fill:none;stroke:#0A0A0A;stroke-width:2.4;stroke-linecap:round}
+    .puck circle,.puck polygon{stroke:#0A0A0A;stroke-width:2.2;fill:#FBFBFA}
+    .puck rect.olsq{stroke:#0A0A0A;stroke-width:2.2;fill:#FBFBFA}
+    .puck.hl text{fill:#fff}
+    .puck.hl .shd{fill:#fff;opacity:.9}
+    .mark.hlm,.cap.hlm{stroke:#2E7DD1;filter:url(#hlglow)}
+    .puck.def polygon{fill:#F8F8F8}
+    .puck.hl circle,.puck.hl polygon,.puck.def.hl polygon,.puck.hl rect.olsq{fill:#2E7DD1;stroke:none;filter:url(#hlglow)}
+    .puck text{font-weight:700;font-size:14px;fill:#0A0A0A;text-anchor:middle;dominant-baseline:central}
+    .bracket{fill:none;stroke:#C0392B;stroke-width:1.8}
+    .calltag{font-weight:700;font-size:12px;fill:#C0392B;text-anchor:middle;letter-spacing:.06em}
+    .as013tag{font-weight:700;font-size:11px;fill:#C0392B;text-anchor:middle}`;
+  const xml=new XMLSerializer().serializeToString(clone)
+    .replace('</defs>','<style>'+EXPORT_CSS+'</style></defs>');
+  const svg='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml);
+  const img=new Image();
+  img.onload=()=>{
+    const s=3, c=document.createElement('canvas'); c.width=1040*s; c.height=720*s;
+    const ctx=c.getContext('2d'); ctx.scale(s,s); ctx.drawImage(img,0,0);
+    c.toBlob(b=>{const a=document.createElement('a');a.download=slug()+'.png';
+      a.href=URL.createObjectURL(b);a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);},'image/png');
+  };
+  img.onerror=()=>alert('export hiccup — try again once the field has fully rendered.');
+  img.src=svg;
+};
+
+/* ============================================================
+   PLAY DATA — JSON in/out. this is the semantic format:
+   player positions, every mark (points/type/cap), every call.
+   the round-trip the PNG can't do — and the format Claude reads.
+   ============================================================ */
+let lastAuto='';                          // the formation call string we last wrote into the title
+function callString(){                     // slot / under-center / default-back are silent defaults
+  const p=[strength];
+  if(yTag!=='slot') p.push(FORM_LABEL[yTag]||yTag);
+  if(qbTag==='gun') p.push('gun');
+  if(backTag!=='default') p.push(backTag);
+  p.push(H_LABEL[hTag]||hTag);
+  return p.join(' ');
+}
+function autoTitle(){                       // fill the title unless the user typed their own
+  const t=$('#playTitle');
+  if(t.value===''||t.value===lastAuto){ lastAuto=callString(); t.value=lastAuto; }
+}
+function slug(){const t=($('#playTitle').value||'').trim().toLowerCase()
+  .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); return t||'play';}
+function playJSON(){
+  return {v:1, title:$('#playTitle').value||'', note:$('#playNote').value||'',
+    formation:{strength,yTag,hTag,qbTag,backTag}, def:curDef, shell, ballSpot, highlights:Object.keys(highlighted),
+    players:players.map(p=>({id:p.id,cx:p.cx,cy:p.cy})),
+    marks, instances, assign};
+}
+function syncShellButtons(){
+  $('#shellGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.shell===shell));}
+function syncFormUI(){
+  $('#strGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.str===strength));
+  $('#formPick').value=yTag; $('#hPick').value=hTag; $('#backPick').value=backTag; $('#defPick').value=curDef;
+  $('#qbGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.qb===qbTag));
+  $('#ballPick').value=ballSpot;
+  syncShellButtons();
+}
+function loadJSON(obj){
+  try{
+    const f=obj.formation||{};
+    if(f.strength) strength=f.strength;
+    if(f.yTag)     yTag=f.yTag;
+    if(f.hTag)     hTag=f.hTag;
+    // QB/back: new plays carry qbTag; old plays carry only the merged backTag (uc/a/b/pst)
+    if(f.qbTag){ qbTag=f.qbTag; backTag=f.backTag||'default'; }
+    else if(f.backTag==='a'){ qbTag='gun'; backTag='a'; }
+    else if(f.backTag==='b'){ qbTag='gun'; backTag='b'; }
+    else if(f.backTag==='pst'){ qbTag='gun'; backTag='default'; }
+    else { qbTag='uc'; backTag='default'; }
+    if(obj.def&&FRONTS[obj.def]) curDef=obj.def;
+    shell=(obj.shell==='closed')?'closed':'open';
+    if(BALLDX[obj.ballSpot]!==undefined) ballSpot=obj.ballSpot;
+    syncFormUI();
+    load();                                                         // fresh base (also resets history)
+    (obj.players||[]).forEach(o=>{if(P[o.id]){P[o.id].cx=P[o.id].x=o.cx;P[o.id].cy=P[o.id].y=o.cy;}});
+    marks=Array.isArray(obj.marks)?obj.marks:[];
+    instances=(obj.instances&&typeof obj.instances==='object')?obj.instances:{};
+    assign=(obj.assign&&typeof obj.assign==='object')?obj.assign:{};
+    marks.forEach(m=>{const n=+String(m.id).slice(1);if(n>=uid)uid=n+1;});
+    Object.keys(instances).forEach(k=>{const n=+String(k).slice(1);if(n>=uid)uid=n+1;});
+    if(typeof obj.title==='string') $('#playTitle').value=obj.title;
+    if(typeof obj.note==='string')  $('#playNote').value=obj.note;
+    highlighted={}; (obj.highlights||[]).forEach(id=>highlighted[id]=true);
+    renderAll();return true;
+  }catch(err){return false;}
+}
+const dataPanel=$('#dataPanel'), dataText=$('#dataText');
+function flash(btn,txt){const o=btn.textContent;btn.textContent=txt;setTimeout(()=>btn.textContent=o,1200);}
+$('#dataBtn').onclick=()=>{dataText.value=JSON.stringify(playJSON(),null,1);
+  dataPanel.classList.add('open');dataText.focus();dataText.select();};
+$('#dataClose').onclick=()=>dataPanel.classList.remove('open');
+$('#dataCopy').onclick=async()=>{try{await navigator.clipboard.writeText(dataText.value);}
+  catch(e){dataText.select();try{document.execCommand('copy');}catch(_){}}flash($('#dataCopy'),'copied');};
+$('#dataSave').onclick=()=>{const blob=new Blob([JSON.stringify(playJSON(),null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.download=slug()+'.json';a.href=URL.createObjectURL(blob);a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);};
+$('#dataApply').onclick=()=>{let obj;try{obj=JSON.parse(dataText.value);}catch(e){flash($('#dataApply'),'bad json');return;}
+  loadJSON(obj)?dataPanel.classList.remove('open'):flash($('#dataApply'),'load failed');};
+
+/* ---------- boot ---------- */
+syncFormUI(); load(); syncLineCap(); autoTitle();
+window.addEventListener('storage',e=>{ if(e.key==='beauos_theme') document.documentElement.setAttribute('data-theme',e.newValue||'light'); });
+</script>
+</body>
+</html>
