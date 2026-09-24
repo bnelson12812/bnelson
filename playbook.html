@@ -283,7 +283,7 @@ svg.ic path.d{stroke-dasharray:4 3;stroke-linecap:butt}
     <section class="bucket">
       <div class="bhead">defense</div>
       <div class="ctl"><label class="lc">front</label>
-        <select class="pick lc" id="defPick"><option value="over">4-3 over</option></select></div>
+        <select class="pick lc" id="defPick"><option value="over">4-3 over</option><option value="under">4-3 under</option></select></div>
       <div class="ctl"><label class="lc">shell</label>
         <div class="grp" id="shellGrp">
           <button data-shell="open" class="on lc">open</button>
@@ -553,21 +553,38 @@ function buildOffense(strength,yTag,hTag,qbTag,backTag){
   return out;
 }
 
+/* ---------- fronts as technique strings (authored strong-right) ----------
+   line: "ID tech+side" tokens. side s/w. tech -> [anchor lineman, offset outward from the ball].
+   x = anchor on that side + dir*offset (dir: s=+1, w=-1). edge: who plays the edge rule per side.
+   off: off-ball players stay as coordinates (backers, corners, safeties). */
+const TECH={'0':['C',0],'1':['C',12],'2i':['G',-14],'2':['G',0],'3':['G',12],
+            '4i':['T',-12],'4':['T',0],'5':['T',20],'9':['T',78]};
+const TECH_ANCHOR={C:0,G:48,T:96};                     // OL offsets from the ball (B)
+const DEF_LABEL={DE_W:'E',DE_S:'E',NT:'N',DT:'T',SAM:'S'};
 const FRONTS={
-  over:[ // 4-3 over: 3-tech to strength (offense right / TE side), shade nose weak
-    {id:'DE_W',label:'E', x:404, y:311},   // DL all on the barrier (DEF_LINE)
-    {id:'NT',  label:'N', x:486, y:311},   // 2i: inside shade of the weak guard (LG 472)
-    {id:'DT',  label:'T', x:580, y:311},   // 3: outside shade of the strong guard (RG 568), tight
-    {id:'DE_S',label:'E', x:694, y:311},
-    {id:'WILL',label:'W', x:452, y:242},   // 9/24: backers pushed off the ball 24px
-    {id:'MIKE',label:'M', x:540, y:238},
-    {id:'SAM', label:'S', x:678, y:236},
-    {id:'CB_W',label:'C', x:150, y:256},
-    {id:'CB_S',label:'C', x:890, y:256},
-    {id:'FS',  label:'F', x:500, y:150},
-    {id:'SS',  label:'$', x:662, y:190},
-  ]
+  over:{ label:'4-3 over',            // 3 to strength, 2i weak, ends 5 / 9 (edge rule moves them)
+    line:'DE_W 5w · NT 2iw · DT 3s · DE_S 9s', edge:{w:'DE_W',s:'DE_S'},
+    off:[ {id:'WILL',label:'W', x:452, y:242},   // 9/24: backers pushed off the ball 24px
+          {id:'MIKE',label:'M', x:540, y:238},
+          {id:'SAM', label:'S', x:678, y:236},
+          {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
+          {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
+  under:{ label:'4-3 under',          // 1 to strength, 3 weak, strong end a fixed 5, Sam on the edge
+    line:'DE_W 5w · DT 3w · NT 1s · DE_S 5s · SAM 9s', edge:{w:'DE_W',s:'SAM'}, apex:'SAM', field:true,
+    off:[ {id:'WILL',label:'W', x:448, y:242},   // placeholder spots: chart + export
+          {id:'MIKE',label:'M', x:580, y:238},
+          {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
+          {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
 };
+function resolveFront(name){
+  const f=FRONTS[name]||FRONTS.over, out=[];
+  f.line.split('·').map(t=>t.trim()).filter(Boolean).forEach(tok=>{
+    const [id,ts]=tok.split(/\s+/), side=ts.slice(-1), tech=ts.slice(0,-1), dir=side==='s'?1:-1;
+    const [a,off]=TECH[tech];
+    out.push({id,label:DEF_LABEL[id]||id[0],tech:ts,x:B+dir*(TECH_ANCHOR[a]+off),y:DEF_LINE});
+  });
+  return out.concat(f.off.map(p=>({...p})));
+}
 
 /* coverage shell — repositions the safeties (open = 2-high, closed = 1-high) */
 const SHELLS={
@@ -663,7 +680,7 @@ function load(){
   if(shift) buildOffense(strength,yTag,hTag,qbTag,backTag).forEach(q=>{   // pre-shift = ghosts
     const L=P[q.id]; if(L&&(L.x!==q.x||L.y!==q.y)) ghosts.push({id:q.id,label:q.label,sq:q.id==='C',x:q.x,y:q.y});
   });
-  (FRONTS[curDef]||FRONTS.over).forEach(p=>{const q={...p,side:'def',kind:'def',cx:p.x,cy:p.y};players.push(q);P[q.id]=q;});
+  resolveFront(curDef).forEach(p=>{const q={...p,side:'def',kind:'def',cx:p.x,cy:p.y};players.push(q);P[q.id]=q;});
   applyShell();
   // defensive strength (fronts/shells authored strong-right). rules:
   //  - inline-TE forms: strength sets to the Y (wherever he resolves)
@@ -683,6 +700,12 @@ function defStrongLeft(){                     // evaluated on the POST-shift set
   const f=shift?{...shift,strength:shift.trade?(strength==='rt'?'lt':'rt'):strength}:{strength,yTag,hTag};
   if(NO_TE_FORMS.includes(f.yTag)){
     if(WING_H.includes(f.hTag) && P.H) return P.H.cx<B;
+    // under vs no TE / no wing: strength to the FIELD. left hash -> right, right hash -> left,
+    // middle -> call side. (over keeps the call side everywhere.)
+    if((FRONTS[curDef]||{}).field){
+      if(ballSpot==='left'||ballSpot==='lmid') return false;
+      if(ballSpot==='right'||ballSpot==='rmid') return true;
+    }
     return f.strength==='lt';
   }
   return !!(P.Y && P.Y.cx<B);
@@ -696,10 +719,12 @@ function defStrongLeft(){                     // evaluated on the POST-shift set
 // is asking the end to pick: stay in a 5, or widen for contain and open a bubble)
 const DETACHED={ axe:['X','Y'] };
 const ATT_ON=76, ATT_WING=110, TECH5=20, DE_WIDE=30, CB_OUT=22;
+const APEX_IN=22, APEX_Y=236, APEX_MIN=44;           // APEX_MIN: never inside the strong end's 5                        // under Sam walked out: inside the slot, Sam depth
 function alignToOffense(){
   const tk={L:P.LT,R:P.RT}; if(!tk.L||!tk.R) return;
   const skill=players.filter(p=>p.side==='off'&&p.kind!=='ol'&&p.id!=='Q');
-  const des=players.filter(p=>p.side==='def'&&(p.id==='DE_W'||p.id==='DE_S'));
+  const fr=FRONTS[curDef]||FRONTS.over;
+  const des=players.filter(p=>p.side==='def'&&(p.id===fr.edge.w||p.id===fr.edge.s));
   const cbs=players.filter(p=>p.side==='def'&&(p.id==='CB_W'||p.id==='CB_S'));
   const c=(P.C?P.C.cx:B);
   [['L',-1],['R',1]].forEach(([k,dir])=>{
@@ -712,6 +737,12 @@ function alignToOffense(){
     if(de){
       if(on.length){ const o=Math.max(...on.map(out)); de.x=de.cx=t.cx+dir*(o+DE_WIDE); }
       else if(wing.length) de.x=de.cx=t.cx+dir*(144-96+DE_WIDE);
+      else if(fr.apex===de.id){                      // under Sam, open edge: walk out inside the slot
+        const rec=skill.filter(p=>out(p)>0&&p.cy<=440).sort((a,b)=>out(b)-out(a));
+        const slot=rec.length>=2?rec[rec.length-1]:null;   // innermost receiver that isn't #1
+        const x=slot?slot.cx-dir*APEX_IN:(rec.length?(t.cx+rec[0].cx)/2:t.cx+dir*48);
+        de.x=de.cx=(x-t.cx)*dir<APEX_MIN?t.cx+dir*APEX_MIN:x; de.y=de.cy=APEX_Y;
+      }
       else de.x=de.cx=t.cx+dir*TECH5;                  // open edge: 5 technique
     }
     const cb=cbs.find(d=>(d.cx-c)*dir>0);
