@@ -37,13 +37,13 @@ button,select{font-family:inherit;cursor:pointer}
 #main{flex:1;display:flex;flex-direction:column;min-width:0}
 
 /* buckets = common region: tracked label + hairline separator */
-.bucket{padding:11px 14px 13px;border-top:1px solid var(--gray-light)}
+.bucket{padding:9px 14px 10px;border-top:1px solid var(--gray-light)}
 .bucket.admin{margin-top:auto}
 .bhead{font-family:'Retron2000','Space Mono',monospace;font-size:.58rem;letter-spacing:.24em;
-  text-transform:uppercase;color:var(--gray-mid);margin-bottom:9px}
+  text-transform:uppercase;color:var(--gray-mid);margin-bottom:7px}
 
 /* labeled control row */
-.ctl{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ctl{display:flex;align-items:center;gap:8px;margin-bottom:4px}
 .ctl:last-child{margin-bottom:0}
 .ctl>label{flex:0 0 30px;font-size:.58rem;letter-spacing:.1em;color:var(--gray-mid)}
 
@@ -159,6 +159,22 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 @media(max-width:840px){#side{flex-basis:184px}}
 @media(max-width:680px){.foot .hint{display:none}}
 
+/* ---------- on-field overlays: ball spot (top right) + floating toolbox (bottom center) ---------- */
+#ballBox,#toolbox{position:absolute;z-index:20;background:var(--panel);border:2px solid var(--black);
+  box-shadow:4px 4px 0 -1px var(--shadow)}
+#ballBox{top:10px;right:10px;padding:5px 8px;width:176px}
+#ballBox .ctl{margin:0}
+#toolbox{left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:6px;padding:4px;max-width:calc(100% - 20px)}
+#toolbox .grp>button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  padding:5px 7px 4px;min-width:34px;font-size:.56rem}
+#toolbox .grp>button span{line-height:1}
+#toolbox #lineGrp>button,#toolbox #capGrp>button,#toolbox #smoothGrp>button{padding:8px 6px}
+svg.ic{width:30px;height:16px;display:block;overflow:visible}
+svg.ic path{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+svg.ic path.f{fill:currentColor;stroke:none}
+svg.ic path.d{stroke-dasharray:4 3;stroke-linecap:butt}
+@media(max-width:760px){#toolbox .grp>button span{display:none}}
+
 /* ---------- play-data panel (json in/out) ---------- */
 #dataPanel{position:absolute;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
   background:var(--scrim)}
@@ -182,6 +198,18 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 
     <section class="bucket">
       <div class="bhead">offense</div>
+      <div class="ctl"><label class="lc">pers</label>
+        <select class="pick lc" id="persPick">
+          <option value="10">10p</option><option value="11" selected>11p</option>
+          <option value="12">12p</option><option value="13">13p</option>
+          <option value="20">20p</option><option value="21">21p</option>
+          <option value="22">22p</option><option value="23">23p</option>
+        </select></div>
+      <div class="ctl"><label class="lc">qb</label>
+        <div class="grp" id="qbGrp">
+          <button data-qb="uc" class="on lc">under</button>
+          <button data-qb="gun" class="lc">gun</button>
+        </div></div>
       <div class="ctl"><label class="lc">str</label>
         <div class="grp" id="strGrp">
           <button data-str="rt" class="on lc">rt</button>
@@ -206,6 +234,14 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
           <option value="nod">astrid</option>
           <option value="axe">axe</option>
         </select></div>
+      <div class="ctl"><label class="lc">back</label>
+        <select class="pick lc" id="backPick">
+          <option value="default" selected>default</option>
+          <option value="a">a</option><option value="b">b</option>
+          <option value="lf">lf</option><option value="rf">rf</option>
+          <option value="l1">l1</option><option value="l2">l2</option><option value="l3">l3</option><option value="lw">lw</option>
+          <option value="rw">rw</option><option value="r3">r3</option><option value="r2">r2</option><option value="r1">r1</option>
+        </select></div>
       <div class="ctl"><label class="lc">h</label>
         <select class="pick lc" id="hPick">
           <option value="i" selected>i</option>
@@ -219,27 +255,6 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
           <option value="su">surf</option>
           <option value="sw">swarm</option>
           <option value="sb">snob</option>
-        </select></div>
-      <div class="ctl"><label class="lc">qb</label>
-        <div class="grp" id="qbGrp">
-          <button data-qb="uc" class="on lc">under</button>
-          <button data-qb="gun" class="lc">gun</button>
-        </div></div>
-      <div class="ctl"><label class="lc">back</label>
-        <select class="pick lc" id="backPick">
-          <option value="default" selected>default</option>
-          <option value="a">a</option><option value="b">b</option>
-          <option value="lf">lf</option><option value="rf">rf</option>
-          <option value="l1">l1</option><option value="l2">l2</option><option value="l3">l3</option><option value="lw">lw</option>
-          <option value="rw">rw</option><option value="r3">r3</option><option value="r2">r2</option><option value="r1">r1</option>
-        </select></div>
-      <div class="ctl"><label class="lc">ball</label>
-        <select class="pick lc" id="ballPick">
-          <option value="left">left hash</option>
-          <option value="lmid">l-mid</option>
-          <option value="mid" selected>middle</option>
-          <option value="rmid">r-mid</option>
-          <option value="right">right hash</option>
         </select></div>
     </section>
 
@@ -255,14 +270,14 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
           <button data-trade="off" class="on lc">off</button>
           <button data-trade="on" class="lc">trade</button>
         </div></div>
-      <div class="ctl sh"><label class="lc">form</label><select class="pick lc" id="shFormPick"></select></div>
-      <div class="ctl sh"><label class="lc">h</label><select class="pick lc" id="shHPick"></select></div>
       <div class="ctl sh"><label class="lc">qb</label>
         <div class="grp" id="shQbGrp">
           <button data-qb="uc" class="on lc">under</button>
           <button data-qb="gun" class="lc">gun</button>
         </div></div>
+      <div class="ctl sh"><label class="lc">form</label><select class="pick lc" id="shFormPick"></select></div>
       <div class="ctl sh"><label class="lc">back</label><select class="pick lc" id="shBackPick"></select></div>
+      <div class="ctl sh"><label class="lc">h</label><select class="pick lc" id="shHPick"></select></div>
     </section>
 
     <section class="bucket">
@@ -274,30 +289,6 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
           <button data-shell="open" class="on lc">open</button>
           <button data-shell="closed" class="lc">closed</button>
         </div></div>
-    </section>
-
-    <section class="bucket">
-      <div class="bhead">drawing</div>
-      <div class="grp" id="tools">
-        <button data-mode="select" class="on lc">select</button>
-        <button data-preset="route" class="lc">route</button>
-        <button data-preset="block" class="lc">block</button>
-        <button data-preset="motion" class="lc">motion</button>
-        <button data-preset="zone" class="lc">zone</button>
-      </div>
-      <div class="ctl"><label class="lc">line</label>
-        <div class="grp" id="lineGrp">
-          <button data-line="solid" class="on lc">solid</button>
-          <button data-line="dash" class="lc">dash</button>
-        </div></div>
-      <div class="ctl"><label class="lc">cap</label>
-        <div class="grp" id="capGrp">
-          <button data-cap="arrow" class="on lc">arrow</button>
-          <button data-cap="tee" class="lc">tee</button>
-          <button data-cap="hook" class="lc">hook</button>
-          <button data-cap="none" class="lc">none</button>
-        </div></div>
-      <div class="grp" id="smoothGrp"><button data-smooth class="lc">smooth</button></div>
     </section>
 
     <section class="bucket admin">
@@ -341,6 +332,36 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
       <g id="puckLayer"></g>
       <g id="uiLayer"></g>
     </svg>
+    <div id="toolbox" class="lc">
+      <div class="grp" id="tools">
+        <button data-mode="select" class="on lc" title="select / move"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path class="f" d="M11,1.5 L11,14 L14.2,10.8 L16.6,15 L18.6,14 L16.3,9.8 L20.5,9.6 z"/></svg><span>select</span></button>
+        <button data-preset="route" class="lc" title="route · solid + arrow"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path d="M2,8 H23"/><path class="f" d="M22,3.5 L28,8 L22,12.5 z"/></svg><span>route</span></button>
+        <button data-preset="block" class="lc" title="block · solid + tee"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path d="M2,8 H26"/><path d="M26,2.5 V13.5"/></svg><span>block</span></button>
+        <button data-preset="motion" class="lc" title="motion · dash, no cap"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path class="d" d="M2,8 H28"/></svg><span>motion</span></button>
+        <button data-preset="zone" class="lc" title="zone · dash + hook"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path class="d" d="M2,8 H20"/><path d="M20,8 C27,8 28,1.5 23,2.5"/></svg><span>zone</span></button>
+      </div>
+      <div class="grp" id="lineGrp">
+        <button data-line="solid" class="on lc" title="solid line"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path d="M3,8 H27"/></svg></button>
+        <button data-line="dash" class="lc" title="dashed line"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path class="d" d="M3,8 H27"/></svg></button>
+      </div>
+      <div class="grp" id="capGrp">
+        <button data-cap="arrow" class="on lc" title="arrow cap"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path d="M3,8 H23"/><path class="f" d="M22,3.5 L28,8 L22,12.5 z"/></svg></button>
+        <button data-cap="tee" class="lc" title="tee cap"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path d="M3,8 H26"/><path d="M26,2.5 V13.5"/></svg></button>
+        <button data-cap="hook" class="lc" title="hook cap"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path d="M3,8 H20"/><path d="M20,8 C27,8 28,1.5 23,2.5"/></svg></button>
+        <button data-cap="none" class="lc" title="no cap"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path d="M3,8 H27"/></svg></button>
+      </div>
+      <div class="grp" id="smoothGrp"><button data-smooth class="lc" title="smooth"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path d="M2,13 C9,13 9,3 15,3 S22,13 28,13"/></svg></button></div>
+    </div>
+    <div id="ballBox" class="lc">
+      <div class="ctl"><label class="lc">ball</label>
+        <select class="pick lc" id="ballPick">
+          <option value="left">left hash</option>
+          <option value="lmid">l-mid</option>
+          <option value="mid" selected>middle</option>
+          <option value="rmid">r-mid</option>
+          <option value="right">right hash</option>
+        </select></div>
+    </div>
     <div id="menu"></div>
     <div id="dataPanel">
       <div class="card">
@@ -401,7 +422,7 @@ const HWK   ={ ws:[258,393], wo:[360,396], wu:[64,478], ww:[180,411], wb:[71,553
                ss:[177,408], so:[405,396], su:[65,484], sw:[136,409], sb:[87,543] };
 const HSLOT ={ ws:[250,388], wo:[390,401], wu:[60,487], ww:[135,407], wb:[76,551],
                ss:[177,394], so:[402,384], su:[68,480], sw:[138,405], sb:[86,541] };
-const HNSTY ={ ws:[145,402] };   // nasty forms slot the H inside the tight X
+const HNSTY ={ ws:[145,402], wo:[377,398], wu:[58,486], ww:[128,408], wb:[91,552], ss:[186,392], so:[400,372], su:[75,481], sw:[130,398], sb:[82,549] };   // nasty: charted exact per cell (9/24)
 // add / astrid(nod) / axe: charted exact per cell from Beau's sheet (9/22)
 const HNOD ={ ws:[153,411], wo:[221,406], wu:[65,485], ww:[127,412], wb:[81,548], ss:[212,404], so:[237,405], su:[67,486], sw:[183,404], sb:[77,549] };
 const HADD ={ ws:[155,408], wo:[218,402], wu:[70,486], ww:[128,400], wb:[73,548], ss:[216,401], so:[268,408], su:[76,484], sw:[130,398], sb:[85,551] };
@@ -415,6 +436,8 @@ const RECV_OVERRIDE={
   'wk|so':   { X:['S',215,372], Z:['S',306,398] },       // strong-outside H tucks X and Z in
   'slot|ss': { Y:['S',277,375], Z:['S',380,397] },       // strong-slot H shifts Y/Z out
   'slot|so': { Y:['S',221,374], Z:['S',310,389] },       // strong-outside H tucks Y/Z in
+  'nsty|ss':  { Y:['S',276,389] },                        // nasty sass: Y slides out (9/24)
+  'nsty|so':  { Y:['S',218,393], Z:['S',316,396] },       // nasty solar: H takes the outside on the ball, Z steps off
   'flx|wo':    { Y:['W',263,372] },
   'flx|ss':    { X:['S',277,372] },
   'flx|so':    { X:['S',217,372], Z:['S',309,391] },
@@ -583,6 +606,7 @@ let mode='select';          // 'select' | 'pen'
 let strength='rt';          // 'rt' | 'lt' — named by the Y's side
 let yTag='str';             // Y tag / form: str (strong-I baseline) slot wk bnch flx blx blk
 let hTag='i';               // H (move) tag: i (I-back) or side(s/w)+spot(s/o/u/w/b) — REQUIRED
+let personnel='11';         // personnel group, shown as '11p' — label only (title + json), no visual yet
 let qbTag='uc';             // QB tag: uc (under center) | gun
 let backTag='default';      // back (T): default | a b | lf rf | l1 l2 l3 lw rw r3 r2 r1
 let curDef='over';          // current front
@@ -1125,7 +1149,7 @@ function setMode(m){mode=m;field.classList.toggle('pen',m==='pen');
   renderAll();
 }
 const PRESETS={route:{line:'solid',cap:'arrow'},block:{line:'solid',cap:'tee'},
-  motion:{line:'dash',cap:'arrow'},zone:{line:'dash',cap:'hook'}};
+  motion:{line:'dash',cap:'none'},zone:{line:'dash',cap:'hook'}};
 function setPreset(name){
   const pr=PRESETS[name]; pen.line=pr.line; pen.cap=pr.cap; setMode('pen');
   $('#tools').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.preset===name));
@@ -1148,10 +1172,11 @@ $('#smoothGrp').addEventListener('click',()=>{pen.smooth=!pen.smooth;
 $('#undoBtn').onclick=undo;
 window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='z'){e.preventDefault();undo();}});
 $('#clearBtn').onclick=()=>{                              // reset to the Strong-I vs 4-3 Over baseline
-  strength='rt'; yTag='str'; hTag='i'; qbTag='uc'; backTag='default'; curDef='over'; shell='open'; ballSpot='mid'; shift=null;
+  personnel='11'; strength='rt'; yTag='str'; hTag='i'; qbTag='uc'; backTag='default'; curDef='over'; shell='open'; ballSpot='mid'; shift=null;
   syncFormUI(); load(); autoTitle();};
 $('#strGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   strength=b.dataset.str; $('#strGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); load(); autoTitle();});
+$('#persPick').onchange=e=>{personnel=e.target.value; autoTitle();};
 $('#formPick').onchange=e=>{yTag=e.target.value; load(); autoTitle();};
 $('#hPick').onchange=e=>{hTag=e.target.value; load(); autoTitle();};
 $('#backPick').onchange=e=>{backTag=e.target.value; load(); autoTitle();};
@@ -1231,19 +1256,21 @@ $('#exportBtn').onclick=async ()=>{
    the round-trip the PNG can't do — and the format Claude reads.
    ============================================================ */
 let lastAuto='';                          // the formation call string we last wrote into the title
-function setString(f){                      // slot / under-center / default-back are silent defaults
-  const p=[f.strength];
-  if(f.yTag!=='slot') p.push(FORM_LABEL[f.yTag]||f.yTag);
+function setString(f,post){               // call order: personnel · qb · strength · form · back · h
+  const p=[];                               // silent defaults: under center, default form (slot), default back
+  if(!post) p.push(f.personnel+'p');        // personnel is never silent; a shift doesn't change it
   if(f.qbTag==='gun') p.push('gun');
+  if(!post) p.push(f.strength);             // a shift keeps the call strength
+  if(f.yTag!=='slot') p.push(FORM_LABEL[f.yTag]||f.yTag);
   if(f.backTag!=='default') p.push(f.backTag);
   p.push(H_LABEL[f.hTag]||f.hTag);
   return p.join(' ');
 }
 function callString(){                     // with a shift: "<pre> to <post>"
-  const pre=setString({strength,yTag,hTag,qbTag,backTag});
+  const pre=setString({personnel,strength,yTag,hTag,qbTag,backTag});
   if(!shift) return pre;
   const same=shift.yTag===yTag&&shift.hTag===hTag&&shift.qbTag===qbTag&&shift.backTag===backTag;
-  const post=setString({...shift,strength}).split(' ').slice(1).join(' ');
+  const post=setString(shift,true);
   return same?pre+(shift.trade?' trade':''):pre+' to '+post+(shift.trade?' trade':'');
 }
 function autoTitle(){                       // fill the title unless the user typed their own
@@ -1254,7 +1281,7 @@ function slug(){const t=($('#playTitle').value||'').trim().toLowerCase()
   .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); return t||'play';}
 function playJSON(){
   return {v:1, title:$('#playTitle').value||'', note:$('#playNote').value||'',
-    formation:{strength,yTag,hTag,qbTag,backTag}, shift, def:curDef, shell, ballSpot, highlights:Object.keys(highlighted),
+    formation:{personnel,strength,yTag,hTag,qbTag,backTag}, shift, def:curDef, shell, ballSpot, highlights:Object.keys(highlighted),
     players:players.map(p=>({id:p.id,cx:p.cx,cy:p.cy})),
     marks, instances, assign};
 }
@@ -1262,6 +1289,7 @@ function syncShellButtons(){
   $('#shellGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.shell===shell));}
 function syncFormUI(){
   $('#strGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.str===strength));
+  $('#persPick').value=personnel;
   $('#formPick').value=yTag; $('#hPick').value=hTag; $('#backPick').value=backTag; $('#defPick').value=curDef;
   $('#qbGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.qb===qbTag));
   $('#ballPick').value=ballSpot;
@@ -1270,6 +1298,7 @@ function syncFormUI(){
 function loadJSON(obj){
   try{
     const f=obj.formation||{};
+    personnel=/^[0-9]{2}$/.test(f.personnel)?f.personnel:'11';     // old plays carry none -> 11p
     if(f.strength) strength=f.strength;
     if(f.yTag)     yTag=f.yTag;
     if(f.hTag)     hTag=f.hTag;
