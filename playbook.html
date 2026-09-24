@@ -555,13 +555,13 @@ function buildOffense(strength,yTag,hTag,qbTag,backTag){
 
 const FRONTS={
   over:[ // 4-3 over: 3-tech to strength (offense right / TE side), shade nose weak
-    {id:'DE_W',label:'E', x:404, y:305},
-    {id:'NT',  label:'N', x:498, y:311},
-    {id:'DT',  label:'T', x:586, y:307},
-    {id:'DE_S',label:'E', x:694, y:305},
-    {id:'WILL',label:'W', x:452, y:266},
-    {id:'MIKE',label:'M', x:540, y:262},
-    {id:'SAM', label:'S', x:678, y:260},
+    {id:'DE_W',label:'E', x:404, y:311},   // DL all on the barrier (DEF_LINE)
+    {id:'NT',  label:'N', x:486, y:311},   // 2i: inside shade of the weak guard (LG 472)
+    {id:'DT',  label:'T', x:580, y:311},   // 3: outside shade of the strong guard (RG 568), tight
+    {id:'DE_S',label:'E', x:694, y:311},
+    {id:'WILL',label:'W', x:452, y:242},   // 9/24: backers pushed off the ball 24px
+    {id:'MIKE',label:'M', x:540, y:238},
+    {id:'SAM', label:'S', x:678, y:236},
     {id:'CB_W',label:'C', x:150, y:256},
     {id:'CB_S',label:'C', x:890, y:256},
     {id:'FS',  label:'F', x:500, y:150},
@@ -673,6 +673,7 @@ function load(){
   const dx=BALLDX[ballSpot]||0;                         // slide onto the hash; keep a boundary margin
   players.forEach(p=>{p.x=p.cx=Math.max(SL_L+96,Math.min(SL_R-96,p.x+dx));});
   ghosts.forEach(g=>{g.x=Math.max(SL_L+96,Math.min(SL_R-96,g.x+dx));});
+  alignToOffense();                                     // edges + corners read the (final) offense
   marks=[]; instances={}; assign={}; sel=null; draft=null; history=[]; highlighted={};
   drawHashes(); renderAll();
 }
@@ -685,6 +686,39 @@ function defStrongLeft(){                     // evaluated on the POST-shift set
     return f.strength==='lt';
   }
   return !!(P.Y && P.Y.cx<B);
+}
+/* ---------- 9/24: defense reads the offense (per side, in field coords) ----------
+   edge: attached = on-ball man within ATT_ON of the tackle, or a wing (just off the ball,
+   within ATT_WING, tagged ww/sw). open edge -> DE in a 5 (outside shoulder of the tackle). closed ->
+   DE 30px outside the outermost attached on-ball man (the authored 9), or the tackle+78
+   spot if the only attachment is a wing. corners: CB_OUT outside the widest receiver. */
+// forms whose tight on-ball receivers are nasty splits, never attached (axe: offense
+// is asking the end to pick: stay in a 5, or widen for contain and open a bubble)
+const DETACHED={ axe:['X','Y'] };
+const ATT_ON=76, ATT_WING=110, TECH5=20, DE_WIDE=30, CB_OUT=22;
+function alignToOffense(){
+  const tk={L:P.LT,R:P.RT}; if(!tk.L||!tk.R) return;
+  const skill=players.filter(p=>p.side==='off'&&p.kind!=='ol'&&p.id!=='Q');
+  const des=players.filter(p=>p.side==='def'&&(p.id==='DE_W'||p.id==='DE_S'));
+  const cbs=players.filter(p=>p.side==='def'&&(p.id==='CB_W'||p.id==='CB_S'));
+  const c=(P.C?P.C.cx:B);
+  [['L',-1],['R',1]].forEach(([k,dir])=>{
+    const t=tk[k], out=p=>(p.cx-t.cx)*dir;             // + = outside this tackle
+    const fm=shift?shift.yTag:yTag;
+    const on=skill.filter(p=>p.cy<=382&&out(p)>0&&out(p)<=ATT_ON&&!(DETACHED[fm]||[]).includes(p.id));
+    const hw=shift?shift.hTag:hTag;                  // wing = the H tag (wwing/swarm), same rule as def strength
+    const wing=skill.filter(p=>p.id==='H'&&WING_H.includes(hw)&&p.cy>382&&out(p)>0&&out(p)<=ATT_WING);
+    const de=des.find(d=>(d.cx-c)*dir>0);
+    if(de){
+      if(on.length){ const o=Math.max(...on.map(out)); de.x=de.cx=t.cx+dir*(o+DE_WIDE); }
+      else if(wing.length) de.x=de.cx=t.cx+dir*(144-96+DE_WIDE);
+      else de.x=de.cx=t.cx+dir*TECH5;                  // open edge: 5 technique
+    }
+    const cb=cbs.find(d=>(d.cx-c)*dir>0);
+    const wide=skill.filter(p=>(p.cx-c)*dir>0);
+    if(cb&&wide.length){ const w=Math.max(...wide.map(p=>(p.cx-c)*dir));
+      cb.x=cb.cx=Math.max(SL_L+30,Math.min(SL_R-30,c+dir*(w+CB_OUT))); }
+  });
 }
 function applyShell(){
   const s=SHELLS[shell]||SHELLS.open;
