@@ -372,7 +372,7 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
     <section class="bucket">
       <div class="bhead">defense</div>
       <div class="ctl"><label class="lc">front</label>
-        <select class="pick lc" id="defPick"><option value="over">4-3 over</option><option value="under">4-3 under</option><option value="bear">bear</option><option value="stack40">40 stack</option></select></div>
+        <select class="pick lc" id="defPick"><option value="over">4-3 over</option><option value="under">4-3 under</option><option value="bear">bear</option><option value="stack40">40 stack</option><option value="dbl3">double 3</option></select></div>
       <div class="ctl"><label class="lc">shell</label>
         <div class="grp" id="shellGrp">
           <button data-shell="open" class="on lc">open</button>
@@ -672,11 +672,18 @@ const TECH={'0':['C',0],'1':['C',12],'2i':['G',-14],'2':['G',0],'3':['G',12],
             '4i':['T',-12],'4':['T',0],'5':['T',20],'9':['T',78],
             'E':['T',20]};   // E: surface-read edge, seeded as a 5 until alignToOffense() places it
 const TECH_ANCHOR={C:0,G:48,T:96};                     // OL offsets from the ball (B)
-const DEF_LABEL={DE_W:'E',DE_S:'E',NT:'N',DT:'T',SAM:'S'};
+const DEF_LABEL={DE_W:'E',DE_S:'E',NT:'N',DT:'T',DT_W:'T',SAM:'S'};
 const FRONTS={
   over:{ label:'4-3 over',            // 3 to strength, 2i weak, ends 5 / 9 (edge rule moves them)
     line:'DE_W 5w · NT 2iw · DT 3s · DE_S 9s', edge:{w:'DE_W',s:'DE_S'},
     off:[ {id:'WILL',label:'W', x:452, y:242},   // 9/24: backers pushed off the ball 24px
+          {id:'MIKE',label:'M', x:540, y:238},
+          {id:'SAM', label:'S', x:678, y:236},
+          {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
+          {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
+  dbl3:{ label:'double 3',           // over, but both tackles in a 3 (outside shade of each guard). no nose.
+    line:'DE_W 5w · DT_W 3w · DT 3s · DE_S 9s', edge:{w:'DE_W',s:'DE_S'},
+    off:[ {id:'WILL',label:'W', x:452, y:242},   // over's backer spots for now: chart + export to bake
           {id:'MIKE',label:'M', x:540, y:238},
           {id:'SAM', label:'S', x:678, y:236},
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
