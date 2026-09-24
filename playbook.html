@@ -283,7 +283,7 @@ svg.ic path.d{stroke-dasharray:4 3;stroke-linecap:butt}
     <section class="bucket">
       <div class="bhead">defense</div>
       <div class="ctl"><label class="lc">front</label>
-        <select class="pick lc" id="defPick"><option value="over">4-3 over</option><option value="under">4-3 under</option></select></div>
+        <select class="pick lc" id="defPick"><option value="over">4-3 over</option><option value="under">4-3 under</option><option value="bear">bear</option></select></div>
       <div class="ctl"><label class="lc">shell</label>
         <div class="grp" id="shellGrp">
           <button data-shell="open" class="on lc">open</button>
@@ -558,7 +558,8 @@ function buildOffense(strength,yTag,hTag,qbTag,backTag){
    x = anchor on that side + dir*offset (dir: s=+1, w=-1). edge: who plays the edge rule per side.
    off: off-ball players stay as coordinates (backers, corners, safeties). */
 const TECH={'0':['C',0],'1':['C',12],'2i':['G',-14],'2':['G',0],'3':['G',12],
-            '4i':['T',-12],'4':['T',0],'5':['T',20],'9':['T',78]};
+            '4i':['T',-12],'4':['T',0],'5':['T',20],'9':['T',78],
+            'E':['T',20]};   // E: surface-read edge, seeded as a 5 until alignToOffense() places it
 const TECH_ANCHOR={C:0,G:48,T:96};                     // OL offsets from the ball (B)
 const DEF_LABEL={DE_W:'E',DE_S:'E',NT:'N',DT:'T',SAM:'S'};
 const FRONTS={
@@ -573,6 +574,14 @@ const FRONTS={
     line:'DE_W 5w · DT 3w · NT 1s · DE_S 5s · SAM 9s', edge:{w:'DE_W',s:'SAM'}, apex:'SAM', field:true,
     off:[ {id:'WILL',label:'W', x:448, y:242},   // placeholder spots: chart + export
           {id:'MIKE',label:'M', x:580, y:238},
+          {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
+          {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
+  bear:{ label:'bear',                // 3·0·3 inside; both edges read the surface (5/7/9).
+    // strong end moves in to the 3, Sam walks down to the strong edge (same personnel).
+    // 'E' = edge placeholder, resolved by the surface rule in alignToOffense().
+    line:'DE_W Ew · DT 3w · NT 0s · DE_S 3s · SAM Es', edge:{w:'DE_W',s:'SAM'}, surface:true, field:true,
+    off:[ {id:'WILL',label:'W', x:470, y:242},   // placeholder spots: chart + export
+          {id:'MIKE',label:'M', x:570, y:242},
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
           {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
 };
@@ -718,7 +727,7 @@ function defStrongLeft(){                     // evaluated on the POST-shift set
 // forms whose tight on-ball receivers are nasty splits, never attached (axe: offense
 // is asking the end to pick: stay in a 5, or widen for contain and open a bubble)
 const DETACHED={ axe:['X','Y'] };
-const ATT_ON=76, ATT_WING=110, TECH5=20, DE_WIDE=30, CB_OUT=22;
+const ATT_ON=76, ATT_WING=110, TECH5=20, TECH7=12, DE_WIDE=30, CB_OUT=22;
 const APEX_IN=22, APEX_Y=236, APEX_MIN=44;           // APEX_MIN: never inside the strong end's 5                        // under Sam walked out: inside the slot, Sam depth
 function alignToOffense(){
   const tk={L:P.LT,R:P.RT}; if(!tk.L||!tk.R) return;
@@ -727,6 +736,7 @@ function alignToOffense(){
   const des=players.filter(p=>p.side==='def'&&(p.id===fr.edge.w||p.id===fr.edge.s));
   const cbs=players.filter(p=>p.side==='def'&&(p.id==='CB_W'||p.id==='CB_S'));
   const c=(P.C?P.C.cx:B);
+  const sgnS=(P.SAM&&P.SAM.cx<c)?-1:1;                  // which field side is strong (for tech labels)
   [['L',-1],['R',1]].forEach(([k,dir])=>{
     const t=tk[k], out=p=>(p.cx-t.cx)*dir;             // + = outside this tackle
     const fm=shift?shift.yTag:yTag;
@@ -734,7 +744,16 @@ function alignToOffense(){
     const hw=shift?shift.hTag:hTag;                  // wing = the H tag (wwing/swarm), same rule as def strength
     const wing=skill.filter(p=>p.id==='H'&&WING_H.includes(hw)&&p.cy>382&&out(p)>0&&out(p)<=ATT_WING);
     const de=des.find(d=>(d.cx-c)*dir>0);
-    if(de){
+    if(de&&fr.surface){                                // bear: count the surface. 0 -> 5, 1 -> 7 (outside shade), 2 -> 9
+      const surf=on.concat(wing).sort((a,b)=>out(a)-out(b));   // nasty/DETACHED already excluded from on
+      const n=surf.length;
+      let x;
+      if(!n) x=t.cx+dir*TECH5;                                   // 5: outside shoulder of the tackle
+      else if(n===1) x=surf[0].cx+dir*TECH7;                     // 7: outside shade of the surface man
+      else x=surf[n-1].cx+dir*DE_WIDE;                           // 9: outside the wing, very wide
+      de.x=de.cx=x; de.y=de.cy=DEF_LINE; de.tech=(n?(n===1?'7':'9'):'5')+(dir*(sgnS)>0?'s':'w');
+    }
+    else if(de){
       if(on.length){ const o=Math.max(...on.map(out)); de.x=de.cx=t.cx+dir*(o+DE_WIDE); }
       else if(wing.length) de.x=de.cx=t.cx+dir*(144-96+DE_WIDE);
       else if(fr.apex===de.id){                      // under Sam, open edge: walk out inside the slot
