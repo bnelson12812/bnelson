@@ -283,7 +283,7 @@ svg.ic path.d{stroke-dasharray:4 3;stroke-linecap:butt}
     <section class="bucket">
       <div class="bhead">defense</div>
       <div class="ctl"><label class="lc">front</label>
-        <select class="pick lc" id="defPick"><option value="over">4-3 over</option><option value="under">4-3 under</option><option value="bear">bear</option></select></div>
+        <select class="pick lc" id="defPick"><option value="over">4-3 over</option><option value="under">4-3 under</option><option value="bear">bear</option><option value="stack40">40 stack</option></select></div>
       <div class="ctl"><label class="lc">shell</label>
         <div class="grp" id="shellGrp">
           <button data-shell="open" class="on lc">open</button>
@@ -584,13 +584,22 @@ const FRONTS={
           {id:'MIKE',label:'M', x:570, y:242},
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
           {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
+  stack40:{ label:'40 stack',         // 4·0·4 down; strong end bumps back. base personnel, no sub.
+    // '^' = stacked: same technique x, at STACK_Y (off the ball, so no OL shading).
+    // weak -> strong: WILL on the weak end, MIKE on the nose, DE_S on the DT. Sam = under's edge rule.
+    // strength = over's rule (Y / wing H / call side), not field. no weak edge player.
+    line:'DE_W 4w · WILL 4w^ · NT 0s · MIKE 0s^ · DT 4s · DE_S 4s^ · SAM 9s', edge:{w:null,s:'SAM'}, apex:'SAM',
+    off:[ {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
+          {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
 };
+const STACK_Y=242;                                      // stacked backer depth (chart + export to tune)
 function resolveFront(name){
   const f=FRONTS[name]||FRONTS.over, out=[];
   f.line.split('·').map(t=>t.trim()).filter(Boolean).forEach(tok=>{
-    const [id,ts]=tok.split(/\s+/), side=ts.slice(-1), tech=ts.slice(0,-1), dir=side==='s'?1:-1;
+    const [id,raw]=tok.split(/\s+/), stk=raw.endsWith('^'), ts=stk?raw.slice(0,-1):raw;
+    const side=ts.slice(-1), tech=ts.slice(0,-1), dir=side==='s'?1:-1;
     const [a,off]=TECH[tech];
-    out.push({id,label:DEF_LABEL[id]||id[0],tech:ts,x:B+dir*(TECH_ANCHOR[a]+off),y:DEF_LINE});
+    out.push({id,label:DEF_LABEL[id]||id[0],tech:ts,stack:stk,x:B+dir*(TECH_ANCHOR[a]+off),y:stk?STACK_Y:DEF_LINE});
   });
   return out.concat(f.off.map(p=>({...p})));
 }
