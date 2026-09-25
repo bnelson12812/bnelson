@@ -372,7 +372,7 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
     <section class="bucket">
       <div class="bhead">defense</div>
       <div class="ctl"><label class="lc">front</label>
-        <select class="pick lc" id="defPick"><option value="over">4-3 over</option><option value="under">4-3 under</option><option value="bear">bear</option><option value="stack40">40 stack</option><option value="dbl3">double 3</option></select></div>
+        <select class="pick lc" id="defPick"><option value="over">rush</option><option value="overshade">plus</option><option value="under">under</option><option value="shade">shade</option><option value="bear">sink</option><option value="stack40">stack</option><option value="dbl3">wide</option></select></div>
       <div class="ctl"><label class="lc">shell</label>
         <div class="grp" id="shellGrp">
           <button data-shell="open" class="on lc">open</button>
@@ -674,27 +674,40 @@ const TECH={'0':['C',0],'1':['C',12],'2i':['G',-14],'2':['G',0],'3':['G',12],
 const TECH_ANCHOR={C:0,G:48,T:96};                     // OL offsets from the ball (B)
 const DEF_LABEL={DE_W:'E',DE_S:'E',NT:'N',DT:'T',DT_W:'T',SAM:'S'};
 const FRONTS={
-  over:{ label:'4-3 over',            // 3 to strength, 2i weak, ends 5 / 9 (edge rule moves them)
-    line:'DE_W 5w · NT 2iw · DT 3s · DE_S 9s', edge:{w:'DE_W',s:'DE_S'},
+  over:{ label:'rush',                // 3 to strength, 2i weak, ends 5 / 9 (edge rule moves them)
+    line:'DE_W 5w · NT 2iw · DT 3s · DE_S 9s', samPass:true, edge:{w:'DE_W',s:'DE_S'},
     off:[ {id:'WILL',label:'W', x:452, y:242},   // 9/24: backers pushed off the ball 24px
           {id:'MIKE',label:'M', x:540, y:238},
           {id:'SAM', label:'S', x:678, y:236},
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
           {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
-  dbl3:{ label:'double 3',           // over, but both tackles in a 3 (outside shade of each guard). no nose.
-    line:'DE_W 5w · DT_W 3w · DT 3s · DE_S 9s', edge:{w:'DE_W',s:'DE_S'},
+  overshade:{ label:'plus',           // over, but the nose shades the center weak (1) instead of the 2i
+    line:'DE_W 5w · NT 1w · DT 3s · DE_S 9s', samPass:true, edge:{w:'DE_W',s:'DE_S'},
     off:[ {id:'WILL',label:'W', x:452, y:242},   // over's backer spots for now: chart + export to bake
           {id:'MIKE',label:'M', x:540, y:238},
           {id:'SAM', label:'S', x:678, y:236},
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
           {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
-  under:{ label:'4-3 under',          // 1 to strength, 3 weak, strong end a fixed 5, Sam on the edge
-    line:'DE_W 5w · DT 3w · NT 1s · DE_S 5s · SAM 9s', edge:{w:'DE_W',s:'SAM'}, apex:'SAM', field:true,
+  dbl3:{ label:'wide',               // over, but both tackles in a 3 (outside shade of each guard). no nose.
+    line:'DE_W 5w · DT_W 3w · DT 3s · DE_S 9s', samPass:true, edge:{w:'DE_W',s:'DE_S'},
+    off:[ {id:'WILL',label:'W', x:452, y:242},   // over's backer spots for now: chart + export to bake
+          {id:'MIKE',label:'M', x:540, y:238},
+          {id:'SAM', label:'S', x:678, y:236},
+          {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
+          {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
+  under:{ label:'under',              // 2i to strength, 3 weak, strong end a fixed 5, Sam on the edge
+    line:'DE_W 5w · DT 3w · NT 2is · DE_S 5s · SAM 9s', bump:true, edge:{w:'DE_W',s:'SAM'}, apex:'SAM', field:true,
     off:[ {id:'WILL',label:'W', x:448, y:242},   // placeholder spots: chart + export
           {id:'MIKE',label:'M', x:580, y:238},
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
           {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
-  bear:{ label:'bear',                // 3·0·3 inside; both edges read the surface (5/7/9).
+  shade:{ label:'shade',              // under, but the nose shades the center strong (1) and the strong end tightens to a 4
+    line:'DE_W 5w · DT 3w · NT 1s · DE_S 4s · SAM 9s', bump:true, edge:{w:'DE_W',s:'SAM'}, apex:'SAM', field:true,
+    off:[ {id:'WILL',label:'W', x:448, y:242},   // under's placeholder spots: chart + export
+          {id:'MIKE',label:'M', x:580, y:238},
+          {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
+          {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
+  bear:{ label:'sink',                // 3·0·3 inside; both edges read the surface (5/7/9).
     // strong end moves in to the 3, Sam walks down to the strong edge (same personnel).
     // 'E' = edge placeholder, resolved by the surface rule in alignToOffense().
     line:'DE_W Ew · DT 3w · NT 0s · DE_S 3s · SAM Es', edge:{w:'DE_W',s:'SAM'}, surface:true, field:true,
@@ -702,7 +715,7 @@ const FRONTS={
           {id:'MIKE',label:'M', x:570, y:242},
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
           {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
-  stack40:{ label:'40 stack',         // 4·0·4 down; strong end bumps back. base personnel, no sub.
+  stack40:{ label:'stack',            // 4·0·4 down; strong end bumps back. base personnel, no sub.
     // '^' = stacked: same technique x, at STACK_Y (off the ball, so no OL shading).
     // weak -> strong: WILL on the weak end, MIKE on the nose, DE_S on the DT. Sam = under's edge rule.
     // strength = over's rule (Y / wing H / call side), not field. no weak edge player.
@@ -763,7 +776,9 @@ let personnel='11';         // personnel group, shown as '11p' — label only (t
 let qbTag='uc';             // QB tag: uc (under center) | gun
 let backTag='default';      // back (T): default | a b | lf rf | l1 l2 l3 lw rw r3 r2 r1
 let curDef='over';          // current front
-let shell='open';           // 'open' | 'closed' coverage shell
+let defAuto=true;           // 9/24: front follows the PRE-shift Y (attached -> under, else rush) until hand-picked
+let shell='open';
+let runLeft=false;         // run strength (defense set left), captured in load() before the ball slide           // 'open' | 'closed' coverage shell
 let ballSpot='mid';
 let shift=null;             // null | {strength,yTag,hTag,qbTag,backTag} — the POST-shift set; primary = pre-shift
 let ghosts=[];              // pre-shift offense spots that moved: {id,label,sq,x,y}         // ball on the hash: left | lmid | mid | rmid | right
@@ -801,7 +816,18 @@ const NUM_R=Math.round(SL_R-27*FTX);
 const BALLDX={left:HASH_L-520, lmid:Math.round((HASH_L-520)/2), mid:0,
               rmid:Math.round((HASH_R-520)/2), right:HASH_R-520};
 const OFF_LINE=372, DEF_LINE=311;                      // neutral zone: OL front / DL front
+/* 9/24: default front. read on the PRE-shift set (front is called on the huddle-break look; the
+   shift only moves strength). attached = Y on the ball within ATT_ON outside his tackle, not DETACHED
+   -- same test the ends use, so the call and the end's technique never disagree. */
+function yAttachedPre(){
+  const o=buildOffense(strength,yTag,hTag,qbTag,backTag), y=o.find(q=>q.id==='Y');
+  if(!y||y.y>382||(DETACHED[yTag]||[]).includes('Y')) return false;
+  const t=o.find(q=>q.id===(y.x<B?'LT':'RT')), out=(y.x-t.x)*(y.x<B?-1:1);
+  return out>0&&out<=ATT_ON;
+}
+function autoFront(){ if(!defAuto) return; curDef=yAttachedPre()?'under':'over'; const d=$('#defPick'); if(d) d.value=curDef; }
 function load(){
+  autoFront();
   players=[]; Object.keys(P).forEach(k=>delete P[k]);
   // live pucks = post-shift set. the shift keeps the call strength; a TRADE flips it
   // (Y + strength-relative players go to the other side) while X and Z hold their spots.
@@ -822,7 +848,8 @@ function load(){
   //  - inline-TE forms: strength sets to the Y (wherever he resolves)
   //  - no-inline-TE forms: strength goes to the call side, unless the H is a wing
   //    (ww wwing / sw swarm) -> strength sets to the H
-  if(defStrongLeft()) players.forEach(p=>{ if(p.side==='def'){ p.x=p.cx=mirror(p.cx); } });
+  runLeft=defStrongLeft();                              // run strength, fixed BEFORE the ball slide
+  if(runLeft) players.forEach(p=>{ if(p.side==='def'){ p.x=p.cx=mirror(p.cx); } });
   const dx=BALLDX[ballSpot]||0;                         // slide onto the hash; keep a boundary margin
   players.forEach(p=>{p.x=p.cx=Math.max(SL_L+96,Math.min(SL_R-96,p.x+dx));});
   ghosts.forEach(g=>{g.x=Math.max(SL_L+96,Math.min(SL_R-96,g.x+dx));});
@@ -896,6 +923,72 @@ function alignToOffense(){
     if(cb&&wide.length){ const w=Math.max(...wide.map(p=>(p.cx-c)*dir));
       cb.x=cb.cx=Math.max(SL_L+30,Math.min(SL_R-30,c+dir*(w+CB_OUT))); }
   });
+  alignSafeties();
+  bumpBackers();
+  samToPass();
+}
+/* ---------- 9/24: under backers bump vs a Will-side slot ----------
+   slot = innermost split receiver on the Will side (away from run strength) that isn't #1.
+   Will: split the tackle and the slot, pulled WILL_IN toward the ball. Mike: head-up on the
+   run-strength guard. no slot -> charted base spots (W 448,242 / M 580,238, strong-right). */
+const WILL_IN=10;
+/* ---------- 9/24: over-family Sam follows PASSING strength ----------
+   when passing strength != run strength (front has samPass): Sam walks out to the passing side,
+   a little outside the apex (SAM_PASS_IN inside the slot; under's apex is APEX_IN=22), at APEX_Y,
+   floored APEX_MIN outside the tackle. only #1 -> midpoint of tackle and #1. Will stays.
+   Mike shades back to run strength: head-up on the run-strength guard. PLACEHOLDERS: chart to bake. */
+const SAM_PASS_IN=12;
+function samToPass(){
+  const fr=FRONTS[curDef]; if(!fr||!fr.samPass||!P.SAM||!P.MIKE) return;
+  const runL=runLeft, passL=passStrongLeft(); if(runL===passL) return;
+  const dir=passL?-1:1, t=passL?P.LT:P.RT, rec=splitReceivers()[passL?'L':'R'];
+  if(!rec.length) return;
+  const slot=rec.length>=2?rec[rec.length-1]:null;
+  let x=slot?slot.cx-dir*SAM_PASS_IN:(t.cx+rec[0].cx)/2;
+  if((x-t.cx)*dir<APEX_MIN) x=t.cx+dir*APEX_MIN;
+  P.SAM.x=P.SAM.cx=x; P.SAM.y=P.SAM.cy=APEX_Y;
+  const g=runL?P.LG:P.RG; P.MIKE.x=P.MIKE.cx=g.cx;
+}
+function bumpBackers(){
+  const fr=FRONTS[curDef]; if(!fr||!fr.bump||!P.WILL||!P.MIKE) return;
+  const runL=runLeft, dir=runL?1:-1, wk=runL?'R':'L';   // dir = outward toward the Will side
+  const rec=splitReceivers()[wk], slot=rec.length>=2?rec[rec.length-1]:null;
+  if(!slot) return;
+  const t=runL?P.RT:P.LT, g=runL?P.LG:P.RG;
+  P.WILL.x=P.WILL.cx=(t.cx+slot.cx)/2-dir*WILL_IN;
+  P.MIKE.x=P.MIKE.cx=g.cx;
+}
+/* ---------- 9/24: safeties read PASSING strength (open shell only; closed unchanged) ----------
+   split receiver = eligible (not QB/OL) outside the tackle who isn't an inline TE (on-ball within
+   ATT_ON, nasty/DETACHED excepted), a wing (ww/sw H within ATT_WING), or a back (deeper than SPLIT_Y).
+   passing strength = side with more split receivers; tie -> run strength (runLeft, set in load() before the ball slide).
+   SS: head-up on #2 (2nd split receiver from the outside) to passing strength, else his hash.
+   FS: his hash, away from passing strength. hash on the ball's side -> SAFE_MIN off the ball. */
+const SPLIT_Y=440, SAFE_MIN=60;
+function splitReceivers(){
+  const tk={L:P.LT,R:P.RT}, res={L:[],R:[]}; if(!tk.L||!tk.R) return res;
+  const fm=shift?shift.yTag:yTag, hw=shift?shift.hTag:hTag;
+  [['L',-1],['R',1]].forEach(([k,dir])=>{
+    const t=tk[k], out=p=>(p.cx-t.cx)*dir;
+    res[k]=players.filter(p=>p.side==='off'&&p.kind!=='ol'&&p.id!=='Q'&&p.cy<=SPLIT_Y&&out(p)>0&&
+      !(p.cy<=382&&out(p)<=ATT_ON&&!(DETACHED[fm]||[]).includes(p.id))&&   // inline TE
+      !(p.cy>382&&out(p)<=ATT_ON)&&                                        // tight off-ball (behind the tackle)
+      !(p.id==='H'&&WING_H.includes(hw)&&p.cy>382&&out(p)<=ATT_WING))        // wing
+      .sort((a,b)=>out(b)-out(a));                                         // outside -> in: [#1, #2, ...]
+  });
+  return res;
+}
+function passStrongLeft(){                     // passing strength: more split receivers; tie -> run strength
+  const r=splitReceivers();
+  return r.L.length===r.R.length?runLeft:r.L.length>r.R.length;
+}
+function alignSafeties(){
+  if(shell!=='open'||!P.FS||!P.SS) return;
+  const c=(P.C?P.C.cx:B), r=splitReceivers(), pl=passStrongLeft();
+  const hashX=dir=>{ const h=dir<0?HASH_L:HASH_R; return c+dir*Math.max((h-c)*dir,SAFE_MIN); };
+  const sDir=pl?-1:1, two=r[pl?'L':'R'][1], y=SHELLS.open.SS.y;
+  P.SS.x=P.SS.cx=two?two.cx:hashX(sDir); P.SS.y=P.SS.cy=y;
+  P.FS.x=P.FS.cx=hashX(-sDir); P.FS.y=P.FS.cy=SHELLS.open.FS.y;
 }
 function applyShell(){
   const s=SHELLS[shell]||SHELLS.open;
@@ -1383,7 +1476,7 @@ $('#smoothGrp').addEventListener('click',()=>{pen.smooth=!pen.smooth;
 $('#undoBtn').onclick=undo;
 window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='z'){e.preventDefault();undo();}});
 $('#clearBtn').onclick=()=>{                              // reset to the Strong-I vs 4-3 Over baseline
-  personnel='11'; strength='rt'; yTag='str'; hTag='i'; qbTag='uc'; backTag='default'; curDef='over'; shell='open'; ballSpot='mid'; shift=null;
+  personnel='11'; strength='rt'; yTag='str'; hTag='i'; qbTag='uc'; backTag='default'; curDef='over'; defAuto=true; shell='open'; ballSpot='mid'; shift=null;
   syncFormUI(); load(); autoTitle();};
 $('#strGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   strength=b.dataset.str; $('#strGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); load(); autoTitle();});
@@ -1393,7 +1486,7 @@ $('#hPick').onchange=e=>{hTag=e.target.value; load(); autoTitle();};
 $('#backPick').onchange=e=>{backTag=e.target.value; load(); autoTitle();};
 $('#qbGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   qbTag=b.dataset.qb; $('#qbGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); load(); autoTitle();});
-$('#defPick').onchange=e=>{curDef=e.target.value; load();};
+$('#defPick').onchange=e=>{curDef=e.target.value; defAuto=false; load();};   // hand-picked front sticks
 // shift controls: replica of the formation row; option lists cloned from the primary pickers
 ['form','h','back'].forEach(k=>{$('#sh'+k[0].toUpperCase()+k.slice(1)+'Pick').innerHTML=$('#'+k+'Pick').innerHTML;});
 function syncShiftUI(){
@@ -1472,7 +1565,7 @@ function slug(){const t=($('#playTitle').value||'').trim().toLowerCase()
   .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); return t||'play';}
 function playJSON(){
   return {v:1, title:$('#playTitle').value||'', defCall:$('#defCall').value||'', note:$('#playNote').value||'',
-    formation:{personnel,strength,yTag,hTag,qbTag,backTag}, shift, def:curDef, shell, ballSpot, highlights:Object.keys(highlighted),
+    formation:{personnel,strength,yTag,hTag,qbTag,backTag}, shift, def:curDef, defAuto, shell, ballSpot, highlights:Object.keys(highlighted),
     players:players.map(p=>({id:p.id,cx:p.cx,cy:p.cy})),
     marks, instances, assign};
 }
@@ -1500,6 +1593,7 @@ function loadJSON(obj){
     else if(f.backTag==='pst'){ qbTag='gun'; backTag='default'; }
     else { qbTag='uc'; backTag='default'; }
     if(obj.def&&FRONTS[obj.def]) curDef=obj.def;
+    defAuto=obj.defAuto===true;                                     // old plays: saved front stays
     shell=(obj.shell==='closed')?'closed':'open';
     if(BALLDX[obj.ballSpot]!==undefined) ballSpot=obj.ballSpot;
     const sh=obj.shift;                                             // optional; old plays have none
@@ -1539,6 +1633,8 @@ $('#dataApply').onclick=()=>{let obj;try{obj=JSON.parse(dataText.value);}catch(e
 const DEF_NAMES={}; $('#defPick').querySelectorAll('option').forEach(o=>DEF_NAMES[o.value]=o.textContent);
 const defString=(d=curDef,sh=shell)=>(DEF_NAMES[d]||d)+' · '+sh;
 const AUTO_DEFS=new Set(); Object.keys(DEF_NAMES).forEach(d=>['open','closed'].forEach(sh=>AUTO_DEFS.add(defString(d,sh))));
+// pre-rename auto strings (9/24) still count as auto, so old plays pick up the new names
+['4-3 over','over shade','4-3 under','bear','40 stack','double 3'].forEach(n=>['open','closed'].forEach(sh=>AUTO_DEFS.add(n+' · '+sh)));
 function autoDef(){ const i=$('#defCall'); if(!i) return;
   if(i.value===''||AUTO_DEFS.has(i.value)) i.value=defString(); }   // any auto string = still auto
 
