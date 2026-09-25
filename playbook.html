@@ -518,17 +518,17 @@ const B=520;                                   // ball x
 const mirror=x=>1040-x;
 // H-tag spot -> [offset-from-ball, y]. u/b are backfield (offset handled in code).
 const HSPOT={ s:[250,388], o:[400,372], w:[176,392], u:[40,452], b:[56,520] };
-// bunch H spots calibrated per form from Beau's charted positions: [offset-from-ball, y]
-const HBUNCH={ ws:[333,404], wo:[409,409], wu:[63,474], ww:[129,411], wb:[77,553],
-               ss:[249,410], so:[385,397], su:[68,475], sw:[119,416], sb:[86,545] };
-const HBLK  ={ ws:[251,408], wo:[409,409], wu:[63,474], ww:[184,408], wb:[77,553],
-               ss:[263,412], so:[385,397], su:[68,475], sw:[119,416], sb:[86,545] };
-const HBLX  ={ ws:[324,408], wo:[409,409], wu:[63,474], ww:[129,411], wb:[77,553],
-               ss:[261,410], so:[385,397], su:[68,475], sw:[119,416], sb:[86,545] };
+// brung/blex/bleak/bunch H: charted exact per cell (9/25 bunch sheet): [offset-from-ball, y]
+const HBUNCH={ ws:[251,402], wo:[400,409], wu:[63,474], ww:[129,411], wb:[77,553],
+               ss:[135,407], so:[241,409], su:[68,475], sw:[119,416], sb:[86,545] };
+const HBLK  ={ ws:[251,408], wo:[400,409], wu:[63,474], ww:[184,408], wb:[77,553],
+               ss:[146,407], so:[261,404], su:[68,475], sw:[119,416], sb:[86,545] };
+const HBLX  ={ ws:[238,411], wo:[400,409], wu:[63,474], ww:[129,411], wb:[77,553],
+               ss:[144,402], so:[261,407], su:[68,475], sw:[119,416], sb:[86,545] };
 const HSTR  ={ ws:[250,388], wo:[394,404], wu:[62,481], ww:[134,408], wb:[74,549],
                ss:[250,388], so:[402,399], su:[72,483], sw:[184,410], sb:[82,549] };
-const HSTCH ={ ws:[338,408], wo:[400,406], wu:[57,480], ww:[134,411], wb:[85,545],
-               ss:[233,405], so:[363,406], su:[69,475], sw:[184,400], sb:[110,545] };
+const HSTCH ={ ws:[252,412], wo:[400,406], wu:[57,480], ww:[134,411], wb:[85,545],
+               ss:[182,408], so:[232,404], su:[69,475], sw:[184,400], sb:[110,545] };
 const HWK   ={ ws:[258,393], wo:[360,396], wu:[64,478], ww:[180,411], wb:[71,553],
                ss:[177,408], so:[405,396], su:[65,484], sw:[136,409], sb:[87,543] };
 const HSLOT ={ ws:[250,388], wo:[390,401], wu:[60,487], ww:[135,407], wb:[76,551],
@@ -543,6 +543,12 @@ const HFLX ={ ws:[250,388], wo:[370,403], wu:[65,482], ww:[133,408], wb:[67,482]
 const HTABLES={ str:HSTR, stch:HSTCH, wk:HWK, slot:HSLOT, bnch:HBUNCH, blk:HBLK, blx:HBLX, nsty:HNSTY, nod:HNOD, add:HADD, axe:HAXE, flx:HFLX };
 // per (form|hTag) receiver repositioning — e.g. weak-outside H bumps the split end into the slot
 const RECV_OVERRIDE={
+  // brung/blex/bleak/bunch corrections (9/25 bunch sheet)
+  'stch|wo':   { X:['W',268,378] },
+  'blx|wo':    { Y:['W',274,372] },
+  'bnch|wo':   { X:['W',273,372] },
+  'stch|ss':   { Z:['S',226,409] },
+  'stch|sw':   { Z:['S',233,401] },
   'str|wo':  { X:['W',255,372] },                        // weak-outside H bumps split end to slot
   'wk|so':   { X:['S',215,372], Z:['S',306,398] },       // strong-outside H tucks X and Z in
   'slot|ss': { Y:['S',277,375], Z:['S',380,397] },       // strong-slot H shifts Y/Z out
