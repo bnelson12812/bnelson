@@ -863,7 +863,7 @@ function load(){
   marks=[]; instances={}; assign={}; sel=null; draft=null; history=[]; highlighted={};
   drawHashes(); renderAll();
 }
-const NO_TE_FORMS=['slot','flx','blx','nsty','clst','chex','add','axe'];
+const NO_TE_FORMS=['slot','flx','bnch','blx','nsty','clst','chex','add','axe'];   // 9/25: bunch Y is the point of the bunch, not an inline TE
 const WING_H=['ww','sw'];
 function defStrongLeft(){                     // evaluated on the POST-shift set (defense adjusts)
   const f=shift?{...shift,strength:shift.trade?(strength==='rt'?'lt':'rt'):strength}:{strength,yTag,hTag};
@@ -886,7 +886,7 @@ function defStrongLeft(){                     // evaluated on the POST-shift set
    spot if the only attachment is a wing. corners: CB_OUT outside the widest receiver. */
 // forms whose tight on-ball receivers are nasty splits, never attached (axe: offense
 // is asking the end to pick: stay in a 5, or widen for contain and open a bubble)
-const DETACHED={ axe:['X','Y'] };
+const DETACHED={ axe:['X','Y'], bnch:['Y'] };   // 9/25: bunch Y sits close (~68px) but is the bunch point, not attached
 const ATT_ON=76, ATT_WING=110, TECH5=20, TECH7=12, DE_WIDE=30, CB_OUT=22;
 const APEX_IN=22, APEX_Y=236, APEX_MIN=44;           // APEX_MIN: never inside the strong end's 5                        // under Sam walked out: inside the slot, Sam depth
 function alignToOffense(){
@@ -915,7 +915,7 @@ function alignToOffense(){
     }
     else if(de){
       if(on.length){ const o=Math.max(...on.map(out)); de.x=de.cx=t.cx+dir*(o+DE_WIDE); }
-      else if(wing.length) de.x=de.cx=t.cx+dir*(144-96+DE_WIDE);
+      else if(wing.length){ const o=Math.max(...wing.map(out)); de.x=de.cx=t.cx+dir*(o+DE_WIDE); }   // 9/25: outside the actual wing (was a fixed tackle+78)
       else if(fr.apex===de.id){                      // under Sam, open edge: walk out inside the slot
         const rec=skill.filter(p=>out(p)>0&&p.cy<=440).sort((a,b)=>out(b)-out(a));
         const slot=rec.length>=2?rec[rec.length-1]:null;   // innermost receiver that isn't #1
