@@ -540,7 +540,11 @@ const HADD ={ ws:[155,408], wo:[218,402], wu:[70,486], ww:[128,400], wb:[73,548]
 const HAXE ={ ws:[153,404], wo:[216,400], wu:[60,477], ww:[133,400], wb:[69,480], so:[265,405], su:[68,475], sw:[119,416], sb:[86,545] };   // ss uncharted -> generic
 // flex: charted exact per cell (9/22 flex_fix)
 const HFLX ={ ws:[250,388], wo:[370,403], wu:[65,482], ww:[133,408], wb:[67,482], ss:[190,395], so:[392,394], su:[69,486], sw:[133,402], sb:[88,546] };
-const HTABLES={ str:HSTR, stch:HSTCH, wk:HWK, slot:HSLOT, bnch:HBUNCH, blk:HBLK, blx:HBLX, nsty:HNSTY, nod:HNOD, add:HADD, axe:HAXE, flx:HFLX };
+// cluster / click / chex — exact per cell (9/28 cluster sheet)
+const HCLST={ ws:[250,388], wo:[394,406], wu:[55,482], ww:[134,404], wb:[74,544], ss:[220,412], so:[336,411], su:[68,487], sw:[132,404], sb:[76,547] };
+const HCLIK={ ws:[250,388], wo:[401,405], wu:[62,485], ww:[180,406], wb:[81,549], ss:[240,407], so:[360,405], su:[66,480], sw:[133,405], sb:[83,552] };
+const HCHEX={ ws:[250,388], wo:[405,413], wu:[54,485], ww:[130,403], wb:[78,549], ss:[258,403], so:[373,403], su:[70,488], sw:[133,404], sb:[85,547] };
+const HTABLES={ str:HSTR, stch:HSTCH, wk:HWK, slot:HSLOT, bnch:HBUNCH, blk:HBLK, blx:HBLX, nsty:HNSTY, nod:HNOD, add:HADD, axe:HAXE, flx:HFLX, clst:HCLST, clik:HCLIK, chex:HCHEX };
 // per (form|hTag) receiver repositioning — e.g. weak-outside H bumps the split end into the slot
 const RECV_OVERRIDE={
   // brung/blex/bleak/bunch corrections (9/25 bunch sheet)
@@ -558,6 +562,9 @@ const RECV_OVERRIDE={
   'flx|wo':    { Y:['W',263,372] },
   'flx|ss':    { X:['S',277,372] },
   'flx|so':    { X:['S',217,372], Z:['S',309,391] },
+  // cluster / chex — exact per cell (9/28 cluster sheet)
+  'chex|wo':  { Y:['W',257,375] },
+  'clst|wo':  { X:['W',252,372] },
   // add / astrid(nod) / axe — exact per cell (9/22 sheet)
   'nod|ss':    { Z:['S',253,404] },
   'nod|sw':    { Z:['S',230,407] },
