@@ -17,12 +17,14 @@
 :root{--black:#0A0A0A;--gray-dark:#404040;--gray-mid:#808080;--gray-light:#C0C0C0;--off-white:#F8F8F8;
   --panel:#ffffff;--call:#C0392B;--field:#FBFBFA;
   --side:#F1F1EF;--hover:#fff;--grid:rgba(10,10,10,.03);--hl:#2E7DD1;--shadow:rgba(10,10,10,.14);--scrim:rgba(10,10,10,.35);
-  --sideline:#DCDCDA;--hashtick:#C4C4C4;--numguide:#EBEBE9;--balltick:#0A0A0A;}
+  --sideline:#DCDCDA;--hashtick:#C4C4C4;--numguide:#EBEBE9;--yardline:#E4E4E2;--fieldnum:#DCDCDA;--balltick:#0A0A0A;
+  --te:#2E8B57;--te-tint:#DCEFE3;--rb:#C8860D;--rb-tint:#F6E7C8;}
 /* dark: follows the desktop's theme toggle (beauos_theme) — same tokens as desktop.html */
 [data-theme=dark]{--black:#F5F5F5;--off-white:#0d0d0d;--gray-dark:#cfcfcf;--gray-mid:#8f8f8f;--gray-light:#3a3a3a;
   --panel:#151515;--field:#101010;--side:#131313;--hover:#1f1f1f;--grid:rgba(245,245,245,.035);--call:#E0564A;--hl:#4A9BEA;
-  --shadow:rgba(0,0,0,.5);--scrim:rgba(0,0,0,.55);--sideline:#2e2e2e;--hashtick:#3d3d3d;--numguide:#1c1c1c;--balltick:#F5F5F5;}
-.sl{stroke:var(--sideline)} .ht{stroke:var(--hashtick)} .ng{stroke:var(--numguide)} .bt{stroke:var(--balltick)}
+  --shadow:rgba(0,0,0,.5);--scrim:rgba(0,0,0,.55);--sideline:#2e2e2e;--hashtick:#3d3d3d;--numguide:#1c1c1c;--yardline:#232323;--fieldnum:#262626;--balltick:#F5F5F5;
+  --te:#4FB37A;--te-tint:#15301F;--rb:#E0A33A;--rb-tint:#33270F;}
+.sl{stroke:var(--sideline)} .yl{stroke:var(--yardline)} .fnum text{fill:var(--fieldnum)} .ht{stroke:var(--hashtick)} .ng{stroke:var(--numguide)} .bt{stroke:var(--balltick)} .gl{stroke:var(--sideline)} .ez{fill:var(--sideline);fill-opacity:.35}
 html,body{height:100%;background:var(--off-white);color:var(--black);font-family:'Space Mono',monospace;overflow:hidden}
 .lc{text-transform:lowercase}
 button,select{font-family:inherit;cursor:pointer}
@@ -30,7 +32,8 @@ button,select{font-family:inherit;cursor:pointer}
 #app{position:fixed;inset:0;display:flex;flex-direction:row}
 
 /* ---------- sidebar (bucketed controls) ---------- */
-#side{flex:0 0 210px;display:flex;flex-direction:column;overflow-y:auto;
+#side{flex:0 0 auto;width:max(var(--colw),calc(var(--colw)*var(--nopen) + var(--railw)*var(--nfold)));
+  --colw:210px;--railw:30px;--nopen:2;--nfold:0;display:flex;flex-direction:column;overflow-y:auto;
   background:var(--side);border-right:1px solid var(--gray-light)}
 #side .brand{font-family:'Retron2000','Space Mono',monospace;font-size:.72rem;letter-spacing:.1em;
   padding:13px 14px 11px;color:var(--black)}
@@ -39,6 +42,27 @@ button,select{font-family:inherit;cursor:pointer}
 /* buckets = common region: tracked label + hairline separator */
 .bucket{padding:9px 14px 10px;border-top:1px solid var(--gray-light)}
 .bucket.admin{margin-top:auto}
+/* 10/1: two foldable columns — offense (with shift) · defense. order follows the view; admin spans the bottom */
+#cols{display:flex;flex-direction:row;flex:1 0 auto;min-height:0}
+#cols.dv #offCol{order:2} #cols.dv #defCol{order:1}
+.col{flex:1 1 0;min-width:0;display:flex;flex-direction:column}
+.col+.col{border-left:1px solid var(--gray-light)}
+#cols.dv .col+.col{border-left:0} #cols.dv #offCol{border-left:1px solid var(--gray-light)}
+.colhead{display:flex;align-items:center;justify-content:space-between;border:0;background:none;width:100%;
+  padding:9px 14px 0;font-family:'Retron2000','Space Mono',monospace;font-size:.58rem;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--gray-mid);border-top:1px solid var(--gray-light);text-align:left}
+.colhead:hover{color:var(--black)}
+.cfold::before{content:'\2039';font-family:'Space Mono',monospace;font-size:.9rem;letter-spacing:0;line-height:.6}
+.colhead+.rail+.colbody>.bucket:first-child{border-top:0;padding-top:6px}
+.rail{display:none;flex:1;border:0;background:none;padding:12px 0;border-top:1px solid var(--gray-light);
+  flex-direction:column;align-items:center;gap:14px;overflow:hidden;color:var(--gray-mid)}
+.rail:hover{background:var(--hover);color:var(--black)}
+.rail span{writing-mode:vertical-rl;white-space:nowrap}
+.rname{font-family:'Retron2000','Space Mono',monospace;font-size:.58rem;letter-spacing:.24em;text-transform:uppercase}
+.rcall{font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;color:var(--black)}
+#defRail{color:var(--call)}
+.col.fold{flex:0 0 var(--railw)} .col.fold .colhead,.col.fold .colbody{display:none} .col.fold .rail{display:flex}
+#side.both .col.fold{flex:1 1 0}
 .bhead{font-family:'Retron2000','Space Mono',monospace;font-size:.58rem;letter-spacing:.24em;
   text-transform:uppercase;color:var(--gray-mid);margin-bottom:7px}
 
@@ -57,6 +81,7 @@ select.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
 /* segmented controls = uniform connectedness (shared container, hairline gaps) */
 .grp{display:flex;gap:1px;background:var(--gray-light);padding:1px}
 .ctl>.grp{flex:1;min-width:0}
+.grp>button:disabled{color:var(--gray-light);cursor:not-allowed}
 .bucket>.grp{margin-top:6px}
 .grp>button{flex:1;min-width:0;border:0;background:var(--panel);color:var(--gray-dark);
   font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.02em;padding:6px 2px;line-height:1}
@@ -83,6 +108,12 @@ select.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
   repeating-linear-gradient(90deg,transparent 0 39px,var(--grid) 39px 40px),var(--field)}
 svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #field.pen{cursor:crosshair}
+#field.shiftm{cursor:crosshair}
+/* 10/2 shift mode: armed player + preview (uiLayer, stripped on export); ghosts take clicks/drags */
+.ghost circle,.ghost rect,.ghost polygon{pointer-events:all}
+#field:not(.pen):not(.shiftm) .ghost{cursor:grab}
+.armed{fill:none;stroke:var(--black);stroke-width:1.6;stroke-dasharray:2 3;pointer-events:none}
+.shprev{fill:none;stroke:var(--gray-mid);stroke-width:1.4;stroke-dasharray:3 3;pointer-events:none}
 
 .puck circle,.puck polygon{stroke:var(--black);stroke-width:2.2;fill:var(--field)}
 .puck rect.olsq{stroke:var(--black);stroke-width:2.2;fill:var(--field)}
@@ -90,13 +121,23 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #menu button.hl:hover{background:var(--hl);color:#fff}
 .puck.claimed rect.olsq{stroke:var(--gray-mid)}
 .puck.def polygon{fill:var(--off-white)}
-.puck text{font-family:'Space Mono',monospace;font-weight:700;font-size:14px;fill:var(--black);
+.puck text{font-family:'Space Mono',monospace;font-weight:700;font-size:11px;fill:var(--black);
   text-anchor:middle;dominant-baseline:central;pointer-events:none;user-select:none}
-.puck .sub{font-size:9px;fill:var(--gray-mid);font-weight:400}
+.puck.def text{font-size:9px}
+.puck .sub{font-size:7px;fill:var(--gray-mid);font-weight:400}
 .puck{cursor:pointer}
 .puck.grabbing{cursor:grabbing}
 .puck.claimed circle,.puck.claimed polygon{stroke:var(--gray-mid)}
 .puck.claimed text{fill:var(--gray-mid)}
+/* personnel roles: colored ring + light tint, black letter. keep ABOVE .hl (same specificity) */
+.puck.te circle{stroke:var(--te);fill:var(--te-tint);stroke-width:2.6}
+.puck.rb circle{stroke:var(--rb);fill:var(--rb-tint);stroke-width:2.6}
+/* personnel key, field top-left (exports with the PNG) */
+#persKey{pointer-events:none}
+#persKey text{font-family:'Space Mono',monospace;font-size:11px;fill:var(--gray-dark);dominant-baseline:central}
+#persKey .pkh{font-weight:700;font-size:13px;fill:var(--black)}
+#persKey circle{stroke-width:2;stroke:var(--black);fill:var(--field)}
+#persKey circle.te{stroke:var(--te);fill:var(--te-tint)} #persKey circle.rb{stroke:var(--rb);fill:var(--rb-tint)}
 
 /* highlight: solid accent fill, no outline, soft glow — carries to the player's own marks */
 .puck.hl circle,.puck.hl polygon,.puck.def.hl polygon,.puck.hl rect.olsq{fill:var(--hl);stroke:none;filter:url(#hlglow)}
@@ -104,7 +145,7 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 .mark.hlm,.cap.hlm{stroke:var(--hl);filter:url(#hlglow)}
 #arrow path{fill:var(--black)} #arrowHL path{fill:var(--hl)} #arrowSH path{fill:var(--gray-mid)}
 /* shift: ghost pre-shift pucks + gray dashed arrows to the post-shift spot */
-.ghost circle,.ghost rect{fill:none;stroke:var(--gray-mid);stroke-width:1.6;stroke-dasharray:3 3}
+.ghost circle,.ghost rect,.ghost polygon{fill:none;stroke:var(--gray-mid);stroke-width:1.6;stroke-dasharray:3 3}
 .ghost text{font-weight:700;font-size:12px;fill:var(--gray-mid);text-anchor:middle;dominant-baseline:central}
 .shiftln{fill:none;stroke:var(--gray-mid);stroke-width:1.8;stroke-dasharray:5 5;stroke-linecap:round;stroke-linejoin:round}
 #shiftBox.off .ctl.sh{display:none}
@@ -156,7 +197,7 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 .pill{padding:1px 6px;box-shadow:inset 0 0 0 1px var(--gray-light)}
 .pill.warn{color:var(--call);box-shadow:inset 0 0 0 1px var(--call)}
 
-@media(max-width:840px){#side{flex-basis:184px}}
+@media(max-width:840px){#side{--colw:184px}}
 @media(max-width:680px){.foot .hint{display:none}}
 
 /* ---------- on-field overlays: ball spot (top right) + floating toolbox (bottom center) ---------- */
@@ -164,6 +205,10 @@ svg#field{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   box-shadow:4px 4px 0 -1px var(--shadow)}
 #ballBox{top:10px;right:10px;padding:5px 8px;width:176px}
 #ballBox .ctl{margin:0}
+#zoomGrp{margin-top:5px}#zoomGrp button{flex:1}#viewGrp{margin-top:5px}#viewGrp button{flex:1}
+/* 10/1 defensive view: the world rotates 180 about the frame center; text turns back upright (numerals ride the rotation, like a real field) */
+#world.flip text{transform:rotate(180deg);transform-box:fill-box;transform-origin:center}#world.flip .fnum text{transform:none}
+#onCtl{display:flex;gap:5px;align-items:center;margin-top:4px}#onCtl select{flex:1}#onCtl input{width:52px;flex:none;color:var(--black)}
 #toolbox{left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:6px;padding:4px;max-width:calc(100% - 20px)}
 #toolbox .grp>button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   padding:5px 7px 4px;min-width:34px;font-size:.56rem}
@@ -246,7 +291,7 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
 .gcell .gbar{display:flex;align-items:stretch;background:#0A0A0A;color:#fff;height:19px;font-size:.54rem;font-weight:700;letter-spacing:.02em}
 .gcell .gnum{flex:none;width:19px;background:#fff;color:#0A0A0A;border:1.5px solid #0A0A0A;display:flex;align-items:center;justify-content:center;font-size:.64rem}
 .gcell .gtitle{padding:0 6px;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gcell .gfield{position:relative;aspect-ratio:1040/720}
+.gcell .gfield{position:relative;aspect-ratio:1020/430}
 .gcell .gfield img{position:absolute;inset:0;width:100%;height:100%;display:block}
 .gcell .gdef{position:absolute;top:3px;right:5px;color:#C0392B;font-weight:700;font-size:.52rem;max-width:70%;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -285,15 +330,24 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
   <div id="side">
     <div class="brand lc">beaunelson // playbook</div>
 
+    <div id="cols">
+    <div class="col" id="offCol" data-col="off">
+    <button class="colhead lc" data-col="off" title="fold offense"><span class="cname">offense</span><span class="cfold" aria-hidden="true"></span></button>
+    <button class="rail lc" data-col="off" title="unfold offense"><span class="rname">offense</span><span class="rcall" id="offRail"></span></button>
+    <div class="colbody">
     <section class="bucket">
-      <div class="bhead">offense</div>
       <div class="ctl"><label class="lc">pers</label>
         <select class="pick lc" id="persPick">
-          <option value="10">10p</option><option value="11" selected>11p</option>
+          <option value="10">10p</option><option value="11" selected>11p</option><option value="11h">11hp</option>
           <option value="12">12p</option><option value="13">13p</option>
           <option value="20">20p</option><option value="21">21p</option>
           <option value="22">22p</option><option value="23">23p</option>
         </select></div>
+      <div class="ctl"><label class="lc">id</label>
+        <div class="grp" id="persVisGrp">
+          <button data-pv="on" class="on lc">on</button>
+          <button data-pv="off" class="lc">off</button>
+        </div></div>
       <div class="ctl"><label class="lc">qb</label>
         <div class="grp" id="qbGrp">
           <button data-qb="uc" class="on lc">under</button>
@@ -307,22 +361,32 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
       <div class="ctl"><label class="lc">form</label>
         <select class="pick lc" id="formPick">
           <option value="slot" selected>default</option>
+          <option value="swch">switch</option>
           <option value="str">strong</option>
           <option value="wk">weak</option>
           <option value="flx">flex</option>
           <option value="bnch">bunch</option>
+          <option value="swng">swung</option>
           <option value="stch">brung</option>
           <option value="blx">blex</option>
           <option value="blk">bleak</option>
           <option value="nsty">nasty</option>
           <option value="ntr">nitro</option>
           <option value="clst">cluster</option>
+          <option value="clch">clutch</option>
           <option value="clik">click</option>
           <option value="chex">chex</option>
+          <option value="stk">stack</option>
           <option value="add">add</option>
+          <option value="swag">swag</option>
           <option value="nod">astrid</option>
           <option value="axe">axe</option>
         </select></div>
+      <div class="ctl"><label class="lc">y</label>
+        <div class="grp" id="yGrp">
+          <button data-y="on" class="on lc">on</button>
+          <button data-y="off" class="lc">off</button>
+        </div></div>
       <div class="ctl"><label class="lc">back</label>
         <select class="pick lc" id="backPick">
           <option value="default" selected>default</option>
@@ -365,22 +429,36 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
           <button data-qb="gun" class="lc">gun</button>
         </div></div>
       <div class="ctl sh"><label class="lc">form</label><select class="pick lc" id="shFormPick"></select></div>
+      <div class="ctl sh"><label class="lc">y</label>
+        <div class="grp" id="shYGrp">
+          <button data-y="on" class="on lc">on</button>
+          <button data-y="off" class="lc">off</button>
+        </div></div>
       <div class="ctl sh"><label class="lc">back</label><select class="pick lc" id="shBackPick"></select></div>
       <div class="ctl sh"><label class="lc">h</label><select class="pick lc" id="shHPick"></select></div>
     </section>
+    </div></div>
 
+    <div class="col" id="defCol" data-col="def">
+    <button class="colhead lc" data-col="def" title="fold defense"><span class="cname">defense</span><span class="cfold" aria-hidden="true"></span></button>
+    <button class="rail lc" data-col="def" title="unfold defense"><span class="rname">defense</span><span class="rcall" id="defRail"></span></button>
+    <div class="colbody">
     <section class="bucket">
-      <div class="bhead">defense</div>
+      <div class="ctl"><label class="lc">set</label>
+        <select class="pick lc" id="defStrPick"><option value="tight">tight</option><option value="open">open</option><option value="strong">strong</option><option value="weak">weak</option><option value="back">back</option><option value="away">away</option><option value="field">field</option><option value="bench">bench</option></select></div>
       <div class="ctl"><label class="lc">front</label>
-        <select class="pick lc" id="defPick"><option value="over">rush</option><option value="overshade">plus</option><option value="under">under</option><option value="shade">shade</option><option value="bear">sink</option><option value="stack40">stack</option><option value="dbl3">wide</option></select></div>
+        <select class="pick lc" id="defPick"><option value="over">rush</option><option value="overshade">plus</option><option value="flex">flex</option><option value="heads">heads</option><option value="load">load</option><option value="swim">swim</option><option value="under">under</option><option value="shade">shade</option><option value="bear">sink</option><option value="stack40">stack</option><option value="dbl3">wide</option></select></div>
       <div class="ctl"><label class="lc">shell</label>
         <div class="grp" id="shellGrp">
           <button data-shell="open" class="on lc">open</button>
-          <button data-shell="closed" class="lc">closed</button>
+          <button data-shell="closed" class="lc" disabled title="parked — old plays still load">closed</button>
+          <button data-shell="man1" class="lc">man1</button>
         </div></div>
       <div class="ctl"><label class="lc">call</label>
         <input class="pick" id="defCall" placeholder="defensive call" spellcheck="false"></div>
     </section>
+    </div></div>
+    </div>
 
     <section class="bucket admin">
       <div class="bhead">admin</div>
@@ -402,7 +480,7 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
 
   <div id="main">
   <div id="stage">
-    <svg id="field" viewBox="0 0 1040 720" preserveAspectRatio="xMidYMid meet">
+    <svg id="field" viewBox="10 90 1020 430" preserveAspectRatio="xMidYMid meet">
       <defs>
         <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5"
                 orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0A0A0A"/></marker>
@@ -416,6 +494,7 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
           <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
       </defs>
+      <g id="world">
       <g id="fieldLayer">
         <!-- line of scrimmage -->
         <line class="los" x1="70" y1="340" x2="970" y2="340" stroke="#0A0A0A" stroke-width="1.4"/>
@@ -427,6 +506,8 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
       <g id="callLayer"></g>
       <g id="puckLayer"></g>
       <g id="uiLayer"></g>
+      </g>
+      <g id="persKey"></g>
     </svg>
     <div id="toolbox" class="lc">
       <div class="grp" id="tools">
@@ -435,6 +516,7 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
         <button data-preset="block" class="lc" title="block · solid + tee"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path d="M2,8 H26"/><path d="M26,2.5 V13.5"/></svg><span>block</span></button>
         <button data-preset="motion" class="lc" title="motion · dash, no cap"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path class="d" d="M2,8 H28"/></svg><span>motion</span></button>
         <button data-preset="zone" class="lc" title="zone · dash + hook"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path class="d" d="M2,8 H20"/><path d="M20,8 C27,8 28,1.5 23,2.5"/></svg><span>zone</span></button>
+        <button data-mode="shift" class="lc" title="shift · click a player, then click his spot (esc to exit)"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path class="d" d="M1.5,8 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0"/><path class="d" d="M10.5,8 H16"/><path class="f" d="M15.5,5 L19.5,8 L15.5,11 z"/><path d="M21.5,8 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0"/></svg><span>shift</span></button>
       </div>
       <div class="grp" id="lineGrp">
         <button data-line="solid" class="on lc" title="solid line"><svg class="ic" viewBox="0 0 30 16" aria-hidden="true"><path d="M3,8 H27"/></svg></button>
@@ -458,6 +540,12 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
           <option value="rmid">r-mid</option>
           <option value="right">right hash</option>
         </select></div>
+      <div class="grp" id="zoomGrp">
+        <button data-zoom="tight" class="lc">tight</button><button data-zoom="normal" class="on lc">normal</button><button data-zoom="deep" class="lc">deep</button><button data-zoom="vert" class="lc" title="25 yd downfield">vert</button></div>
+      <div class="grp" id="viewGrp"><button data-view="off" class="on lc" title="offense at the bottom">offense</button><button data-view="def" class="lc" title="defense at the bottom (rotated 180°)">defense</button></div>
+      <div class="ctl" id="onCtl"><label class="lc">on</label>
+        <select class="pick lc" id="onSide"><option value="own" selected>own</option><option value="opp">opp</option></select>
+        <input class="pick lc" id="onYd" type="number" min="1" max="50" step="1" value="35" title="yard line the ball is on (1-50)"></div>
     </div>
     <div id="gridTab" class="lc" title="grid (shift+g)"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" class="f"/><rect x="9" y="1.5" width="5.5" height="5.5"/><rect x="1.5" y="9" width="5.5" height="5.5"/><rect x="9" y="9" width="5.5" height="5.5"/></svg><span id="gridCount">0/6</span></div>
     <div id="gridDrawer" class="lc">
@@ -465,6 +553,7 @@ input.pick:focus{box-shadow:inset 0 -2px 0 var(--black)}
       <div class="gctl">
         <div class="grp" id="sizeGrp"><button data-size="4" class="lc">4</button><button data-size="6" class="on lc">6</button><button data-size="8" class="lc">8</button><button data-size="9" class="lc">9</button></div>
         <div class="grp" id="orientGrp"><button data-orient="land" class="on lc">landscape</button><button data-orient="port" class="lc">portrait</button></div>
+        <div class="grp" id="sheetViewGrp"><button data-view="off" class="on lc" title="every cell offense at the bottom">offense</button><button data-view="def" class="lc" title="every cell defense at the bottom">defense</button></div>
         <span style="flex:1"></span>
         <button class="act lc" id="sheetSave" title="save the sheet as .json">save</button>
         <button class="act solid lc" id="sheetExport" title="png of the page, plus sheet .json">export</button>
@@ -515,6 +604,7 @@ const el=(tag,attrs)=>{const n=document.createElementNS(NS,tag);for(const k in a
    Positions authored strength-relative: side 'S' = strong, 'W' = weak; strength
    'rt' makes strong = right (higher x), 'lt' mirrors it.                        */
 const B=520;                                   // ball x
+const QB_UC=420, QB_GUN=496;                   // CHART space. field depths come from squeeze()/FORMULA_F (9/29)
 const mirror=x=>1040-x;
 // H-tag spot -> [offset-from-ball, y]. u/b are backfield (offset handled in code).
 const HSPOT={ s:[250,388], o:[400,372], w:[176,392], u:[40,452], b:[56,520] };
@@ -544,7 +634,9 @@ const HFLX ={ ws:[250,388], wo:[370,403], wu:[65,482], ww:[133,408], wb:[67,482]
 const HCLST={ ws:[250,388], wo:[394,406], wu:[55,482], ww:[134,404], wb:[74,544], ss:[220,412], so:[336,411], su:[68,487], sw:[132,404], sb:[76,547] };
 const HCLIK={ ws:[250,388], wo:[401,405], wu:[62,485], ww:[180,406], wb:[81,549], ss:[240,407], so:[360,405], su:[66,480], sw:[133,405], sb:[83,552] };
 const HCHEX={ ws:[250,388], wo:[405,413], wu:[54,485], ww:[130,403], wb:[78,549], ss:[258,403], so:[373,403], su:[70,488], sw:[133,404], sb:[85,547] };
-const HTABLES={ str:HSTR, stch:HSTCH, wk:HWK, slot:HSLOT, bnch:HBUNCH, blk:HBLK, blx:HBLX, nsty:HNSTY, nod:HNOD, add:HADD, axe:HAXE, flx:HFLX, clst:HCLST, clik:HCLIK, chex:HCHEX };
+// stack — exact per cell (9/29 stack sheet)
+const HSTK ={ ws:[386,376], wo:[370,413], wu:[60,487], ww:[135,407], wb:[76,551], ss:[390,372], so:[376,454], su:[68,480], sw:[138,405], sb:[86,541] };
+const HTABLES={ str:HSTR, stch:HSTCH, wk:HWK, slot:HSLOT, bnch:HBUNCH, blk:HBLK, blx:HBLX, nsty:HNSTY, nod:HNOD, add:HADD, axe:HAXE, flx:HFLX, clst:HCLST, clik:HCLIK, chex:HCHEX, stk:HSTK };
 // per (form|hTag) receiver repositioning — e.g. weak-outside H bumps the split end into the slot
 const RECV_OVERRIDE={
   // brung/blex/bleak/bunch corrections (9/25 bunch sheet)
@@ -562,6 +654,17 @@ const RECV_OVERRIDE={
   'flx|wo':    { Y:['W',263,372] },
   'flx|ss':    { X:['S',277,372] },
   'flx|so':    { X:['S',217,372], Z:['S',309,391] },
+  // stack — exact per cell (9/29 stack sheet)
+  'stk|ws': { Y:['S',389,372], X:['W',386,415], Z:['S',390,410] },
+  'stk|wo': { Y:['S',395,372], Z:['S',395,412] },
+  'stk|wu': { Y:['S',394,372], Z:['S',395,415] },
+  'stk|ww': { Y:['S',397,372], Z:['S',399,415] },
+  'stk|wb': { Y:['S',391,372], Z:['S',393,415] },
+  'stk|ss': { Y:['S',391,406], Z:['S',393,446] },
+  'stk|so': { Y:['S',373,372], Z:['S',374,414] },
+  'stk|su': { Z:['S',396,406] },
+  'stk|sw': { Y:['S',386,372], Z:['S',387,416] },
+  'stk|sb': { Y:['S',372,372], Z:['S',374,409] },
   // cluster / chex — exact per cell (9/28 cluster sheet)
   'chex|wo':  { Y:['W',257,375] },
   'clst|wo':  { X:['W',252,372] },
@@ -590,6 +693,14 @@ const RECV_OVERRIDE={
 };
 // back (T) — a/b offset near QB, LF/RF flared deep (constant across forms, no reflow)
 const BACKPOS={ a:[454,521], b:[603,526], lf:[291,483], rf:[736,503] };
+// 9/30 gogo sets: gun + backfield H (web/snob) + offset back. FIELD space, charted rt str ball mid
+// (gogoadjustments.xlsx). Formation-independent. Same side: H up and out, T slides in. Opposite: H up to T depth.
+const GOGO={ 'wb|a':{T:[495,453],H:[467,434]}, 'wb|b':{T:[568.4,448.9],H:[478,451]},
+             'sb|a':{T:[481.5,446.2],H:[560,446]}, 'sb|b':{T:[551,453],H:[583,432]} };
+// 9/30 wing-T sets: under-center overrides. FIELD space, charted rt str ball mid (wingtadj.xlsx).
+// Formation-independent; flat backfield (~y420). formulaDepths() skips any id listed here.
+const WINGT={ 'i|a':{T:[475,424],H:[522,425]}, 'i|b':{T:[574,420],H:[520,420]},
+              'wb|default':{T:[520,419],H:[473,420]}, 'sb|default':{T:[521,418],H:[568,419]} };
 const EMPTIES=['l1','l2','l3','lw','rw','r3','r2','r1'];
 // empties: T becomes a receiver and the side-mates reflow to seat him. Per form (charted full),
 // each empty = {T + moved side-mates}; strength rt. Uncharted (form,empty) falls back to slot.
@@ -625,16 +736,46 @@ const YTAGS={
   clst:{Y:['S',253,372], X:['W',370,372], Z:['S',290,408]}, // cluster strong (Y on ball, Z tight behind)
   clik:{Y:['W',144,372], X:['S',275,372], Z:['S',316,405]}, // Y weak inline + cluster strong
   chex:{Y:['W',364,372], X:['S',293,372], Z:['S',325,402]}, // Y far weak split + cluster strong
+  stk: {Y:['S',396,372], X:['W',370,372], Z:['S',400,410]}, // stack: Y on ball wide strong, Z stacked behind (9/29)
   add: {Y:['S',167,372], X:['W',185,372], Z:['S',218,405]}, // 'A' adds to the box: nasty X, Y on ball wider, Z off
   axe: {Y:['W',176,373], X:['S',172,372], Z:['S',226,397]}, // Y nasty weak on ball, X tight strong on ball, Z off
 };
-const YTAG_ORDER=['slot','str','wk','flx','bnch','stch','blx','blk','nsty','ntr','clst','clik','chex','add','nod','axe'];
+const YTAG_ORDER=['slot','swch','str','wk','flx','bnch','swng','stch','blx','blk','nsty','ntr','clst','clch','clik','chex','stk','add','swag','nod','axe'];
 // display names (dropdown + auto-title). internal keys stay stable so old plays load.
-const FORM_LABEL={ slot:'default', str:'strong', wk:'weak', flx:'flex', bnch:'bunch', stch:'brung', blx:'blex', blk:'bleak',
-  nsty:'nasty', ntr:'nitro', clst:'cluster', clik:'click', chex:'chex', add:'add', nod:'astrid', axe:'axe' };
+const FORM_LABEL={ slot:'default', swch:'switch', swng:'swung', swag:'swag', clch:'clutch', str:'strong', wk:'weak', flx:'flex', bnch:'bunch', stch:'brung', blx:'blex', blk:'bleak',
+  nsty:'nasty', ntr:'nitro', clst:'cluster', clik:'click', chex:'chex', stk:'stack', add:'add', nod:'astrid', axe:'axe' };
 const H_LABEL={ i:'i', ws:'west', wo:'work', wu:'wut', ww:'wwing', wb:'web', ss:'sass', so:'solar', su:'surf', sw:'swarm', sb:'snob' };
 
-function buildOffense(strength,yTag,hTag,qbTag,backTag){
+/* 9/29 TRUE-SCALE CHARTS (formationreprogram.xlsx): Beau's exact FIELD-space spots, strength rt, ball mid, uc default.
+   2nd sheet formationreprogram2.xlsx 9/30 (16 cells). buildOffense() converts them to chart space with unsqueeze(), so every rule reads them and squeeze() lands them
+   back exactly here. Per-form YTAGS base = median of that form's charts (so uncharted H cells get the new Y/X/Z). */
+const CHART_F={
+  add:{sb:{Y:[631,349],X:[405,349],Z:[655,369],H:[561,470]}, ss:{Y:[630,349],X:[397,349],Z:[695,367],H:[661,366]}, su:{Y:[628,349],X:[393,349],Z:[652,370],H:[558,413]}, sw:{Y:[634,349],X:[412,349],Z:[657,364],H:[608.1,365.9]}, wo:{Y:[630,349],X:[405,350],Z:[656,368],H:[397,369]}, ws:{Y:[633,349],X:[394,349],Z:[652,369],H:[425,370]}, wu:{Y:[635,349],X:[406,349],Z:[658,372],H:[476,411]}, ww:{Y:[635,350],X:[383,349],Z:[661,368],H:[433.3,367.2]}, wb:{Y:[630,349],X:[400.9,349],Z:[659,369],H:[478,471]}},
+  axe:{sb:{Y:[401,349],X:[637,349],Z:[667,370],H:[560,472]}, su:{Y:[411,349],X:[638,349],Z:[664,369],H:[557,409]}, sw:{Y:[407,349],X:[630,349],Z:[664,375],H:[600.3,378.2]}, wb:{Y:[411,349],X:[637,351],Z:[662,372],H:[479.8,422]}, wo:{Y:[409,349],X:[632,349],Z:[656,370],H:[399,369]}, ws:{Y:[395,349],X:[638,349],Z:[664,369],H:[428,374]}, wu:{Y:[407,349],X:[647,350],Z:[671,369],H:[481,414]}, ww:{Y:[387,349],X:[638,349],Z:[666,375],H:[435,372]}, ss:{Y:[406.9,349],X:[637.6,349],Z:[663.3,370],H:[700,372]}, so:{Y:[387.3,349],X:[640,349],Z:[671,369],H:[708,371]}},
+  blk:{sb:{Y:[422,349],X:[641,349],Z:[669,373],H:[563,472]}, ss:{Y:[422,349], X:[644,351], Z:[665,377], H:[626,375]}, su:{Y:[422,349],X:[630,349],Z:[653,371],H:[559.7,418.6]}, sw:{Y:[422,349], X:[639,349], Z:[656,374], H:[609,371]}, wb:{Y:[422,349],X:[628,349],Z:[653,370],H:[477,469]}, wu:{Y:[422,349],X:[632,349],Z:[655,372],H:[483.3,417.9]}, ww:{Y:[422,349],X:[631,349],Z:[659,369],H:[400,371]}, so:{Y:[422.5,349], X:[632.6,349], Z:[658.3,372], H:[689,374]}},
+  blx:{sb:{Y:[156,349],X:[629,349],Z:[652,371],H:[563,472]}, ss:{Y:[156,349], X:[651,349], Z:[675,372], H:[628,370]}, su:{Y:[156,349],X:[630,349],Z:[654,371],H:[559.7,418.6]}, sw:{Y:[156,349], X:[639,349], Z:[665,374], H:[611,371]}, wb:{Y:[156,349],X:[632,350],Z:[653,371],H:[477,469]}, wu:{Y:[156,349],X:[635,349],Z:[658,369],H:[483.3,417.9]}, ww:{Y:[156,349],X:[630,349],Z:[655,368],H:[435,375]}, so:{Y:[156,349], X:[632.6,349], Z:[655.3,371], H:[686,372]}},
+  bnch:{sb:{Y:[642,349],X:[150,349],Z:[666,371],H:[564,472]}, ss:{Y:[639,349], X:[150,349], Z:[661,372], H:[617,372]}, su:{Y:[627,349],X:[150,349],Z:[653,369],H:[559.7,418.6]}, sw:{Y:[643,352], X:[150,349], Z:[666,377], H:[611,375]}, wb:{Y:[630,353],X:[150,349],Z:[654,375],H:[479,470]}, wu:{Y:[627,349],X:[150,349],Z:[653,369],H:[483.3,417.9]}, ww:{Y:[631,351],X:[150,349],Z:[655,369],H:[432.6,374.8]}, so:{Y:[639,349], X:[150,349], Z:[663,369], H:[695,371]}},
+  chex:{sb:{Y:[156,349],X:[813,349],Z:[835,374],H:[567,472]}, su:{Y:[156,349],X:[813,349],Z:[836,371],H:[560,418]}, sw:{Y:[156,349],X:[813,349],Z:[832,373],H:[610.2,370]}, wb:{Y:[156,349],X:[813,349],Z:[834,373],H:[482,469]}, wu:{Y:[156,349],X:[813,349],Z:[836,373],H:[481,415]}, ww:{Y:[156,349],X:[813,349],Z:[836,371],H:[435,371]}, so:{Y:[156,349], X:[813,349], Z:[836,373], H:[868,375]}},
+  clik:{sb:{Y:[422,349],X:[795,349],Z:[819,372],H:[562,472]}, su:{Y:[422,349],X:[795,349],Z:[815,373],H:[558.5,422]}, sw:{Y:[422,349],X:[795,349],Z:[819,371],H:[611,372]}, wb:{Y:[422,349],X:[795,349],Z:[819,373],H:[478,469]}, wu:{Y:[422,349],X:[795,349],Z:[818,372],H:[482,413]}, ww:{Y:[422,349],X:[795,349],Z:[817,372],H:[400,371]}, so:{Y:[422.5,349], X:[795,349], Z:[819,372], H:[851,372]}},
+  clst:{sb:{Y:[773,349],X:[150,349],Z:[800,370],H:[564,472]}, ss:{Y:[773,349],X:[150,349],Z:[798,372],H:[750,373]}, su:{Y:[773,349],X:[150,349],Z:[799,370],H:[559.7,426.8]}, sw:{Y:[773,349],X:[150,349],Z:[797,373],H:[609.5,370]}, wb:{Y:[773,349],X:[150,349],Z:[797,371],H:[481,468]}, wu:{Y:[773,349],X:[150,349],Z:[796,372],H:[487.9,423.4]}, ww:{Y:[773,349],X:[150,349],Z:[796,369],H:[437,372]}, so:{Y:[773,349], X:[150,349], Z:[797,371], H:[829,372]}},
+  flx:{sb:{Y:[156,349],X:[770,349],Z:[890,359],H:[562,471]}, ss:{Y:[156,349],X:[797,349],Z:[890,359],H:[679.4,363.8]}, su:{Y:[156,349],X:[770,349],Z:[890,359],H:[560.3,426.1]}, sw:{Y:[156,349],X:[770,349],Z:[890,359],H:[610.2,368.6]}, wb:{Y:[156,349],X:[770,349],Z:[890,359],H:[478,469]}, wu:{Y:[156,349],X:[770,349],Z:[890,359],H:[481,412]}, ww:{Y:[156,349],X:[770,349],Z:[890,359],H:[429.8,372.7]}},
+  nod:{sb:{Y:[618,349],X:[393,349],Z:[644,366],H:[561,472]}, ss:{Y:[618,349],X:[405,349],Z:[676,369],H:[645,368]}, su:{Y:[618,349],X:[401,349],Z:[647,366],H:[559.1,426.1]}, sw:{Y:[618,349],X:[395,349],Z:[679,370],H:[647,368]}, wo:{Y:[618,349],X:[410,349],Z:[646,367],H:[401,369]}, ws:{Y:[618,349],X:[398,349],Z:[646,366],H:[432,370]}, wu:{Y:[618,349],X:[405,349],Z:[648,366],H:[476,411]}, ww:{Y:[618,349],X:[401,351],Z:[649,368],H:[434,375.4]}, wb:{Y:[618,349],X:[400.9,349],Z:[648.2,366.5],H:[477,470]}},
+  nsty:{sb:{Y:[770,359],X:[401,349],Z:[890,349],H:[563,471]}, su:{Y:[770,359],X:[393,349],Z:[890,349],H:[563,412]}, sw:{Y:[770,359],X:[399,351],Z:[890,349],H:[608.1,365.9]}, wb:{Y:[770,359],X:[402,349],Z:[890,349],H:[474,467]}, ws:{Y:[770,359],X:[407,349],Z:[890,349],H:[428.5,368.6]}, ww:{Y:[770,359],X:[395,349],Z:[890,349],H:[433.3,372.7]}, wu:{Y:[770,359],X:[399.8,349],Z:[890,349],H:[484,416]}, ss:{Y:[767,363],X:[399.8,349],Z:[890,349],H:[673.4,361.7]}},
+  ntr:{sb:{Y:[618,349],X:[402,349],Z:[890,359],H:[560,472]}, su:{Y:[618,349],X:[405,349],Z:[890,359],H:[564,421]}, sw:{Y:[618,349],X:[402,350],Z:[890,359],H:[647,366]}, wb:{Y:[618,349],X:[410,349],Z:[890,359],H:[479,470]}, wu:{Y:[618,349],X:[405,349],Z:[890,359],H:[478,415]}, ww:{Y:[618,349],X:[395,349],Z:[890,359],H:[434,369]}},
+  stch:{sb:{Y:[618,349],X:[150,349],Z:[650,369],H:[569,473]}, ss:{Y:[618,349],X:[150,349],Z:[684,371],H:[649,370]}, su:{Y:[618,349],X:[150,349],Z:[652,369],H:[560.3,418.6]}, sw:{Y:[618,349],X:[150,349],Z:[679,371],H:[646,370]}, wb:{Y:[618,349],X:[150,349],Z:[646,368],H:[479,469]}, wu:{Y:[618,349],X:[150,349],Z:[649,370],H:[486.8,422]}, ww:{Y:[618,349],X:[150,349],Z:[647,373],H:[430,373]}, so:{Y:[617.5,349], X:[150,349], Z:[650.8,370], H:[684,371]}},
+  stk:{su:{Y:[916,349],X:[150,349],Z:[916,371.3],H:[563,407]}, sw:{Y:[906,349],X:[150,349],Z:[907,378.2],H:[606,370]}, wb:{Y:[911,349],X:[150,349],Z:[913,377.5],H:[482,468]}, wu:{Y:[914,349],X:[150,349],Z:[915,377.5],H:[484,407]}, ww:{Y:[917,349],X:[150,349],Z:[919,377.5],H:[434,373]}, sb:{Y:[892,349],X:[150,349],Z:[894,373.4],H:[562,471]}},
+  str:{sb:{Y:[618,349],X:[150,349],Z:[890,359],H:[561,470]}, ss:{Y:[618,349],X:[150,349],Z:[890,359],H:[739,363]}, su:{Y:[618,349],X:[150,349],Z:[890,359],H:[562,424.1]}, sw:{Y:[618,349],X:[150,349],Z:[890,359],H:[643,370]}, wb:{Y:[618,349],X:[150,349],Z:[890,359],H:[483,469]}, wu:{Y:[618,349],X:[150,349],Z:[890,359],H:[483.8,422.7]}, ww:{Y:[618,349],X:[150,349],Z:[890,359],H:[434,372]}},
+  wk:{sb:{Y:[422,349],X:[770,349],Z:[890,359],H:[563,471]}, ss:{Y:[422,349],X:[770,349],Z:[890,359],H:[665,366]}, su:{Y:[422,349],X:[770,349],Z:[890,359],H:[557.9,424.8]}, sw:{Y:[422,349],X:[770,349],Z:[890,359],H:[611,372]}, wb:{Y:[422,349],X:[770,349],Z:[890,359],H:[478,469]}, wu:{Y:[422,349],X:[770,349],Z:[890,359],H:[482.7,420.7]}, ww:{Y:[422,349],X:[770,349],Z:[890,359],H:[397,371]}},
+  slot:{wu:{Y:[770,359],X:[150,349],Z:[890,349],H:[483,413]}, ww:{Y:[770,359],X:[150,349],Z:[890,349],H:[434,370]}, wb:{Y:[770,359],X:[150,349],Z:[890,349],H:[480,471]}, ss:{Y:[782,350],X:[150,349],Z:[900,365.2],H:[659.8,363.1]}, su:{Y:[770,359],X:[150,349],Z:[890,349],H:[560,412]}, sw:{Y:[770,359],X:[150,349],Z:[890,349],H:[607,368]}, sb:{Y:[770,359],X:[150,349],Z:[890,349],H:[563,470]}},
+};
+const SWITCH_OF={ swch:'slot', swng:'bnch', swag:'add', clch:'clst' };   // 10/8: switch / swung / swag / clutch
+function buildOffense(strength,yTag,hTag,qbTag,backTag,yOff){
+  // 10/8: Y/Z switch forms = parent form with the Y and Z trading spots. Derived, not charted: resolve
+  // the parent (every H / back / empty / gogo / wing-T table), swap the two pucks, then apply Y off.
+  if(SWITCH_OF[yTag]){ const o=buildOffense(strength,SWITCH_OF[yTag],hTag,qbTag,backTag,false);
+    const y=o.find(q=>q.id==='Y'), z=o.find(q=>q.id==='Z');
+    for(const k of ['x','y','cx','cy']){ const v=y[k]; y[k]=z[k]; z[k]=v; }
+    if(yOff) takeYOff(o); return o; }
   const strong = strength==='rt' ? +1 : -1;          // +1 => strong is to the right
   const sgn = s => (s==='S'? strong : -strong);      // side letter -> screen direction
   const px  = (s,off)=> Math.round(B + sgn(s)*off);
@@ -644,14 +785,14 @@ function buildOffense(strength,yTag,hTag,qbTag,backTag){
   push('RG','G','ol',B+48,372); push('RT','T','ol',B+96,372);
   // QB — independent of the back now: under center or gun
   const gun = qbTag==='gun';
-  const qbY = gun?496:420;
+  const qbY = gun?QB_GUN:QB_UC;
   push('Q','Q','back', B, qbY);
   // T (the back): a/b/LF/RF (BACKPOS), empties (per-form T, slot fallback), or default behind QB
   const empty = EMPTIES.includes(backTag);
   const erf = empty ? ((REFLOW[yTag]&&REFLOW[yTag][backTag]) || REFLOW.slot[backTag]) : null;
   if(BACKPOS[backTag])  push('T','T','back', BACKPOS[backTag][0], BACKPOS[backTag][1]);
   else if(erf)          push('T','T','back', erf.T[0], erf.T[1]);
-  else                  push('T','T','back', B, gun?566:548);
+  else                  push('T','T','back', B, gun?QB_GUN+70:548);
   // Y / X / Z by Y tag (strength-relative)
   const t=YTAGS[yTag]||YTAGS.slot;
   ['Y','X','Z'].forEach(id=>{const[s,off,y]=t[id]; push(id,id, id==='Y'?'te':'skill', px(s,off), y);});
@@ -669,11 +810,38 @@ function buildOffense(strength,yTag,hTag,qbTag,backTag){
   const ov=RECV_OVERRIDE[yTag+'|'+hTag];                                        // rare receiver bumps
   if(ov) for(const id in ov){ const p=out.find(o=>o.id===id);
     if(p){ const[s,off,y]=ov[id]; p.cx=p.x=px(s,off); p.cy=p.y=y; } }
+  const cf=CHART_F[yTag]&&CHART_F[yTag][hTag];                                  // 9/29 true-scale chart: exact, wins
+  if(cf) for(const id in cf){ const p=out.find(o=>o.id===id); if(!p) continue;
+    const u=unsqueeze(cf[id][0],cf[id][1],B); p.cx=p.x=B+strong*(u.x-B); p.cy=p.y=u.y; }
+  const gg=gun?GOGO[hTag+'|'+backTag]:WINGT[hTag+'|'+(backTag||'default')];   // gogo (gun) / wing-T (uc)                                         // gogo set: wins over form charts
+  if(gg) for(const id in gg){ const p=out.find(o=>o.id===id); if(!p) continue;
+    const u=unsqueeze(gg[id][0],gg[id][1],B); p.cx=p.x=B+strong*(u.x-B); p.cy=p.y=u.y; }
   // empty reflow — re-space the side-mates to seat the split-out T (charted per form, strength rt)
   if(strength==='rt' && empty && REFLOW[yTag] && REFLOW[yTag][backTag]){
     const rf=REFLOW[yTag][backTag];
     for(const id in rf){ if(id==='T')continue; const p=out.find(o=>o.id===id); if(p){ p.cx=p.x=rf[id][0]; p.cy=p.y=rf[id][1]; } }
   }
+  if(yOff) takeYOff(out);
+  return out;
+}
+/* 9/29: Y "off" tag. only acts when the resolved Y is on the ball. Y steps back to Y_OFF_Y; the
+   nearest off-ball receiver on his side (X/Z/H/T, outside the tackle, not in the backfield) steps
+   up to the line at his own x. a cover man stacked right behind the Y (within Y_SWAP_DX) swaps
+   depths with him. nobody on that side -> Y still goes off, out.yOffAlone flags the warning. */
+const Y_OFF_Y=407, Y_OFF_IN=7, Y_SWAP_DX=30;   // charted 9/29 (rt strong off wwing): Y 7px in, y407
+function takeYOff(out){
+  const y=out.find(o=>o.id==='Y'); if(!y||y.cy>382) return out;
+  const side=Math.sign(y.cx-B);
+  const cand=out.filter(p=>['X','Z','H','T'].includes(p.id)&&p.cy>382&&p.cy<=440
+    &&Math.sign(p.cx-B)===side&&Math.abs(p.cx-B)>96)
+    .sort((a,b)=>Math.abs(a.cx-y.cx)-Math.abs(b.cx-y.cx)||a.cy-b.cy);
+  out.yOffApplied=true;
+  const c=cand[0];
+  const tuck=()=>{ y.cx=y.x=y.cx-side*Y_OFF_IN; y.cy=y.y=Y_OFF_Y; };
+  if(!c){ tuck(); out.yOffAlone=true; return out; }
+  const swap=Math.abs(c.cx-y.cx)<=Y_SWAP_DX;
+  if(swap) y.cy=y.y=Math.max(c.cy,Y_OFF_Y); else tuck();
+  c.cy=c.y=372; out.yOffCover=c.id;
   return out;
 }
 
@@ -701,6 +869,34 @@ const FRONTS={
           {id:'SAM', label:'S', x:678, y:236},
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
           {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
+  flex:{ label:'flex',               // plus, but the strong end plays head-up on the TE (6). no TE -> plus's edge rule
+    line:'DE_W 5w · NT 1w · DT 3s · DE_S 9s', samPass:true, edge:{w:'DE_W',s:'DE_S'}, edgeTech:{s:'6',w:'6i'},   // 10/1: open strength puts the TE on the weak end -> 6i (inside shade, big bubble)
+    off:[ {id:'WILL',label:'W', x:452, y:242},   // plus's (rush's) backer spots for now: chart + export to bake
+          {id:'MIKE',label:'M', x:540, y:238},
+          {id:'SAM', label:'S', x:678, y:236},
+          {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
+          {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
+  heads:{ label:'heads',              // plus, but nose + tackle head-up on both guards (2 / 2)
+    line:'DE_W 5w · NT 2w · DT 2s · DE_S 9s', samPass:true, edge:{w:'DE_W',s:'DE_S'},
+    off:[ {id:'WILL',label:'W', x:452, y:242},   // plus's (rush's) backer spots for now: chart + export to bake
+          {id:'MIKE',label:'M', x:540, y:238},
+          {id:'SAM', label:'S', x:678, y:236},
+          {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
+          {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
+  load:{ label:'load',               // plus, but the nose is a 0 (head-up C)
+    line:'DE_W 5w · NT 0s · DT 3s · DE_S 9s', samPass:true, edge:{w:'DE_W',s:'DE_S'},
+    off:[ {id:'WILL',label:'W', x:452, y:242},   // plus's (rush's) backer spots for now: chart + export to bake
+          {id:'MIKE',label:'M', x:540, y:238},
+          {id:'SAM', label:'S', x:678, y:236},
+          {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
+          {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
+  swim:{ label:'swim',               // 5 · 0 · 4 · 7: tackle head-up on the strong T, strong end outside shade of the TE (7)
+    line:'DE_W 5w · NT 0s · DT 4s · DE_S 9s', samPass:true, edge:{w:'DE_W',s:'DE_S'}, edgeTech:{s:'7'},
+    off:[ {id:'WILL',label:'W', x:452, y:242},   // plus's (rush's) backer spots for now: chart + export to bake
+          {id:'MIKE',label:'M', x:540, y:238},
+          {id:'SAM', label:'S', x:678, y:236},
+          {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
+          {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
   dbl3:{ label:'wide',               // over, but both tackles in a 3 (outside shade of each guard). no nose.
     line:'DE_W 5w · DT_W 3w · DT 3s · DE_S 9s', samPass:true, edge:{w:'DE_W',s:'DE_S'},
     off:[ {id:'WILL',label:'W', x:452, y:242},   // over's backer spots for now: chart + export to bake
@@ -709,13 +905,13 @@ const FRONTS={
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
           {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
   under:{ label:'under',              // 2i to strength, 3 weak, strong end a fixed 5, Sam on the edge
-    line:'DE_W 5w · DT 3w · NT 2is · DE_S 5s · SAM 9s', bump:true, edge:{w:'DE_W',s:'SAM'}, apex:'SAM', field:true,
+    line:'DE_W 5w · DT 3w · NT 2is · DE_S 5s · SAM 9s', bump:true, offY7:true, edge:{w:'DE_W',s:'SAM'}, apex:'SAM', field:true,
     off:[ {id:'WILL',label:'W', x:448, y:242},   // placeholder spots: chart + export
           {id:'MIKE',label:'M', x:580, y:238},
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
           {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
   shade:{ label:'shade',              // under, but the nose shades the center strong (1) and the strong end tightens to a 4
-    line:'DE_W 5w · DT 3w · NT 1s · DE_S 4s · SAM 9s', bump:true, edge:{w:'DE_W',s:'SAM'}, apex:'SAM', field:true,
+    line:'DE_W 5w · DT 3w · NT 1s · DE_S 4s · SAM 9s', bump:true, offY7:true, edge:{w:'DE_W',s:'SAM'}, apex:'SAM', field:true,
     off:[ {id:'WILL',label:'W', x:448, y:242},   // under's placeholder spots: chart + export
           {id:'MIKE',label:'M', x:580, y:238},
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
@@ -723,9 +919,11 @@ const FRONTS={
   bear:{ label:'sink',                // 3·0·3 inside; both edges read the surface (5/7/9).
     // strong end moves in to the 3, Sam walks down to the strong edge (same personnel).
     // 'E' = edge placeholder, resolved by the surface rule in alignToOffense().
-    line:'DE_W Ew · DT 3w · NT 0s · DE_S 3s · SAM Es', edge:{w:'DE_W',s:'SAM'}, surface:true, field:true,
-    off:[ {id:'WILL',label:'W', x:470, y:242},   // placeholder spots: chart + export
-          {id:'MIKE',label:'M', x:570, y:242},
+    // 10/1 (Beau's chart, rt strong i · sink): flipped — ends inside, edges to the Will (weak) and strong end,
+    // Sam/Mike off. was 'DE_W Ew · DT 3w · NT 0s · DE_S 3s · SAM Es'.
+    line:'WILL Ew · DE_W 3w · NT 0s · DT 3s · DE_S Es', edge:{w:'WILL',s:'DE_S'}, surface:true, field:true,
+    off:[ {id:'SAM', label:'S', x:614.5, y:247.92},   // charted: field 583,248
+          {id:'MIKE',label:'M', x:478,   y:247.92},   // charted: field 492,248
           {id:'CB_W',label:'C', x:150, y:256}, {id:'CB_S',label:'C', x:890, y:256},
           {id:'FS',  label:'F', x:500, y:150}, {id:'SS',  label:'$', x:662, y:190} ] },
   stack40:{ label:'stack',            // 4·0·4 down; strong end bumps back. base personnel, no sub.
@@ -751,8 +949,47 @@ function resolveFront(name){
 /* coverage shell — repositions the safeties (open = 2-high, closed = 1-high) */
 const SHELLS={
   open:  {FS:{x:432,y:150}, SS:{x:610,y:150}},   // two deep, symmetric
-  closed:{FS:{x:512,y:128}, SS:{x:648,y:236}},   // one deep middle, $ rolled down strong
+  closed:{FS:{x:512,y:128}, SS:{x:648,y:236}},   // one deep middle, $ rolled down strong (10/1: parked, grayed out)
+  man1:  {FS:{x:520,y:128}, SS:{x:648,y:200}},   // 10/1: 1-man. seeds only; alignMan1() places everyone in field space
 };
+/* 10/1: 1-man shell. keys are read in CHART space at the end of alignToOffense() (same receiver tests as
+   the safeties), then alignMan1() places the men in FIELD space after the squeeze, so a shell click can
+   re-place them without regenerating the play.
+   CB press #1 each side · Sam press the strength-side outermost slot (#2), 2 yds off when he shares a
+   side with a pressing corner · $ has #3 strong (trips) else the inline TE else the weak #2 (2x2)
+   · FS deep middle · Will/Mike stay on the front's spots (RB + low hole). */
+const MAN_PRESS=1, MAN_OFF=3, MAN_SS=7, MAN_FS=12;      // yards off the LOS (field). placeholders: chart + export to bake
+let manKeys={};
+function readManKeys(){
+  manKeys={};
+  const r=splitReceivers(), pl=passStrongLeft(), S=pl?'L':'R', W=pl?'R':'L';
+  const cbOn=k=>{ const c=(P.C?P.C.cx:B); return ['CB_W','CB_S'].find(id=>P[id]&&((P[id].cx<c)===(k==='L'))); };
+  ['L','R'].forEach(k=>{ const id=cbOn(k); if(id&&r[k][0]) manKeys[id]=r[k][0].id; });
+  if(r[S][1]) manKeys.SAM=r[S][1].id;
+  const te=['L','R'].map(k=>{ const t=k==='L'?P.LT:P.RT, dir=k==='L'?-1:1, fm=shift?shift.yTag:yTag;
+      return players.find(p=>p.side==='off'&&p.kind!=='ol'&&p.id!=='Q'&&p.cy<=382&&(p.cx-t.cx)*dir>0&&
+        (p.cx-t.cx)*dir<=ATT_ON&&!(DETACHED[fm]||[]).includes(p.id)); }).find(Boolean);
+  const ss=r[S][2]||te||r[W][1];
+  if(ss) manKeys.SS=ss.id;
+  const all=players.filter(p=>p.side==='off'&&p.kind!=='ol'&&p.id!=='Q'&&(r.L.includes(p)||r.R.includes(p)||p===te));
+  const c=(P.C?P.C.cx:B), taken=()=>Object.values(manKeys);
+  ['CB_W','CB_S'].forEach(id=>{ if(!P[id]||manKeys[id]) return;   // idle corner (no split #1 his side): take the
+    const m=all.filter(p=>!taken().includes(p.id)&&(p.cx<c)===(P[id].cx<c)).sort((a,b)=>Math.abs(b.cx-c)-Math.abs(a.cx-c))[0];
+    if(m) manKeys[id]=m.id; });                                     // outermost leftover on his side (nasty X, backside TE)
+  manKeys.free=all.filter(p=>!taken().includes(p.id)).map(p=>p.id);   // nobody on him -> report
+}
+function alignMan1(){
+  if(shell!=='man1') return;
+  const by=yd=>LOS-yd*YD, c=(P.C?P.C.cx:B);
+  ['CB_W','CB_S'].forEach(id=>{ const m=P[manKeys[id]]; if(m&&P[id]){ P[id].x=P[id].cx=m.cx; P[id].y=P[id].cy=by(MAN_PRESS); } });
+  const sm=P[manKeys.SAM];
+  if(sm&&P.SAM){ const cbSame=['CB_W','CB_S'].some(id=>manKeys[id]&&P[id]&&(P[id].cx<c)===(sm.cx<c));
+    P.SAM.x=P.SAM.cx=sm.cx; P.SAM.y=P.SAM.cy=by(cbSame?MAN_OFF:MAN_PRESS); }
+  const st=P[manKeys.SS];
+  if(P.SS){ P.SS.x=P.SS.cx=st?st.cx:c; P.SS.y=P.SS.cy=by(MAN_SS); }
+  if(P.FS){ P.FS.x=P.FS.cx=c; P.FS.y=P.FS.cy=by(MAN_FS); }
+  if(manKeys.free&&manKeys.free.length) console.warn('man1: uncovered',manKeys.free.join(','));
+}
 
 /* ============================================================
    CALLS CATALOG — hand-built for v1.
@@ -781,19 +1018,36 @@ let instances={};           // instId -> {key, tag, members:[ids]}
 let assign={};              // playerId -> instId   (uniqueness: one job per player)
 let uid=1; const nid=()=>'m'+(uid++);
 
-let mode='select';          // 'select' | 'pen'
+let mode='select';          // 'select' | 'pen' | 'shift' (10/2)
+let armed=null, shCursor=null;   // 10/2 shift mode: selected player id + snapped cursor preview
 let strength='rt';          // 'rt' | 'lt' — named by the Y's side
 let yTag='str';             // Y tag / form: str (strong-I baseline) slot wk bnch flx blx blk
 let hTag='i';               // H (move) tag: i (I-back) or side(s/w)+spot(s/o/u/w/b) — REQUIRED
+/* personnel → role per letter (OL + Q never colored). color = who he IS, not where he lines up.
+   'h' variant: the H is the TE instead of the Y. 13/22: Z is the extra TE, X stays a receiver. */
+const PERS_ROLES={
+  '10':{T:'rb'},
+  '11':{T:'rb',Y:'te'},
+  '11h':{T:'rb',H:'te'},
+  '12':{T:'rb',Y:'te',H:'te'},
+  '13':{T:'rb',Y:'te',H:'te',Z:'te'},
+  '20':{T:'rb',H:'rb'},
+  '21':{T:'rb',H:'rb',Y:'te'},
+  '22':{T:'rb',H:'rb',Y:'te',Z:'te'},
+  '23':{T:'rb',H:'rb',Y:'te',X:'te',Z:'te'}};
+let persVis=true;          // personnel id colors on/off (JSON persVis; old plays -> on)
 let personnel='11';         // personnel group, shown as '11p' — label only (title + json), no visual yet
 let qbTag='uc';             // QB tag: uc (under center) | gun
+let yOff=false;             // 9/29: Y off the ball (nearest receiver on his side steps on)
 let backTag='default';      // back (T): default | a b | lf rf | l1 l2 l3 lw rw r3 r2 r1
 let curDef='over';          // current front
+let defStr='tight';        // 10/1: front strength tag (tight default; tight is silent in the call)
 let defAuto=true;           // 9/24: front follows the PRE-shift Y (attached -> under, else rush) until hand-picked
 let shell='open';
 let runLeft=false;         // run strength (defense set left), captured in load() before the ball slide           // 'open' | 'closed' coverage shell
 let ballSpot='mid';
 let shift=null;             // null | {strength,yTag,hTag,qbTag,backTag} — the POST-shift set; primary = pre-shift
+let yAlone={pre:false,post:false};   // Y off with nobody on his side to cover (illegal warning)
 let ghosts=[];              // pre-shift offense spots that moved: {id,label,sq,x,y}         // ball on the hash: left | lmid | mid | rmid | right
 let highlighted={};         // player ids highlighted with the accent color
 let shadeMap={};            // olId -> defender that shades it (recomputed each render)
@@ -808,11 +1062,11 @@ const field=$('#field'), markLayer=$('#markLayer'), callLayer=$('#callLayer'),
    HISTORY — snapshot-based undo (covers draws, calls, moves, clear)
    ============================================================ */
 let history=[];
-function snapshot(){return JSON.stringify({marks,instances,assign,
+function snapshot(){return JSON.stringify({marks,instances,assign,ghosts,
   pos:players.map(p=>({id:p.id,cx:p.cx,cy:p.cy}))});}
 function pushHistory(){history.push(snapshot());if(history.length>80)history.shift();}
 function restore(s){const st=JSON.parse(s);
-  marks=st.marks;instances=st.instances;assign=st.assign;
+  marks=st.marks;instances=st.instances;assign=st.assign; if(st.ghosts) ghosts=st.ghosts;
   (st.pos||[]).forEach(o=>{if(P[o.id]){P[o.id].cx=P[o.id].x=o.cx;P[o.id].cy=P[o.id].y=o.cy;}});
   // keep new-id counter ahead of anything restored
   st.marks.forEach(m=>{const n=+String(m.id).slice(1);if(n>=uid)uid=n+1;});
@@ -826,33 +1080,136 @@ const HASH_L=Math.round(SL_L+53.333*FTX);              // hashes 53'4" off each 
 const HASH_R=Math.round(SL_R-53.333*FTX);
 const NUM_L=Math.round(SL_L+27*FTX);                   // field numbers 27 ft off each sideline
 const NUM_R=Math.round(SL_R-27*FTX);
+/* 9/29 true-scale field (NFHS): YD px per yard both ways; numbers 6 ft tall, tops 9 yd / bottoms 7 yd off the sideline */
+const YD=3*FTX;                                        // ~18.6 px per yard
+const NUM_LB=Math.round(SL_L+21*FTX), NUM_RB=Math.round(SL_R-21*FTX);   // bottom of the numbers (7 yd)
+const NUM_H=6*FTX, NUM_W=4*FTX, NUM_GAP=2*FTX, NUM_FS=Math.round(NUM_H/0.72);  // 6' tall, ~4' wide digits
+const HASH_HALF=FTX, SL_TICK_IN=Math.max(2,Math.round(FTX/3));     // 24" marks; sideline ticks 4" in
+let BALL_ON=35, BALL_DIR=1;
+/* 9/30 camera: the view is a window onto field space; nothing charted moves.
+   Must-show band = 13 yd downfield (safeties + 1) to ~9.5 yd behind the LOS (deepest back + margin).
+   Spare height goes 70% above the LOS (routes), 30% below. EXP = the fixed crop for PNG / grid. */
+const CAM_X=10, CAM_W=1020, CAM_TOP=Math.round(LOS-13*YD-8), CAM_BOT=LOS+180, CAM_UP=0.7;
+const EXP={x:CAM_X,y:CAM_TOP,w:CAM_W,h:CAM_BOT-CAM_TOP};      // export output size + the persKey anchor frame
+/* zoom presets (9/30): up = yd downfield always shown, dn = px behind the LOS. tight = fit the players instead. */
+const ZOOMS={tight:{pad:44}, normal:{up:13,dn:180}, deep:{up:20,dn:210}, vert:{up:25,dn:210}};
+const RZ_AT=80, BU_AT=10;             // situational: ball on opp 20 or closer -> show the far end line; own 10 or closer -> the near one
+let view='off';                                   // 10/1: 'off' | 'def' — render only, nothing in the model reads it
+let camZoom='normal', camView={x:CAM_X,y:CAM_TOP,w:CAM_W,h:EXP.h};                            // LOS on the (own) 35; offense going up the screen
 const BALLDX={left:HASH_L-520, lmid:Math.round((HASH_L-520)/2), mid:0,
               rmid:Math.round((HASH_R-520)/2), right:HASH_R-520};
-const OFF_LINE=372, DEF_LINE=311;                      // neutral zone: OL front / DL front
+const OFF_LINE=372, DEF_LINE=311;                      // CHART space neutral zone (engine rules)
+/* ---------- 9/29 TRUE SCALE ----------
+   Tables, fronts and every rule still resolve in CHART space (the old schematic numbers).
+   squeezeAll() maps the finished set to FIELD space at the end of load(): the core (line, TE,
+   backfield, DL) pulls in to true size, the perimeter (outside ~250px / deeper than the backers)
+   is untouched. Monotonic, so nobody crosses or swaps sides. TEMPORARY for anything uncharted:
+   new charts are baked directly in field space and replace the squeezed value.
+   HS numbers (Beau 9/29): 2 ft OL split (C-to-C 4.5 ft), OL puck 1/2 yd off, 11" neutral zone,
+   uc QB 1 yd, off-ball 1 yd, puck 2.5 ft, gun 5, pistol 7, I-back 7, FB 4. */
+const PR0=Math.round(1.25*FTX);                         // LAYOUT puck radius: 2.5 ft wide (~8px) — spacing only (QB depth)
+const PR=9.5;                                           // 9/30: DRAWN puck radius, bumped ~19% for legibility (layout still uses PR0)
+const DR=PR;                                            // 9/30: defender triangle half-width = puck radius (base = puck diameter)
+const SQX=[[0,0],[48,32],[96,64],[144,90],[250,250]];   // 9/30: OL C-to-C 28 -> 32 (wider splits); 144 knot held so every charted receiver keeps its chart-space value   // |dx| from ball
+const SQY_OFF=[[0,0],[32,Math.round(YD/2)],[48,Math.round(YD)],[156,Math.round(5*YD)],[226,Math.round(7*YD)]];  // depth behind LOS
+const DL_OFF=Math.round(1.5*YD);                         // 9/30: DL 1.5 yd off the LOS (was 1/2 yd + 11", then 1 yd; bigger drawn pucks crowded the neutral zone)
+const SQY_DEF=[[0,0],[29,DL_OFF],[98,98]];                                               // depth in front
+const OFF_LINE_F=LOS+SQY_OFF[1][1], DEF_LINE_F=LOS-SQY_DEF[1][1];   // field-space neutral zone (349 / 312)
+const ON_MAX=356;                                       // field-space "on the line" (chart 382 -> 355)
+const QB_UC_F=OFF_LINE_F+2*PR+2,       /* 9/30: uc QB borders the C at the DRAWN size (was 2*PR0 -> overlapped once PR went to 9.5) */ T_UC_F=LOS+Math.round(7*YD), I_UC_F=LOS+Math.round(4*YD);
+function pw(K,v){ for(let i=1;i<K.length;i++) if(v<=K[i][0]){const [a,A]=K[i-1],[b,Bv]=K[i]; return A+(v-a)*(Bv-A)/(b-a);}
+  const [a,A]=K[K.length-1]; return A+(v-a); }
+function squeeze(x,y,c){
+  const dx=x-c, X=c+Math.sign(dx)*pw(SQX,Math.abs(dx));
+  const Y=y>=LOS? LOS+pw(SQY_OFF,y-LOS) : LOS-pw(SQY_DEF,LOS-y);
+  return {x:Math.round(X*10)/10, y:Math.round(Y*10)/10};
+}
+function formulaDepths(list,f){                         // under-center depths are formula, not squeezed
+  if(f.qbTag!=='uc') return;
+  const wt=WINGT[f.hTag+'|'+(f.backTag||'default')]||{};   // wing-T sets keep their charted depths
+  list.forEach(q=>{ if(wt[q.id]) return; let y=null;
+    if(q.id==='Q') y=QB_UC_F;
+    else if(q.id==='T'&&(f.backTag||'default')==='default') y=T_UC_F;
+    else if(q.id==='H'&&f.hTag==='i') y=I_UC_F;
+    if(y!==null){ if('cy' in q) q.cy=y; q.y=y; } });
+}
+function unsqueeze(x,y,c){                             // exact inverse of squeeze() (field -> chart)
+  const inv=K=>K.map(([a,b])=>[b,a]);
+  const dx=x-c, X=c+Math.sign(dx)*pw(inv(SQX),Math.abs(dx));
+  const Y=y>=LOS? LOS+pw(inv(SQY_OFF),y-LOS) : LOS-pw(inv(SQY_DEF),LOS-y);
+  return {x:X,y:Y};
+}
+(function rebaseYTAGS(){                                // per-form Y/X/Z base = median of the true-scale charts
+  const med=a=>{const b=a.slice().sort((p,q)=>p-q),m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;};
+  for(const fm in CHART_F){ const cells=Object.values(CHART_F[fm]); if(!YTAGS[fm]) continue;
+    ['Y','X','Z'].forEach(id=>{ const u=unsqueeze(med(cells.map(c=>c[id][0])),med(cells.map(c=>c[id][1])),B);
+      YTAGS[fm][id]=[u.x>=B?'S':'W', Math.abs(u.x-B), u.y]; }); }
+})();
+function squeezeAll(pre,post){
+  const c=520+(BALLDX[ballSpot]||0);
+  players.forEach(p=>{const s=squeeze(p.cx,p.cy,c); p.x=p.cx=s.x; p.y=p.cy=s.y;});
+  ghosts.forEach(g=>{const s=squeeze(g.x,g.y,c); g.x=s.x; g.y=s.y;});
+  formulaDepths(players.filter(p=>p.side==='off'),post); formulaDepths(ghosts,pre);
+}
 /* 9/24: default front. read on the PRE-shift set (front is called on the huddle-break look; the
    shift only moves strength). attached = Y on the ball within ATT_ON outside his tackle, not DETACHED
    -- same test the ends use, so the call and the end's technique never disagree. */
 function yAttachedPre(){
-  const o=buildOffense(strength,yTag,hTag,qbTag,backTag), y=o.find(q=>q.id==='Y');
+  const o=buildOffense(strength,yTag,hTag,qbTag,backTag,yOff), y=o.find(q=>q.id==='Y');
   if(!y||y.y>382||(DETACHED[yTag]||[]).includes('Y')) return false;
   const t=o.find(q=>q.id===(y.x<B?'LT':'RT')), out=(y.x-t.x)*(y.x<B?-1:1);
   return out>0&&out<=ATT_ON;
 }
-function autoFront(){ if(!defAuto) return; curDef=yAttachedPre()?'under':'over'; const d=$('#defPick'); if(d) d.value=curDef; }
+function autoFront(){ if(!defAuto) return; curDef=yAttachedPre()&&shell!=='man1'?'under':'over';   // 10/1: no under in man1
+ const d=$('#defPick'); if(d) d.value=curDef; }
+/* 10/2: a shift is a list of MOVES -- {id:[dx,y]}: field space, dx off the ball (mirrored for lt), y absolute.
+   the base (pre-shift) set always resolves with no shift; moves then put each moved player at his
+   destination and leave a ghost at his base spot. a tag shift (the shift row) is a recipe: every load
+   resolves the post set the old way and records where everyone -- offense AND defense -- ended up. */
+let moves=null;
+function ballX(){ return 520+(BALLDX[ballSpot]||0); }
+function movesFromScene(){                             // current players (post set) -> moves, ball-relative
+  const c=ballX(), m=strength==='lt'?-1:1, out={};
+  players.forEach(p=>{ out[p.id]=[Math.round((p.cx-c)*m*10)/10, p.cy]; });
+  return out;
+}
+function applyMoves(){                                 // base set is on the field; move + ghost
+  ghosts=[]; if(!moves) return;
+  const c=ballX(), m=strength==='lt'?-1:1;
+  Object.keys(moves).forEach(id=>{ const p=P[id]; if(!p) return;
+    const x=Math.round((c+moves[id][0]*m)*10)/10, y=moves[id][1];
+    if(Math.abs(x-p.cx)<0.05&&Math.abs(y-p.cy)<0.05) return;      // didn't move
+    if(p.side!=='off') return;                                    // 10/2 step 3: defense never auto-shifts -- Beau shifts it by hand
+    ghosts.push({id:p.id,label:p.label,sq:p.id==='C',x:p.cx,y:p.cy});
+    p.x=p.cx=x; p.y=p.cy=y; });
+}
 function load(){
-  autoFront();
+  autoFront(); if(shell==='man1'&&curDef==='under') curDef='over';   // 10/1: guard (saved plays)
+  let yA=null, rl=null;
+  if(shift){ scene(); moves=movesFromScene(); yA={...yAlone}; rl=runLeft; }   // recipe -> moves
+  else moves=null;
+  const sv=shift; shift=null; scene(); shift=sv;        // base = pre-shift set, resolved clean
+  applyMoves();
+  if(yA){ yAlone=yA; }                                   // runLeft stays the base value: the defense on the field is the base defense
+  armed=null; shCursor=null;
+  marks=[]; instances={}; assign={}; sel=null; draft=null; history=[]; highlighted={};
+  drawHashes(); renderAll(); applyCamera();
+}
+function scene(){
   players=[]; Object.keys(P).forEach(k=>delete P[k]);
   // live pucks = post-shift set. the shift keeps the call strength; a TRADE flips it
   // (Y + strength-relative players go to the other side) while X and Z hold their spots.
-  const post=shift?{...shift,strength}:{strength,yTag,hTag,qbTag,backTag};
+  const post=shift?{...shift,strength}:{strength,yTag,hTag,qbTag,backTag,yOff};
   const flip=post.strength==='rt'?'lt':'rt';
-  const built=buildOffense(shift&&shift.trade?flip:post.strength,post.yTag,post.hTag,post.qbTag,post.backTag);
-  if(shift&&shift.trade){ const hold={}; buildOffense(post.strength,post.yTag,post.hTag,post.qbTag,post.backTag)
+  const built=buildOffense(shift&&shift.trade?flip:post.strength,post.yTag,post.hTag,post.qbTag,post.backTag,post.yOff);
+  if(shift&&shift.trade){ const hold={}; buildOffense(post.strength,post.yTag,post.hTag,post.qbTag,post.backTag,post.yOff)
       .forEach(q=>{if(q.id==='X'||q.id==='Z')hold[q.id]=q;});
     built.forEach(q=>{if(hold[q.id]){q.x=q.cx=hold[q.id].x;q.y=q.cy=hold[q.id].y;}}); }
   built.forEach(q=>{players.push(q);P[q.id]=q;});
   ghosts=[];
-  if(shift) buildOffense(strength,yTag,hTag,qbTag,backTag).forEach(q=>{   // pre-shift = ghosts
+  yAlone={post:!!built.yOffAlone, pre:false};
+  if(shift){ const pb=buildOffense(strength,yTag,hTag,qbTag,backTag,yOff); yAlone.pre=!!pb.yOffAlone; }
+  if(shift) buildOffense(strength,yTag,hTag,qbTag,backTag,yOff).forEach(q=>{   // pre-shift = ghosts
     const L=P[q.id]; if(L&&(L.x!==q.x||L.y!==q.y)) ghosts.push({id:q.id,label:q.label,sq:q.id==='C',x:q.x,y:q.y});
   });
   resolveFront(curDef).forEach(p=>{const q={...p,side:'def',kind:'def',cx:p.x,cy:p.y};players.push(q);P[q.id]=q;});
@@ -861,31 +1218,80 @@ function load(){
   //  - inline-TE forms: strength sets to the Y (wherever he resolves)
   //  - no-inline-TE forms: strength goes to the call side, unless the H is a wing
   //    (ww wwing / sw swarm) -> strength sets to the H
+  syncDefStrUI();                                       // 10/1: gray back/away on a balanced backfield
+  syncShellUI();
   runLeft=defStrongLeft();                              // run strength, fixed BEFORE the ball slide
   if(runLeft) players.forEach(p=>{ if(p.side==='def'){ p.x=p.cx=mirror(p.cx); } });
   const dx=BALLDX[ballSpot]||0;                         // slide onto the hash; keep a boundary margin
   players.forEach(p=>{p.x=p.cx=Math.max(SL_L+96,Math.min(SL_R-96,p.x+dx));});
   ghosts.forEach(g=>{g.x=Math.max(SL_L+96,Math.min(SL_R-96,g.x+dx));});
   alignToOffense();                                     // edges + corners read the (final) offense
-  marks=[]; instances={}; assign={}; sel=null; draft=null; history=[]; highlighted={};
-  drawHashes(); renderAll();
+  squeezeAll({qbTag,backTag,hTag}, post);               // 9/29: chart space -> true-scale field
+  alignMan1();                                          // 10/1: 1-man shell, field space
 }
-const NO_TE_FORMS=['slot','flx','bnch','blx','nsty','clst','chex','add','axe'];   // 9/25: bunch Y is the point of the bunch, not an inline TE
+const NO_TE_FORMS=['slot','swch','swng','swag','clch','flx','bnch','blx','nsty','clst','chex','stk','add','axe'];   // 9/29: stack Y is split wide, not a TE; 9/25: bunch Y is the point of the bunch, not an inline TE
 const WING_H=['ww','sw'];
-function defStrongLeft(){                     // evaluated on the POST-shift set (defense adjusts)
-  const f=shift?{...shift,strength:shift.trade?(strength==='rt'?'lt':'rt'):strength}:{strength,yTag,hTag};
-  if(NO_TE_FORMS.includes(f.yTag)){
-    if(WING_H.includes(f.hTag) && P.H) return P.H.cx<B;
-    // under vs no TE / no wing: strength to the FIELD. left hash -> right, right hash -> left,
-    // middle -> call side. (over keeps the call side everywhere.)
-    if((FRONTS[curDef]||{}).field){
-      if(ballSpot==='left'||ballSpot==='lmid') return false;
-      if(ballSpot==='right'||ballSpot==='rmid') return true;
-    }
-    return f.strength==='lt';
-  }
-  return !!(P.Y && P.Y.cx<B);
+/* 10/1: front strength tags. evaluated on the POST-shift set, chart space, BEFORE the ball slide.
+   returns true = defense sets strength to the screen LEFT (offense's left).
+   ties (2x2, middle of the field) -> offense's RIGHT (= defense's left) = false.
+   tight (default):  0 TE -> passing strength; TE(s) on one side -> that side;
+                     both sides: one on / other off -> the down TE; both on or both off -> field.
+   open = !tight · strong/weak = passing strength / away · back/away = the offset back(s) side
+   field/bench = wide side / boundary (middle -> offense's right).
+   TE = attached: on the ball within ATT_ON outside the tackle (not DETACHED), or off the ball and
+   tight -- a wing H (ww/sw within ATT_WING) or a Y tagged off within ATT_WING. same test as the ends. */
+const DEF_STRS=['tight','open','strong','weak','back','away','field','bench'];
+const BACK_EPS=8;
+function teSides(){
+  const res={L:{on:0,off:0},R:{on:0,off:0}}; if(!P.LT||!P.RT) return res;
+  const fm=shift?shift.yTag:yTag, hw=shift?shift.hTag:hTag, yo=shift?shift.yOff:yOff;
+  [['L',-1,P.LT],['R',1,P.RT]].forEach(([k,dir,t])=>{
+    const out=p=>(p.cx-t.cx)*dir;
+    players.forEach(p=>{ if(p.side!=='off'||p.kind==='ol'||p.id==='Q') return;
+      if(p.cy<=382&&out(p)>0&&out(p)<=ATT_ON&&!(DETACHED[fm]||[]).includes(p.id)) res[k].on++;
+      else if(p.cy>382&&out(p)>0&&out(p)<=ATT_WING&&
+        ((p.id==='H'&&WING_H.includes(hw))||(p.id==='Y'&&yo))) res[k].off++; });
+  });
+  return res;
 }
+function fieldLeft(){ return ballSpot==='right'||ballSpot==='rmid'; }   // field side; middle -> offense right
+function passLeftTie(){ const r=splitReceivers(); return r.L.length>r.R.length; }   // tie -> offense right
+function backSide(){                             // -1 left, 1 right, 0 balanced (stacked, split evenly, empty)
+  const c=P.C?P.C.cx:B; let l=0,r=0;
+  players.forEach(p=>{ if(p.side!=='off'||p.kind==='ol'||p.id==='Q'||p.cy<=SPLIT_Y) return;
+    if(p.cx<c-BACK_EPS) l++; else if(p.cx>c+BACK_EPS) r++; });
+  return l===r?0:(l>r?-1:1);
+}
+function tightLeft(){
+  const t=teSides(), nL=t.L.on+t.L.off, nR=t.R.on+t.R.off;
+  if(!nL&&!nR) return passLeftTie();
+  if(!nL||!nR) return nL>0;
+  if(t.L.on&&!t.R.on) return true;               // one on, one off -> the down TE
+  if(t.R.on&&!t.L.on) return false;
+  return fieldLeft();                            // both on / both off -> field
+}
+function defStrongLeft(){
+  let tag=defStr;
+  if((tag==='back'||tag==='away')&&!backSide()) tag='tight';   // balanced backfield: grayed, falls to tight
+  switch(tag){
+    case 'open':   return !tightLeft();
+    case 'strong': return passLeftTie();
+    case 'weak':   return !passLeftTie();
+    case 'back':   return backSide()<0;
+    case 'away':   return backSide()>0;
+    case 'field':  return fieldLeft();
+    case 'bench':  return !fieldLeft();
+    default:       return tightLeft();
+  }
+}
+function syncShellUI(){                                 // 10/1: under is grayed out in the 1-man shell
+  if(shell==='man1'&&curDef==='under') curDef='over';
+  const d=$('#defPick'); if(!d) return;
+  d.querySelectorAll('option').forEach(o=>{ o.disabled=shell==='man1'&&o.value==='under'; }); d.value=curDef; }
+function syncDefStrUI(){ const d=$('#defStrPick'); if(!d) return;
+  const bal=!backSide(); if(bal&&(defStr==='back'||defStr==='away')) defStr='tight';
+  d.querySelectorAll('option').forEach(o=>{ o.disabled=bal&&(o.value==='back'||o.value==='away'); });
+  d.value=defStr; }
 /* ---------- 9/24: defense reads the offense (per side, in field coords) ----------
    edge: attached = on-ball man within ATT_ON of the tackle, or a wing (just off the ball,
    within ATT_WING, tagged ww/sw). open edge -> DE in a 5 (outside shoulder of the tackle). closed ->
@@ -893,9 +1299,23 @@ function defStrongLeft(){                     // evaluated on the POST-shift set
    spot if the only attachment is a wing. corners: CB_OUT outside the widest receiver. */
 // forms whose tight on-ball receivers are nasty splits, never attached (axe: offense
 // is asking the end to pick: stay in a 5, or widen for contain and open a bubble)
-const DETACHED={ axe:['X','Y'], bnch:['Y'] };   // 9/25: bunch Y sits close (~68px) but is the bunch point, not attached
+const DETACHED={ axe:['X','Y'], bnch:['Y'], add:['Y'], swng:['Z'], swag:['Z'] };   // 10/8: swung/swag Z takes the bunch/add Y's on-ball spot   // 10/1: add Y is close but not attached (Beau)   // 9/25: bunch Y sits close (~68px) but is the bunch point, not attached
 const ATT_ON=76, ATT_WING=110, TECH5=20, TECH7=12, DE_WIDE=30, CB_OUT=22;
-const APEX_IN=22, APEX_Y=236, APEX_MIN=44;           // APEX_MIN: never inside the strong end's 5                        // under Sam walked out: inside the slot, Sam depth
+const APEX_IN=22, APEX_Y=245, APEX_MIN=44;           // 10/1: APEX_Y 236 -> 245 (charted: rt slot i · rush Sam 689,245)
+/* 10/1: walked-out Sam + 9-tech measured in FIELD px (the squeeze stretches chart px ~1.5x past field 90).
+   charts: rt slot i · rush Sam 105 outside the tackle vs slot 186 outside (frac .565);
+           rt strong i · under Sam 24.5 outside the inline Y, on the line. */
+const SURF5_F=24, SURF7_F=12.5;   // 10/1 sink chart: Will 24 outside LT (open), DE_S 12.5 outside the Y
+const DE_WIDE_F=24.5, APEX_FRAC=105/186, APEX_MAX_F=105, APEX_MIN_F=24;
+function fX(x,c){ return squeeze(x,LOS,c).x; }          // chart x -> field x
+function cX(x,c){ return unsqueeze(x,LOS,c).x; }        // field x -> chart x
+function outsideF(x,dir,d,c){ return cX(fX(x,c)+dir*d,c); }   // d field px outside chart x
+function apexX(t,anchor,dir,c){                          // between tackle and anchor (slot, else #1), field space
+  const tF=fX(t.cx,c), d=Math.max(APEX_MIN_F,Math.min(APEX_MAX_F,Math.abs(fX(anchor.cx,c)-tF)*APEX_FRAC));
+  return cX(tF+dir*d,c); }           // APEX_MIN: never inside the strong end's 5                        // under Sam walked out: inside the slot, Sam depth
+/* 9/29: Y tagged off and sitting tight (off-ball, within ATT_WING outside this tackle) */
+function tightOffY(out){ const on=shift?shift.yOff:yOff, y=P.Y;
+  return !!on&&!!y&&y.cy>382&&out(y)>0&&out(y)<=ATT_WING; }
 function alignToOffense(){
   const tk={L:P.LT,R:P.RT}; if(!tk.L||!tk.R) return;
   const skill=players.filter(p=>p.side==='off'&&p.kind!=='ol'&&p.id!=='Q');
@@ -915,19 +1335,26 @@ function alignToOffense(){
       const surf=on.concat(wing).sort((a,b)=>out(a)-out(b));   // nasty/DETACHED already excluded from on
       const n=surf.length;
       let x;
-      if(!n) x=t.cx+dir*TECH5;                                   // 5: outside shoulder of the tackle
-      else if(n===1) x=surf[0].cx+dir*TECH7;                     // 7: outside shade of the surface man
-      else x=surf[n-1].cx+dir*DE_WIDE;                           // 9: outside the wing, very wide
+      if(!n) x=outsideF(t.cx,dir,SURF5_F,c);                     // 5: outside the tackle      (10/1: field px, charted)
+      else if(n===1) x=outsideF(surf[0].cx,dir,SURF7_F,c);       // 7: outside shade of the surface man (charted)
+      else x=outsideF(surf[n-1].cx,dir,DE_WIDE_F,c);             // 9: outside the wing (same 9 as everywhere)
       de.x=de.cx=x; de.y=de.cy=DEF_LINE; de.tech=(n?(n===1?'7':'9'):'5')+(dir*(sgnS)>0?'s':'w');
     }
     else if(de){
-      if(on.length){ const o=Math.max(...on.map(out)); de.x=de.cx=t.cx+dir*(o+DE_WIDE); }
-      else if(wing.length){ const o=Math.max(...wing.map(out)); de.x=de.cx=t.cx+dir*(o+DE_WIDE); }   // 9/25: outside the actual wing (was a fixed tackle+78)
+      const et=fr.edgeTech&&fr.edgeTech[de.id===fr.edge.s?'s':'w'];
+      if(et&&on.length){                               // 10/1: flex 6 = head-up on the TE, swim 7 = outside shade of the TE
+        const te=on.slice().sort((a,b)=>out(a)-out(b))[0];   // innermost on-ball man outside the tackle (the Y)
+        de.x=de.cx=et==='6'?te.cx:et==='6i'?outsideF(te.cx,-dir,SURF7_F,c):outsideF(te.cx,dir,SURF7_F,c); de.y=de.cy=DEF_LINE;   // 6i = inside shade of the TE
+        de.tech=et+(dir*(sgnS)>0?'s':'w'); }
+      else if(on.length){ const o=Math.max(...on.map(out)); de.x=de.cx=outsideF(t.cx+dir*o,dir,DE_WIDE_F,c); }          // 10/1: 9 = DE_WIDE_F field px outside
+      else if(wing.length){ const o=Math.max(...wing.map(out)); de.x=de.cx=outsideF(t.cx+dir*o,dir,DE_WIDE_F,c); }   // 9/25: outside the actual wing (was a fixed tackle+78)
+      else if(fr.offY7&&de.id===fr.edge.s&&tightOffY(out)){   // 9/29: Y off -> Sam in a 7, outside shade of the Y
+        de.x=de.cx=P.Y.cx+dir*TECH7; de.y=de.cy=DEF_LINE; }
       else if(fr.apex===de.id){                      // under Sam, open edge: walk out inside the slot
         const rec=skill.filter(p=>out(p)>0&&p.cy<=440).sort((a,b)=>out(b)-out(a));
         const slot=rec.length>=2?rec[rec.length-1]:null;   // innermost receiver that isn't #1
-        const x=slot?slot.cx-dir*APEX_IN:(rec.length?(t.cx+rec[0].cx)/2:t.cx+dir*48);
-        de.x=de.cx=(x-t.cx)*dir<APEX_MIN?t.cx+dir*APEX_MIN:x; de.y=de.cy=APEX_Y;
+        const anc=slot||rec[0];                          // 10/1: apex between tackle and slot (field space)
+        de.x=de.cx=anc?apexX(t,anc,dir,c):outsideF(t.cx,dir,APEX_MIN_F,c); de.y=de.cy=APEX_Y;
       }
       else de.x=de.cx=t.cx+dir*TECH5;                  // open edge: 5 technique
     }
@@ -939,6 +1366,7 @@ function alignToOffense(){
   alignSafeties();
   bumpBackers();
   samToPass();
+  readManKeys();                                        // 10/1: man keys in chart space (placed after the squeeze)
 }
 /* ---------- 9/24: under backers bump vs a Will-side slot ----------
    slot = innermost split receiver on the Will side (away from run strength) that isn't #1.
@@ -953,13 +1381,15 @@ const WILL_IN=10;
 const SAM_PASS_IN=12;
 function samToPass(){
   const fr=FRONTS[curDef]; if(!fr||!fr.samPass||!P.SAM||!P.MIKE) return;
-  const runL=runLeft, passL=passStrongLeft(); if(runL===passL) return;
+  const runL=runLeft, passL=passStrongLeft(), c=(P.C?P.C.cx:B);
+  if(runL===passL){                                     // 10/1: same side -> Sam apexes a strong-side slot
+    const dir=runL?-1:1, t=runL?P.LT:P.RT, rec=splitReceivers()[runL?'L':'R'];
+    if(rec.length>=2){ P.SAM.x=P.SAM.cx=apexX(t,rec[rec.length-1],dir,c); P.SAM.y=P.SAM.cy=APEX_Y; }
+    return; }
   const dir=passL?-1:1, t=passL?P.LT:P.RT, rec=splitReceivers()[passL?'L':'R'];
   if(!rec.length) return;
   const slot=rec.length>=2?rec[rec.length-1]:null;
-  let x=slot?slot.cx-dir*SAM_PASS_IN:(t.cx+rec[0].cx)/2;
-  if((x-t.cx)*dir<APEX_MIN) x=t.cx+dir*APEX_MIN;
-  P.SAM.x=P.SAM.cx=x; P.SAM.y=P.SAM.cy=APEX_Y;
+  P.SAM.x=P.SAM.cx=apexX(t,slot||rec[0],dir,c); P.SAM.y=P.SAM.cy=APEX_Y;   // 10/1: same apex as under (was SAM_PASS_IN inside the slot)
   const g=runL?P.LG:P.RG; P.MIKE.x=P.MIKE.cx=g.cx;
 }
 function bumpBackers(){
@@ -1007,15 +1437,88 @@ function applyShell(){
   const s=SHELLS[shell]||SHELLS.open;
   for(const id in s){ if(P[id]){P[id].cx=P[id].x=s[id].x; P[id].cy=P[id].y=s[id].y;} }
 }
+/* 9/30 camera. frameOf() is a pure function of (zoom, ballOn, players, marks, aspect), so the live view,
+   the PNG and every grid cell compute the same way from the play JSON. Nothing charted moves. */
+function camBox(zoom,ballOn,pts){                 // the box that must be visible
+  const z=ZOOMS[zoom]||ZOOMS.normal, yAt=yl=>LOS-(yl-ballOn)*YD*BALL_DIR;
+  let x0,x1,y0,y1;
+  if(z.pad&&pts.length){
+    x0=Math.min(...pts.map(p=>p.x))-z.pad; x1=Math.max(...pts.map(p=>p.x))+z.pad;
+    y0=Math.min(...pts.map(p=>p.y))-z.pad; y1=Math.max(...pts.map(p=>p.y))+z.pad;
+    x0=Math.max(x0,SL_L-8); x1=Math.min(x1,SL_R+8);
+  } else { const n=ZOOMS.normal; x0=CAM_X; x1=CAM_X+CAM_W; y0=LOS-(z.up||n.up)*YD-8; y1=LOS+(z.dn||n.dn); }
+  if(ballOn>=RZ_AT) y0=Math.min(y0,yAt(110)-12);  // red zone: the whole end zone (throws in there)
+  if(ballOn<=BU_AT) y1=Math.max(y1,yAt(-10)+12);  // backed up: our end line (safety risk)
+  return {x0,x1,y0,y1};
+}
+function fitBox(b,aspect){                        // smallest window of this aspect containing b; spare height 70% upfield
+  const bw=b.x1-b.x0, bh=b.y1-b.y0, w=Math.max(bw,bh*aspect), h=w/aspect;
+  return {x:(b.x0+b.x1)/2-w/2, y:b.y0-(h-bh)*CAM_UP, w, h};
+}
+function playPts(pl){                              // players + mark points from a play JSON (or live state)
+  const out=(pl.players||[]).map(p=>({x:p.cx,y:p.cy}));
+  (pl.marks||[]).forEach(m=>(m.pts||[]).forEach(q=>out.push({x:q.x,y:q.y})));
+  return out;
+}
+function frameOf(pl,aspect){ return fitBox(camBox(pl.zoom||'normal',(pl.ballOn>=1&&pl.ballOn<=99)?pl.ballOn:35,playPts(pl)),aspect); }
+const EXP_A=EXP.w/EXP.h;
+const vbStr=f=>`${f.x.toFixed(1)} ${f.y.toFixed(1)} ${f.w.toFixed(1)} ${f.h.toFixed(1)}`;
+const keyXf=f=>`translate(${(f.x-CAM_X).toFixed(1)},${(f.y-CAM_TOP).toFixed(1)})`;   // persKey rides the frame's top-left
+const withKey=(inner,f)=>inner.replace('id="persKey"',`id="persKey" transform="${keyXf(f)}"`);
+const worldXf=(f,flip)=>flip?`rotate(180 ${(f.x+f.w/2).toFixed(1)} ${(f.y+f.h/2).toFixed(1)})`:'';   // 180 about the frame center maps the frame onto itself
+const withView=(inner,f,flip)=>flip?inner.replace('id="world"',`id="world" class="flip" transform="${worldXf(f,true)}"`):inner;
+const dress=(inner,f,flip)=>withView(withKey(inner,f),f,flip);
+function applyCamera(){
+  const r=$('#stage').getBoundingClientRect(); if(!r.width||!r.height) return;
+  camView=frameOf({zoom:camZoom,ballOn:BALL_ON,players,marks},r.width/r.height);
+  field.setAttribute('viewBox',vbStr(camView));
+  $('#persKey').setAttribute('transform',keyXf(camView));
+  const w=$('#world'), flip=view==='def';
+  w.classList.toggle('flip',flip); if(flip) w.setAttribute('transform',worldXf(camView,true)); else w.removeAttribute('transform');
+}
 function drawHashes(){
+  /* 9/29: true-scale field furniture. One yard = YD px both ways (160 ft sideline-to-sideline).
+     Everything is keyed off BALL_ON (the yard line the LOS sits on); no charted coordinate reads it. */
   const g=$('#hashes'); g.innerHTML='';
-  g.appendChild(el('line',{x1:SL_L,y1:20,x2:SL_L,y2:700,stroke:'#DCDCDA',class:'sl','stroke-width':2}));   // sidelines
-  g.appendChild(el('line',{x1:SL_R,y1:20,x2:SL_R,y2:700,stroke:'#DCDCDA',class:'sl','stroke-width':2}));
-  [HASH_L,HASH_R].forEach(hx=>{                          // two rows of hash ticks
-    for(let y=40;y<=700;y+=26) g.appendChild(el('line',{x1:hx-6,y1:y,x2:hx+6,y2:y,stroke:'#C4C4C4',class:'ht','stroke-width':1}));
+  const yAt=yl=>LOS-(yl-BALL_ON)*YD*BALL_DIR;           // screen y of a yard line (own territory: lower lines are behind)
+  const lbl=yl=>yl<=50?yl:100-yl;                        // 60 -> "40" on their side
+  // 9/30: draw well past any camera window, but stop at the end lines (10 yd behind each goal line)
+  const eA=yAt(-10), eB=yAt(110), Y0=Math.max(-400,Math.min(eA,eB)), Y1=Math.min(1120,Math.max(eA,eB));
+  [[-10,0],[100,110]].forEach(([a,b])=>{                 // end zones: flat tint, end line
+    const ya=yAt(a), yb=yAt(b), t=Math.min(ya,yb), h=Math.abs(yb-ya);
+    if(t+h<Y0||t>Y1) return;
+    g.appendChild(el('rect',{x:SL_L,y:t,width:SL_R-SL_L,height:h,fill:'#F3F3F1',class:'ez'}));
+    const ye=a===-10?ya:yb;
+    g.appendChild(el('line',{x1:SL_L,y1:ye,x2:SL_R,y2:ye,stroke:'#DCDCDA',class:'sl','stroke-width':2}));
   });
-  [NUM_L,NUM_R].forEach(nx=>                             // faint guides: where field numbers sit
-    g.appendChild(el('line',{x1:nx,y1:24,x2:nx,y2:696,stroke:'#EBEBE9',class:'ng','stroke-width':1,'stroke-dasharray':'2 10'})));
+  g.appendChild(el('line',{x1:SL_L,y1:Y0,x2:SL_L,y2:Y1,stroke:'#DCDCDA',class:'sl','stroke-width':2}));   // sidelines
+  g.appendChild(el('line',{x1:SL_R,y1:Y0,x2:SL_R,y2:Y1,stroke:'#DCDCDA',class:'sl','stroke-width':2}));
+  [0,100].forEach(yl=>{ const y=yAt(yl);                 // goal lines, heavier than yard lines
+    g.appendChild(el('line',{x1:SL_L,y1:y,x2:SL_R,y2:y,stroke:'#D2D2D0',class:'gl','stroke-width':3})); });
+  for(let yl=1;yl<=99;yl++){
+    const y=yAt(yl); if(y<Y0||y>Y1) continue;
+    if(yl%5===0){                                        // 5-yard lines, sideline to sideline
+      g.appendChild(el('line',{x1:SL_L,y1:y,x2:SL_R,y2:y,stroke:'#E4E4E2',class:'yl','stroke-width':1}));
+      continue; }
+    [HASH_L,HASH_R].forEach(hx=>                         // 24" hash ticks every yard
+      g.appendChild(el('line',{x1:hx-HASH_HALF,y1:y,x2:hx+HASH_HALF,y2:y,stroke:'#C4C4C4',class:'ht','stroke-width':1})));
+    [[SL_L+SL_TICK_IN,1],[SL_R-SL_TICK_IN,-1]].forEach(([x,d])=>   // 24" sideline ticks, 4" inside
+      g.appendChild(el('line',{x1:x,y1:y,x2:x+d*HASH_HALF*2,y2:y,stroke:'#C4C4C4',class:'ht','stroke-width':1})));
+  }
+  [[NUM_L,NUM_LB],[NUM_R,NUM_RB]].forEach(([top,bot])=>{  // number band: top (9 yd) + bottom (7 yd) guides
+    [top,bot].forEach(nx=>g.appendChild(el('line',{x1:nx,y1:Y0+4,x2:nx,y2:Y1-4,stroke:'#EBEBE9',class:'ng','stroke-width':1,'stroke-dasharray':'2 10'})));
+  });
+  for(let yl=10;yl<=90;yl+=10){                          // numerals straddle every 10: tops toward the middle
+    const y=yAt(yl); if(y<Y0+NUM_W+4||y>Y1-NUM_W-4) continue;
+    const t=String(lbl(yl)).split('');
+    [[ (NUM_L+NUM_LB)/2, 90],[ (NUM_R+NUM_RB)/2,-90]].forEach(([cx,rot])=>{
+      const grp=el('g',{transform:`translate(${cx},${y}) rotate(${rot})`,class:'fnum'});
+      t.forEach((d,i)=>{ const x=(i===0?-1:1)*(NUM_W/2+NUM_GAP/2);
+        const tx=el('text',{x,y:NUM_H/2,'text-anchor':'middle',fill:'#DCDCDA','font-size':NUM_FS,'font-family':"'Space Mono',monospace",'font-weight':700});
+        tx.textContent=d; grp.appendChild(tx); });
+      g.appendChild(grp);
+    });
+  }
   const bx=520+(BALLDX[ballSpot]||0);                    // bold tick marks the ball spot
   g.appendChild(el('line',{x1:bx-8,y1:LOS,x2:bx+8,y2:LOS,stroke:'#0A0A0A',class:'bt','stroke-width':3}));
 }
@@ -1066,7 +1569,7 @@ function capShape(pts,cap){                 // returns svg node(s) for the end c
 /* ============================================================
    RENDER
    ============================================================ */
-function renderAll(){autoDef();shadeMap=computeShades();renderShift();renderMarks();renderCalls();renderPucks();renderUI();updateReadout();}
+function renderAll(){autoDef();syncRails();shadeMap=computeShades();renderShift();renderMarks();renderCalls();renderPucks();renderUI();updateReadout();}
 
 /* ---------- technique shading: which defender aligns on which O-lineman ----------
    each down defender claims its single nearest blocker; that blocker renders the
@@ -1089,11 +1592,11 @@ function shadeSide(o,d){                       // 'mohawk' if head-up, else the 
 function shadeNode(o,side){                     // clipped fill inside the puck (square for the center)
   const cid='clip_'+o.id, sq=(o.id==='C');
   const cp=el('clipPath',{id:cid});
-  cp.appendChild(sq?el('rect',{x:o.cx-14,y:o.cy-14,width:28,height:28}):el('circle',{cx:o.cx,cy:o.cy,r:14}));
+  cp.appendChild(sq?el('rect',{x:o.cx-PR,y:o.cy-PR,width:2*PR,height:2*PR}):el('circle',{cx:o.cx,cy:o.cy,r:PR}));
   let sh;
-  if(side==='mohawk')      sh=el('rect',{x:o.cx-4, y:o.cy-15,width:8, height:30});
-  else if(side==='left')   sh=el('rect',{x:o.cx-15,y:o.cy-15,width:15,height:30});
-  else                     sh=el('rect',{x:o.cx,   y:o.cy-15,width:15,height:30});
+  if(side==='mohawk')      sh=el('rect',{x:o.cx-2, y:o.cy-PR-1,width:4, height:2*PR+2});
+  else if(side==='left')   sh=el('rect',{x:o.cx-PR-1,y:o.cy-PR-1,width:PR+1,height:2*PR+2});
+  else                     sh=el('rect',{x:o.cx,   y:o.cy-PR-1,width:PR+1,height:2*PR+2});
   sh.setAttribute('fill','#0A0A0A'); sh.setAttribute('class','shd'); sh.setAttribute('clip-path','url(#'+cid+')');
   return [cp,sh];
 }
@@ -1108,15 +1611,22 @@ function segsHit(a,b,c,d,gap){                 // cross, or run within gap of ea
   const o=(p,q,r)=>Math.sign((q.x-p.x)*(r.y-p.y)-(q.y-p.y)*(r.x-p.x));
   if(o(a,b,c)*o(a,b,d)<0&&o(c,d,a)*o(c,d,b)<0) return true;
   return Math.min(segDist(c.x,c.y,a,b),segDist(d.x,d.y,a,b),segDist(a.x,a.y,c,d),segDist(b.x,b.y,c,d))<gap;}
-function routeShifts(){                       // A* on an 8px grid behind the LOS, then string-pulled
-  const out={}, placed=[], G=8, X0=SL_L, Y0=348, W=Math.ceil((SL_R-SL_L)/G)+1, H=Math.ceil((712-Y0)/G)+1;
-  const obst=players.filter(p=>p.side==='off').map(p=>({id:p.id,x:p.cx,y:p.cy}))
-    .concat(ghosts.map(g=>({id:g.id,x:g.x,y:g.y})));
-  const CLR=21, PGAP=10;
+function routeShifts(){ return {...routeSide('off'),...routeSide('def')}; }   // 10/2 step 3: each side routes on its own half
+function routeSide(side){                     // A* on a 4px grid behind that side's line, then string-pulled
+  const D=side==='def';
+  const mine=ghosts.filter(g=>P[g.id]&&P[g.id].side===side);
+  const out={}, placed=[], G=4, X0=SL_L, W=Math.ceil((SL_R-SL_L)/G)+1;
+  if(!mine.length) return out;
+  // offense: from just in front of its line back to 712. defense: from 0 down to just past its line (y grows downfield)
+  const Y0=D?0:OFF_LINE_F-6, Y1=D?DEF_LINE_F+6:712, H=Math.ceil((Y1-Y0)/G)+1;
+  const obst=players.filter(p=>p.side===side).map(p=>({id:p.id,x:p.cx,y:p.cy}))
+    .concat(mine.map(g=>({id:g.id,x:g.x,y:g.y})));
+  const inFront=y=>D?y>DEF_LINE_F:y<OFF_LINE_F;   // the neutral-zone side of that line
+  const CLR=PR+6, PGAP=6;
   const olX=players.filter(p=>p.kind==='ol').map(p=>p.cx), olL=Math.min(...olX), olR=Math.max(...olX);   // shifts go behind the line, not over it
-  const trimEnds=pts=>{const q=pts.map(o=>({...o})),t=(p,r)=>{const d=Math.hypot(r.x-p.x,r.y-p.y)||1,k=Math.min(20,d/2)/d;return {x:p.x+(r.x-p.x)*k,y:p.y+(r.y-p.y)*k};};
+  const trimEnds=pts=>{const q=pts.map(o=>({...o})),t=(p,r)=>{const d=Math.hypot(r.x-p.x,r.y-p.y)||1,k=Math.min(PR+6,d/2)/d;return {x:p.x+(r.x-p.x)*k,y:p.y+(r.y-p.y)*k};};
     q[0]=t(pts[0],pts[1]); q[q.length-1]=t(pts[pts.length-1],pts[pts.length-2]); return q;};
-  const order=ghosts.slice().sort((g,h)=>Math.hypot(P[g.id].cx-g.x,P[g.id].cy-g.y)-Math.hypot(P[h.id].cx-h.x,P[h.id].cy-h.y));
+  const order=mine.slice().sort((g,h)=>Math.hypot(P[g.id].cx-g.x,P[g.id].cy-g.y)-Math.hypot(P[h.id].cx-h.x,P[h.id].cy-h.y));
   order.forEach(g=>{
     const p=P[g.id]; if(!p) return;
     const A={x:g.x,y:g.y}, Z={x:p.cx,y:p.cy};
@@ -1132,7 +1642,7 @@ function routeShifts(){                       // A* on an 8px grid behind the LO
     const cost=new Float64Array(W*H).fill(-1);            // -1 unknown, 1e9 blocked, else step cost
     const cc=(i,j)=>{const k=j*W+i;if(cost[k]<0){const x=X0+i*G,y=Y0+j*G;
       cost[k]=blockedPt(x,y)?1e9:((nearPath(x,y)&&Math.hypot(x-A.x,y-A.y)>30&&Math.hypot(x-Z.x,y-Z.y)>30)?15:1)
-        +((y<OFF_LINE&&x>olL-30&&x<olR+30)?8:0);   /* cross another shift only when forced */}return cost[k];};
+        +((inFront(y)&&x>olL-16&&x<olR+16)?8:0);   /* cross another shift only when forced */}return cost[k];};
     const gS=new Float64Array(W*H).fill(Infinity), from=new Int32Array(W*H).fill(-1);
     const open=[[0,sx,sy]]; gS[sy*W+sx]=0;
     const hh=(i,j)=>Math.hypot(i-tx,j-ty);
@@ -1151,7 +1661,7 @@ function routeShifts(){                       // A* on an 8px grid behind the LO
     const cells=[];for(let k=ty*W+tx;k>=0;k=from[k]){cells.push({x:X0+(k%W)*G,y:Y0+Math.floor(k/W)*G});if(k===sy*W+sx)break;}
     cells.reverse(); cells[0]=A; cells[cells.length-1]=Z;  // endpoints are the exact pucks
     // string-pull: jump to the farthest point that stays off pucks and crosses no more paths than the grid route did
-    const front=q=>q.y<OFF_LINE-2&&q.x>olL-30&&q.x<olR+30;
+    const front=q=>(D?q.y>DEF_LINE_F+2:q.y<OFF_LINE_F-2)&&q.x>olL-16&&q.x<olR+16;
     const pk=(s0,s1)=>!others.some(o=>segDist(o.x,o.y,s0,s1)<CLR)&&!(front({x:(s0.x+s1.x)/2,y:(s0.y+s1.y)/2}));
     const hits=(s0,s1)=>{const a0=s0===A?trimEnds([A,s1])[0]:s0, a1=s1===Z?trimEnds([s0,Z])[1]:s1;let n=0;
       placed.forEach(q=>{for(let j=0;j<q.length-1;j++)if(segsHit(a0,a1,q[j],q[j+1],PGAP))n++;});return n;};
@@ -1179,11 +1689,14 @@ function renderShift(){                      // ghost at the pre-shift spot + ro
   const routes=routeShifts();
   ghosts.forEach(g=>{
     const p=P[g.id], r=routes[g.id]; if(!p||!r) return;
-    if(Math.hypot(p.cx-g.x,p.cy-g.y)>34)
+    if(Math.hypot(p.cx-g.x,p.cy-g.y)>2*PR+4)
       shiftLayer.appendChild(el('path',{class:'shiftln','marker-end':'url(#arrowSH)',d:shiftPath(r)}));
-    const G=el('g',{class:'ghost'});
-    G.appendChild(g.sq?el('rect',{x:g.x-14,y:g.y-14,width:28,height:28}):el('circle',{cx:g.x,cy:g.y,r:14}));
-    if(!/^(LT|LG|C|RG|RT)$/.test(g.id)){const t=el('text',{x:g.x,y:g.y});t.textContent=g.label;G.appendChild(t);}
+    const G=el('g',{class:'ghost'}); G.addEventListener('pointerdown',e=>onGhostDown(e,g));
+    if(p.side==='def'){ const s=DR;                // 10/2 step 3: defender ghost = hollow triangle
+      G.appendChild(el('polygon',{points:`${g.x},${g.y-s} ${g.x-s},${g.y+s*0.85} ${g.x+s},${g.y+s*0.85}`}));
+      const t=el('text',{x:g.x,y:+(g.y+s*0.7/3).toFixed(2)});t.textContent=g.label;G.appendChild(t); }
+    else{ G.appendChild(g.sq?el('rect',{x:g.x-PR,y:g.y-PR,width:2*PR,height:2*PR}):el('circle',{cx:g.x,cy:g.y,r:PR}));
+      if(!/^(LT|LG|C|RG|RT)$/.test(g.id)){const t=el('text',{x:g.x,y:g.y});t.textContent=g.label;G.appendChild(t);} }
     shiftLayer.appendChild(G);
   });
 }
@@ -1220,23 +1733,36 @@ function renderCalls(){
       callLayer.appendChild(t);
     }else{                                   // solo tag sits under the puck
       const p=mem[0];
-      const t=el('text',{class:'as013tag',x:p.cx,y:p.cy+34}); t.textContent=inst.tag;
+      const t=el('text',{class:'as013tag',x:p.cx,y:p.cy+PR+16}); t.textContent=inst.tag;
       callLayer.appendChild(t);
     }
   });
 }
 
+function renderPersKey(){                     // top-left: "12p" + te / rb / wr with their letters
+  const k=$('#persKey'); k.innerHTML=''; if(!persVis) return;
+  const r=PERS_ROLES[personnel]||{}, who=role=>['Y','H','X','Z','T'].filter(id=>(r[id]||'wr')===role).join(' ');
+  const x=40; let y=CAM_TOP+24;                  // 9/30: anchored to the EXP frame; keyXf() moves it with the view / export frame
+  const h=el('text',{class:'pkh',x:x-8,y}); h.textContent=personnel+'p'; k.appendChild(h);
+  [['te','te'],['rb','rb'],['wr','']].forEach(([role,cls])=>{
+    const ids=who(role); if(!ids) return; y+=22;
+    k.appendChild(el('circle',{class:cls,cx:x,cy:y,r:7}));
+    const t=el('text',{x:x+16,y}); t.textContent=role+'  '+ids; k.appendChild(t);
+  });
+}
 function renderPucks(){
+  renderPersKey();
   puckLayer.innerHTML='';
   players.forEach(p=>{
-    const g=el('g',{class:'puck '+(p.side==='def'?'def ':'')+(assign[p.id]?'claimed ':'')+(highlighted[p.id]?'hl':''),'data-id':p.id});
+    const role=(persVis&&p.side!=='def'&&(PERS_ROLES[personnel]||{})[p.id])||'';
+    const g=el('g',{class:'puck '+(p.side==='def'?'def ':'')+(role?role+' ':'')+(assign[p.id]?'claimed ':'')+(highlighted[p.id]?'hl':''),'data-id':p.id});
     if(p.side==='def'){                      // defense = triangle
-      const s=13;
+      const s=DR;                            // 9/30: was a fixed 13 (pre-true-scale)
       g.appendChild(el('polygon',{points:`${p.cx},${p.cy-s} ${p.cx-s},${p.cy+s*0.85} ${p.cx+s},${p.cy+s*0.85}`}));
-      const t=el('text',{x:p.cx,y:p.cy+3});t.textContent=p.label;g.appendChild(t);
+      const t=el('text',{x:p.cx,y:+(p.cy+s*0.7/3).toFixed(2)});t.textContent=p.label;g.appendChild(t);   // label at the triangle's centroid
     }else{                                   // offense = circle; the CENTER is a square (notation)
-      if(p.id==='C') g.appendChild(el('rect',{class:'olsq',x:p.cx-14,y:p.cy-14,width:28,height:28}));
-      else           g.appendChild(el('circle',{cx:p.cx,cy:p.cy,r:14}));
+      if(p.id==='C') g.appendChild(el('rect',{class:'olsq',x:p.cx-PR,y:p.cy-PR,width:2*PR,height:2*PR}));
+      else           g.appendChild(el('circle',{cx:p.cx,cy:p.cy,r:PR}));
       const d=shadeMap[p.id];               // technique shade from the aligned defender
       if(d)shadeNode(p,shadeSide(p,d)).forEach(n=>g.appendChild(n));
       // interior linemen stay unlettered — the shade carries the info; skill/backs keep letters
@@ -1254,11 +1780,16 @@ function renderPucks(){
 
 function renderUI(){                          // glow rings + edit handles (stripped on export)
   uiLayer.innerHTML='';
+  if(mode==='shift'&&armed&&P[armed]){          // 10/2: armed player + where he'd land
+    const p=P[armed]; uiLayer.appendChild(el('circle',{class:'armed',cx:p.cx,cy:p.cy,r:PR+5}));
+    if(shCursor){ uiLayer.appendChild(el('path',{class:'shprev',d:`M${p.cx} ${p.cy} L${shCursor.x} ${shCursor.y}`}));
+      uiLayer.appendChild(el('circle',{class:'shprev',cx:shCursor.x,cy:shCursor.y,r:PR})); }
+  }
   // needs-a-job glow: offense with no assignment AND no owned mark
   players.filter(p=>p.side==='off').forEach(p=>{
     const owns=marks.some(m=>m.owner===p.id);
     if(!assign[p.id]&&!owns){
-      uiLayer.appendChild(el('circle',{class:'glow',cx:p.cx,cy:p.cy,r:20}));
+      uiLayer.appendChild(el('circle',{class:'glow',cx:p.cx,cy:p.cy,r:PR+4}));   // 9/30: was 20 — overlapped neighbors' shading
     }
   });
   // vertex handles for the selected mark
@@ -1287,23 +1818,24 @@ function renderUI(){                          // glow rings + edit handles (stri
 function updateReadout(){
   const assigned=Object.keys(assign).length;
   const glow=players.filter(p=>p.side==='off'&&!assign[p.id]&&!marks.some(m=>m.owner===p.id)).length;
-  const onLine=players.filter(p=>p.side==='off'&&p.cy<=382).length;   // 5 OL + the two "ends"
+  const onLine=players.filter(p=>p.side==='off'&&p.cy<=ON_MAX).length;   // 5 OL + the two "ends"
   const legal=onLine===7; let legalPre=true;
   const rd=$('#stateReadout');
   let pre='';
-  if(shift){ const moved={}; ghosts.forEach(g=>moved[g.id]=g);
-    const n=players.filter(p=>p.side==='off'&&(moved[p.id]?moved[p.id].y:p.cy)<=382).length;
+  if(ghosts.some(g=>P[g.id]&&P[g.id].side==='off')){ const moved={}; ghosts.forEach(g=>moved[g.id]=g);   // 10/2: offense ghosts only
+    const n=players.filter(p=>p.side==='off'&&(moved[p.id]?moved[p.id].y:p.cy)<=ON_MAX).length;
     pre=` (pre-shift ${n}${n===7?'':' — illegal'})`; if(n!==7) legalPre=false; }
-  rd.textContent=`${onLine} on line${legal?'':' — illegal'}${pre} · ${marks.length} marks · ${assigned} assigned · ${glow} need a job`;
+  const alone=(yAlone.post||yAlone.pre)?' · y off: nobody on his side to cover':'';
+  rd.textContent=`${onLine} on line${legal?'':' — illegal'}${pre}${alone} · ${marks.length} marks · ${assigned} assigned · ${glow} need a job`;
   rd.classList.toggle('warn',!legal||!legalPre);
 }
 
 /* ============================================================
    COORDS — screen -> field units
    ============================================================ */
-function toField(e){
+function toField(e){                       // 10/1: maps through #world, so the def-view rotation inverts too
   const pt=field.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
-  const m=field.getScreenCTM().inverse(); const q=pt.matrixTransform(m);
+  const m=$('#world').getScreenCTM().inverse(); const q=pt.matrixTransform(m);
   return{x:Math.round(q.x),y:Math.round(q.y)};
 }
 function hitPlayer(fp){                        // nearest player within radius (for anchoring)
@@ -1357,15 +1889,20 @@ function onPuckDown(e,p){
     else{draft.pts.push({x:p.cx,y:p.cy});}
     renderUI(); return;
   }
+  if(mode==='shift'){                           // 10/2: click a player to arm him (again to disarm)
+    armed=(armed===p.id)?null:p.id; renderUI(); return;
+  }
   // select mode: distinguish click (menu) from drag (move).
+  // 10/2: a shifted player's live puck is pinned -- drag his ghost to move his base spot.
+  const pinned=ghosts.some(g=>g.id===p.id);
   // track on window — renderAll() rebuilds the puck each frame, so listeners
   // bound to the puck itself would die on the first move.
   const start=toField(e); let moved=false; const preMove=snapshot();
   document.body.style.cursor='grabbing';
   const mv=ev=>{const fp=toField(ev);
-    if(!moved&&Math.hypot(fp.x-start.x,fp.y-start.y)>3)moved=true;
+    if(!moved&&!pinned&&Math.hypot(fp.x-start.x,fp.y-start.y)>3)moved=true;
     if(moved){p.cx=fp.x;
-      p.cy = p.side==='off' ? Math.max(fp.y, OFF_LINE) : Math.min(fp.y, DEF_LINE);  // neutral zone
+      p.cy = p.side==='off' ? Math.max(fp.y, OFF_LINE_F) : Math.min(fp.y, DEF_LINE_F);  // neutral zone (field space)
       renderAll();}};
   const up=ev=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);
     document.body.style.cursor='';
@@ -1381,6 +1918,67 @@ function onHandleDown(e,m,i){
   window.addEventListener('pointermove',mv); window.addEventListener('pointerup',up);
 }
 function selectMark(id){sel=id;renderAll();}
+
+/* ============================================================
+   SHIFT MODE (10/2) — click a player, click his spot. no drag inside the mode.
+   a shifted player = live puck at the spot + ghost at his base spot (+ routed arrow).
+   ============================================================ */
+const SH_OFF_ROW=372;                          // field-space 1-yd-off row (Y off / wing H)
+const DEF_SNAP=6;                              // within this of the defensive line -> sit on it
+function snapShift(fp,side){                   // legal side + tidy rows
+  const x=Math.max(SL_L+PR,Math.min(SL_R-PR,fp.x));
+  if(side==='def'){ let y=Math.min(fp.y,DEF_LINE_F);   // 10/2 step 3: defense stays on its side of the neutral zone
+    if(DEF_LINE_F-y<=DEF_SNAP) y=DEF_LINE_F;
+    return {x:Math.round(x*10)/10,y:Math.round(y*10)/10}; }
+  let y=Math.max(fp.y,OFF_LINE_F);
+  if(y<=ON_MAX) y=OFF_LINE_F;                    // counts as on the line -> sit on it
+  else if(Math.abs(y-SH_OFF_ROW)<=6) y=SH_OFF_ROW;
+  return {x:Math.round(x*10)/10,y:Math.round(y*10)/10};
+}
+function shiftTo(id,fp){
+  const p=P[id]; if(!p) return; pushHistory();
+  const s=snapShift(fp,p.side); let g=ghosts.find(q=>q.id===id);
+  if(!g){ g={id,label:p.label,sq:id==='C',x:p.cx,y:p.cy}; ghosts.push(g); }
+  p.x=p.cx=s.x; p.y=p.cy=s.y;
+  if(Math.hypot(g.x-s.x,g.y-s.y)<1) ghosts=ghosts.filter(q=>q!==g);   // put back home = no shift
+  armed=null; shCursor=null; renderAll(); autoTitle();
+}
+function unshift(id){                          // back to the base spot, ghost gone
+  const g=ghosts.find(q=>q.id===id), p=P[id]; if(!g||!p) return; pushHistory();
+  p.x=p.cx=g.x; p.y=p.cy=g.y; ghosts=ghosts.filter(q=>q!==g);
+  armed=null; renderAll(); autoTitle();
+}
+function onGhostDown(e,g){
+  if(mode==='pen') return;                     // pen clicks pass through
+  e.stopPropagation();
+  if(mode==='shift'){ unshift(g.id); return; } // click a ghost = remove that shift
+  // select mode: drag the ghost = move the player's base spot
+  const start=toField(e); let moved=false; const preMove=snapshot();
+  document.body.style.cursor='grabbing';
+  const mv=ev=>{const fp=toField(ev);
+    if(!moved&&Math.hypot(fp.x-start.x,fp.y-start.y)>3)moved=true;
+    if(moved){g.x=fp.x; g.y=(P[g.id]&&P[g.id].side==='def')?Math.min(fp.y,DEF_LINE_F):Math.max(fp.y,OFF_LINE_F); renderAll();}};
+  const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);
+    document.body.style.cursor='';
+    if(moved){history.push(preMove); const p=P[g.id];
+      if(p&&Math.hypot(p.cx-g.x,p.cy-g.y)<1) ghosts=ghosts.filter(q=>q!==g);   // base dropped on the spot = no shift
+      renderAll(); autoTitle();}};
+  window.addEventListener('pointermove',mv); window.addEventListener('pointerup',up);
+}
+field.addEventListener('pointerdown',e=>{
+  if(mode!=='shift'||e.target.closest('.puck')||e.target.closest('.ghost')) return;
+  if(armed) shiftTo(armed,toField(e));
+});
+field.addEventListener('pointermove',e=>{
+  if(mode!=='shift'||!armed) return; shCursor=snapShift(toField(e),P[armed]&&P[armed].side); renderUI();
+});
+field.addEventListener('pointerleave',()=>{ if(shCursor){shCursor=null;renderUI();} });
+window.addEventListener('keydown',e=>{
+  if(mode!=='shift') return; const t=e.target;
+  if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT')) return;
+  if(e.key==='Escape'){ if(armed){armed=null;shCursor=null;renderUI();} else setMode('select'); e.preventDefault(); }
+  else if((e.key==='Backspace'||e.key==='Delete')&&armed){ unshift(armed); e.preventDefault(); }
+});
 
 /* ============================================================
    ASSIGNMENTS + CALLS — claim, evict, dissolve-to-unassigned (rule C)
@@ -1456,12 +2054,13 @@ function autoMark(id,call,members){
 /* ============================================================
    TOOLBAR WIRING
    ============================================================ */
-function setMode(m){mode=m;field.classList.toggle('pen',m==='pen');
+function setMode(m){mode=m;field.classList.toggle('pen',m==='pen');field.classList.toggle('shiftm',m==='shift');
   if(m!=='pen'){draft=null;}
   if(m!=='select'){sel=null;}
-  $('#tools').querySelectorAll('button').forEach(b=>b.classList.toggle('on',
-    (b.dataset.mode==='select'&&m==='select')));
+  if(m!=='shift'){armed=null;shCursor=null;}
+  $('#tools').querySelectorAll('button').forEach(b=>b.classList.toggle('on',!!b.dataset.mode&&b.dataset.mode===m));
   $('#hint').textContent=m==='pen'?'click to place points · enter to finish · backspace undoes a point'
+    :m==='shift'?'shift · click a player (offense or defense), then his spot · click a ghost to undo · esc to exit'
     :'select a player to assign · drag to move · pick a pen to draw';
   renderAll();
 }
@@ -1478,7 +2077,7 @@ function syncLineCap(){
   $('#smoothGrp button').classList.toggle('on',pen.smooth);
 }
 $('#tools').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.mode)setMode('select'); else if(b.dataset.preset)setPreset(b.dataset.preset);});
+  if(b.dataset.mode)setMode(b.dataset.mode==='shift'&&mode==='shift'?'select':b.dataset.mode); else if(b.dataset.preset)setPreset(b.dataset.preset);});
 $('#lineGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   pen.line=b.dataset.line;if(mode!=='pen')setMode('pen');syncLineCap();});
 $('#capGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
@@ -1489,17 +2088,30 @@ $('#smoothGrp').addEventListener('click',()=>{pen.smooth=!pen.smooth;
 $('#undoBtn').onclick=undo;
 window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='z'){e.preventDefault();undo();}});
 $('#clearBtn').onclick=()=>{                              // reset to the Strong-I vs 4-3 Over baseline
-  personnel='11'; strength='rt'; yTag='str'; hTag='i'; qbTag='uc'; backTag='default'; curDef='over'; defAuto=true; shell='open'; ballSpot='mid'; shift=null;
+  personnel='11'; persVis=true; strength='rt'; yTag='str'; hTag='i'; qbTag='uc'; backTag='default'; yOff=false; curDef='over'; defStr='tight'; defAuto=true; shell='open'; ballSpot='mid'; shift=null;
   syncFormUI(); load(); autoTitle();};
 $('#strGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   strength=b.dataset.str; $('#strGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); load(); autoTitle();});
-$('#persPick').onchange=e=>{personnel=e.target.value; autoTitle();};
-$('#formPick').onchange=e=>{yTag=e.target.value; load(); autoTitle();};
-$('#hPick').onchange=e=>{hTag=e.target.value; load(); autoTitle();};
-$('#backPick').onchange=e=>{backTag=e.target.value; load(); autoTitle();};
+$('#persPick').onchange=e=>{personnel=e.target.value; renderPucks(); autoTitle();};
+function syncPersVis(){ $('#persVisGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',(x.dataset.pv==='on')===persVis)); }
+$('#persVisGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  persVis=b.dataset.pv==='on'; syncPersVis(); renderPucks();});
+$('#formPick').onchange=e=>{yTag=e.target.value; load(); autoTitle(); syncYUI();};
+/* 9/29: y on/off. disabled when the Y already resolves off the ball (default, nasty, some H cells) */
+function yCanGoOff(f){ const y=buildOffense(f.strength||strength,f.yTag,f.hTag,f.qbTag,f.backTag).find(q=>q.id==='Y'); return !!y&&y.cy<=382; }
+function syncYGrp(id,f){ const can=yCanGoOff(f);
+  $(id).querySelectorAll('button').forEach(x=>{ x.classList.toggle('on',(x.dataset.y==='off')===(!!f.yOff&&can)); x.disabled=!can&&x.dataset.y==='off'; }); }
+function syncYUI(){ syncYGrp('#yGrp',{strength,yTag,hTag,qbTag,backTag,yOff}); if(shift) syncYGrp('#shYGrp',{...shift,strength}); }
+$('#yGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+  yOff=(b.dataset.y==='off'); load(); autoTitle(); syncYUI();});
+$('#shYGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!shift)return;
+  shift.yOff=(b.dataset.y==='off'); shiftChanged();});
+$('#hPick').onchange=e=>{hTag=e.target.value; load(); autoTitle(); syncYUI();};
+$('#backPick').onchange=e=>{backTag=e.target.value; load(); autoTitle(); syncYUI();};
 $('#qbGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   qbTag=b.dataset.qb; $('#qbGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); load(); autoTitle();});
 $('#defPick').onchange=e=>{curDef=e.target.value; defAuto=false; load();};   // hand-picked front sticks
+$('#defStrPick').onchange=e=>{defStr=e.target.value; load();};                 // 10/1: front strength tag
 // shift controls: replica of the formation row; option lists cloned from the primary pickers
 ['form','h','back'].forEach(k=>{$('#sh'+k[0].toUpperCase()+k.slice(1)+'Pick').innerHTML=$('#'+k+'Pick').innerHTML;});
 function syncShiftUI(){
@@ -1509,18 +2121,51 @@ function syncShiftUI(){
   $('#shTradeGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',(x.dataset.trade==='on')===!!shift.trade));
   $('#shQbGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.qb===shift.qbTag));
   $('#shFormPick').value=shift.yTag; $('#shHPick').value=shift.hTag; $('#shBackPick').value=shift.backTag;
+  syncYUI();
 }
 function shiftChanged(){syncShiftUI(); load(); autoTitle();}
 $('#shOnGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-  shift=(b.dataset.sh==='on')?(shift||{yTag,hTag,qbTag,backTag,trade:false}):null; shiftChanged();});
+  shift=(b.dataset.sh==='on')?(shift||{yTag,hTag,qbTag,backTag,yOff,trade:false}):null; shiftChanged();});
 $('#shTradeGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!shift)return;shift.trade=(b.dataset.trade==='on');shiftChanged();});
 $('#shQbGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!shift)return;shift.qbTag=b.dataset.qb;shiftChanged();});
 $('#shFormPick').onchange=e=>{if(shift){shift.yTag=e.target.value;shiftChanged();}};
 $('#shHPick').onchange=e=>{if(shift){shift.hTag=e.target.value;shiftChanged();}};
 $('#shBackPick').onchange=e=>{if(shift){shift.backTag=e.target.value;shiftChanged();}};
 $('#ballPick').onchange=e=>{ballSpot=e.target.value; load();};
-$('#shellGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-  shell=b.dataset.shell; applyShell();                 // move the safeties, keep the play intact
+/* 9/30 ball on: own 1..50 / opp 49..1 -> BALL_ON 1..99. Field furniture only; no player moves, undo untouched. */
+function syncBallOn(){ const opp=BALL_ON>50; $('#onSide').value=opp?'opp':'own'; $('#onYd').value=opp?100-BALL_ON:BALL_ON; }
+function readBallOn(){ let n=Math.round(+$('#onYd').value); if(!(n>=1)) n=1; if(n>50) n=50;
+  const side=n===50?'own':$('#onSide').value; BALL_ON=side==='opp'?100-n:n; syncBallOn(); drawHashes(); applyCamera(); }
+$('#zoomGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  camZoom=b.dataset.zoom; syncZoom(); applyCamera();});
+$('#viewGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  view=b.dataset.view; syncView(); applyCamera();});        // view only: no undo entry, nothing re-resolves
+function syncView(){ $('#viewGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.view===view));
+  $('#cols').classList.toggle('dv',view==='def'); }          // the pane mirrors the field: the view's own side leads
+/* 10/1: foldable columns. UI state only — in memory, never in play JSON or exports */
+const folded={off:false,def:false};
+function syncFold(){
+  ['off','def'].forEach(k=>$('#'+k+'Col').classList.toggle('fold',folded[k]));
+  const n=(folded.off?1:0)+(folded.def?1:0), sd=$('#side');
+  sd.style.setProperty('--nopen',2-n); sd.style.setProperty('--nfold',n); sd.classList.toggle('both',n===2);
+  syncRails();                                                // #stage resizes -> ResizeObserver refits the camera
+}
+function syncRails(){
+  const o=$('#offRail'), d=$('#defRail'); if(!o||!d) return;
+  o.textContent=$('#playTitle').value||callString();
+  let ds=''; try{ ds=defString(); }catch(_){}                // defString is declared later; first boot render runs before it
+  d.textContent=$('#defCall').value||ds;
+}
+$('#cols').addEventListener('click',e=>{const b=e.target.closest('.colhead,.rail'); if(!b) return;
+  folded[b.dataset.col]=!folded[b.dataset.col]; syncFold();});
+['#playTitle','#defCall'].forEach(q=>$(q).addEventListener('input',()=>syncRails()));
+function syncZoom(){ $('#zoomGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.zoom===camZoom)); }
+$('#onSide').onchange=readBallOn; $('#onYd').onchange=readBallOn;
+new ResizeObserver(applyCamera).observe($('#stage'));
+$('#shellGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+  shell=b.dataset.shell;
+  if(shell==='man1'&&curDef==='under'){ syncShellUI(); $('#shellGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); load(); return; }   // front changes -> rebuild
+  applyShell(); alignMan1(); syncShellUI();            // move the safeties, keep the play intact
   $('#shellGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderAll();});
 
@@ -1528,6 +2173,13 @@ $('#shellGrp').addEventListener('click',e=>{const b=e.target.closest('button');i
    EXPORT — clean PNG, ui layer stripped, transparent bg, 3x
    ============================================================ */
 const EXPORT_CSS=`text{font-family:'Space Mono',monospace}
+    #world.flip text{transform:rotate(180deg);transform-box:fill-box;transform-origin:center} #world.flip .fnum text{transform:none}
+    .puck.te circle{stroke:#2E8B57;fill:#DCEFE3;stroke-width:2.6}
+    .puck.rb circle{stroke:#C8860D;fill:#F6E7C8;stroke-width:2.6}
+    #persKey text{font-family:'Space Mono',monospace;font-size:11px;fill:#404040;dominant-baseline:central}
+    #persKey .pkh{font-weight:700;font-size:13px;fill:#0A0A0A}
+    #persKey circle{stroke-width:2;stroke:#0A0A0A;fill:#FBFBFA}
+    #persKey circle.te{stroke:#2E8B57;fill:#DCEFE3} #persKey circle.rb{stroke:#C8860D;fill:#F6E7C8}
     .mark{fill:none;stroke:#0A0A0A;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
     .mark.dash{stroke-dasharray:9 6}
     .cap{fill:none;stroke:#0A0A0A;stroke-width:2.4;stroke-linecap:round}
@@ -1538,11 +2190,12 @@ const EXPORT_CSS=`text{font-family:'Space Mono',monospace}
     .mark.hlm,.cap.hlm{stroke:#2E7DD1;filter:url(#hlglow)}
     .puck.def polygon{fill:#F8F8F8}
     .puck.hl circle,.puck.hl polygon,.puck.def.hl polygon,.puck.hl rect.olsq{fill:#2E7DD1;stroke:none;filter:url(#hlglow)}
-    .puck text{font-weight:700;font-size:14px;fill:#0A0A0A;text-anchor:middle;dominant-baseline:central}
+    .puck text{font-weight:700;font-size:11px;fill:#0A0A0A;text-anchor:middle;dominant-baseline:central}
+    .puck.def text{font-size:9px}
     .bracket{fill:none;stroke:#C0392B;stroke-width:1.8}
     .calltag{font-weight:700;font-size:12px;fill:#C0392B;text-anchor:middle;letter-spacing:.06em}
     .as013tag{font-weight:700;font-size:11px;fill:#C0392B;text-anchor:middle}
-    .ghost circle,.ghost rect{fill:none;stroke:#8f8f8f;stroke-width:1.6;stroke-dasharray:3 3}
+    .ghost circle,.ghost rect,.ghost polygon{fill:none;stroke:#8f8f8f;stroke-width:1.6;stroke-dasharray:3 3}
     .ghost text{font-weight:700;font-size:12px;fill:#8f8f8f;text-anchor:middle;dominant-baseline:central}
     .shiftln{fill:none;stroke:#8f8f8f;stroke-width:1.8;stroke-dasharray:5 5;stroke-linecap:round}`;
 /* export moved to the GRID section (labeled / clean + .json twin) */
@@ -1559,15 +2212,16 @@ function setString(f,post){               // call order: personnel · qb · stre
   if(f.qbTag==='gun') p.push('gun');
   if(!post) p.push(f.strength);             // a shift keeps the call strength
   if(f.yTag!=='slot') p.push(FORM_LABEL[f.yTag]||f.yTag);
+  if(f.yOff&&yCanGoOff(f)) p.push('off');     // 9/29: only when it actually moved the Y
   if(f.backTag!=='default') p.push(f.backTag);
   p.push(H_LABEL[f.hTag]||f.hTag);
   return p.join(' ');
 }
 function callString(){                     // with a shift: "<pre> to <post>"
-  const pre=setString({personnel,strength,yTag,hTag,qbTag,backTag});
-  if(!shift) return pre;
-  const same=shift.yTag===yTag&&shift.hTag===hTag&&shift.qbTag===qbTag&&shift.backTag===backTag;
-  const post=setString(shift,true);
+  const pre=setString({personnel,strength,yTag,hTag,qbTag,backTag,yOff});
+  if(!shift) return ghosts.length?pre+' shift':pre;   // 10/2: hand shift has no tag name
+  const same=shift.yTag===yTag&&shift.hTag===hTag&&shift.qbTag===qbTag&&shift.backTag===backTag&&!!shift.yOff===!!yOff;
+  const post=setString({...shift,strength},true);
   return same?pre+(shift.trade?' trade':''):pre+' to '+post+(shift.trade?' trade':'');
 }
 function autoTitle(){                       // fill the title unless the user typed their own
@@ -1577,28 +2231,32 @@ function autoTitle(){                       // fill the title unless the user ty
 function slug(){const t=($('#playTitle').value||'').trim().toLowerCase()
   .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); return t||'play';}
 function playJSON(){
-  return {v:1, title:$('#playTitle').value||'', defCall:$('#defCall').value||'', note:$('#playNote').value||'',
-    formation:{personnel,strength,yTag,hTag,qbTag,backTag}, shift, def:curDef, defAuto, shell, ballSpot, highlights:Object.keys(highlighted),
+  return {v:1, scale:'true', title:$('#playTitle').value||'', defCall:$('#defCall').value||'', note:$('#playNote').value||'',
+    formation:{personnel,strength,yTag,hTag,qbTag,backTag,yOff}, persVis, shift, def:curDef, defStr, defAuto, shell, ballSpot, ballOn:BALL_ON, zoom:camZoom, view, highlights:Object.keys(highlighted),
     players:players.map(p=>({id:p.id,cx:p.cx,cy:p.cy})),
+    ...(ghosts.length?{ghosts:ghosts.map(g=>({id:g.id,x:g.x,y:g.y}))}:{}),   // 10/2: base spots of shifted players
     marks, instances, assign};
 }
 function syncShellButtons(){
   $('#shellGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.shell===shell));}
 function syncFormUI(){
   $('#strGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.str===strength));
-  $('#persPick').value=personnel;
+  $('#persPick').value=personnel; syncPersVis();
   $('#formPick').value=yTag; $('#hPick').value=hTag; $('#backPick').value=backTag; $('#defPick').value=curDef;
   $('#qbGrp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.qb===qbTag));
-  $('#ballPick').value=ballSpot;
+  $('#ballPick').value=ballSpot; if(typeof syncZoom==='function') syncZoom();
   syncShellButtons(); if(typeof syncShiftUI==='function') syncShiftUI();
+  if(typeof syncYUI==='function') syncYUI();
 }
 function loadJSON(obj){
   try{
     const f=obj.formation||{};
-    personnel=/^[0-9]{2}$/.test(f.personnel)?f.personnel:'11';     // old plays carry none -> 11p
+    personnel=PERS_ROLES[f.personnel]?f.personnel:'11';              // old plays carry none -> 11p
+    persVis=obj.persVis!==false;                                    // old plays: colors on
     if(f.strength) strength=f.strength;
     if(f.yTag)     yTag=f.yTag;
     if(f.hTag)     hTag=f.hTag;
+    yOff=f.yOff===true;                                             // old plays: Y on
     // QB/back: new plays carry qbTag; old plays carry only the merged backTag (uc/a/b/pst)
     if(f.qbTag){ qbTag=f.qbTag; backTag=f.backTag||'default'; }
     else if(f.backTag==='a'){ qbTag='gun'; backTag='a'; }
@@ -1606,18 +2264,29 @@ function loadJSON(obj){
     else if(f.backTag==='pst'){ qbTag='gun'; backTag='default'; }
     else { qbTag='uc'; backTag='default'; }
     if(obj.def&&FRONTS[obj.def]) curDef=obj.def;
+    defStr=DEF_STRS.includes(obj.defStr)?obj.defStr:'tight';        // 10/1: old plays -> tight
     defAuto=obj.defAuto===true;                                     // old plays: saved front stays
-    shell=(obj.shell==='closed')?'closed':'open';
+    shell=(obj.shell==='closed'||obj.shell==='man1')?obj.shell:'open';   // closed parked but still loads
     if(BALLDX[obj.ballSpot]!==undefined) ballSpot=obj.ballSpot;
+    BALL_ON=(obj.ballOn>=1&&obj.ballOn<=99)?Math.round(obj.ballOn):35;   // 9/30: old plays -> own 35
+    camZoom=ZOOMS[obj.zoom]?obj.zoom:'normal'; syncBallOn();
+    view=obj.view==='def'?'def':'off'; syncView();                   // 10/1: old plays -> offense view
     const sh=obj.shift;                                             // optional; old plays have none
-    shift=(sh&&sh.yTag)?{yTag:sh.yTag,hTag:sh.hTag||'i',qbTag:sh.qbTag||'uc',backTag:sh.backTag||'default',trade:!!sh.trade}:null;
+    shift=(sh&&sh.yTag)?{yTag:sh.yTag,hTag:sh.hTag||'i',qbTag:sh.qbTag||'uc',backTag:sh.backTag||'default',yOff:sh.yOff===true,trade:!!sh.trade}:null;
     syncFormUI();
     load();                                                         // fresh base (also resets history)
-    (obj.players||[]).forEach(o=>{if(P[o.id]){P[o.id].cx=P[o.id].x=o.cx;P[o.id].cy=P[o.id].y=o.cy;}});
+    const old=obj.scale!=='true', c0=520+(BALLDX[ballSpot]||0);   // 9/29: pre-true-scale plays are chart space
+    const fx=(x,y)=>old?squeeze(x,y,c0):{x,y};
+    (obj.players||[]).forEach(o=>{if(P[o.id]){const s=fx(o.cx,o.cy);P[o.id].cx=P[o.id].x=s.x;P[o.id].cy=P[o.id].y=s.y;}});
+    if(old) formulaDepths(players.filter(p=>p.side==='off'),{qbTag,backTag,hTag});
+    if(Array.isArray(obj.ghosts)) ghosts=obj.ghosts.filter(o=>P[o.id]).map(o=>
+      ({id:o.id,label:P[o.id].label,sq:o.id==='C',x:o.x,y:o.y}));   // 10/2: hand shifts; older plays re-derive from the recipe
     marks=Array.isArray(obj.marks)?obj.marks:[];
+    if(old) marks.forEach(m=>{ if(Array.isArray(m.pts)) m.pts=m.pts.map(pt=>({...pt,...fx(pt.x,pt.y)})); });
     instances=(obj.instances&&typeof obj.instances==='object')?obj.instances:{};
     assign=(obj.assign&&typeof obj.assign==='object')?obj.assign:{};
     marks.forEach(m=>{const n=+String(m.id).slice(1);if(n>=uid)uid=n+1;});
+    applyCamera();                                                  // 9/30: tight fits the loaded players
     Object.keys(instances).forEach(k=>{const n=+String(k).slice(1);if(n>=uid)uid=n+1;});
     if(typeof obj.title==='string') $('#playTitle').value=obj.title;
     if(typeof obj.note==='string')  $('#playNote').value=obj.note;
@@ -1644,8 +2313,8 @@ $('#dataApply').onclick=()=>{let obj;try{obj=JSON.parse(dataText.value);}catch(e
    defensive call auto-fills from front + shell until you type your own
    ============================================================ */
 const DEF_NAMES={}; $('#defPick').querySelectorAll('option').forEach(o=>DEF_NAMES[o.value]=o.textContent);
-const defString=(d=curDef,sh=shell)=>(DEF_NAMES[d]||d)+' · '+sh;
-const AUTO_DEFS=new Set(); Object.keys(DEF_NAMES).forEach(d=>['open','closed'].forEach(sh=>AUTO_DEFS.add(defString(d,sh))));
+const defString=(d=curDef,sh=shell,st=defStr)=>(DEF_NAMES[d]||d)+(st&&st!=='tight'?' '+st:'')+' · '+sh;   // tight is silent
+const AUTO_DEFS=new Set(); Object.keys(DEF_NAMES).forEach(d=>['open','closed'].concat('man1').forEach(sh=>DEF_STRS.forEach(st=>AUTO_DEFS.add(defString(d,sh,st)))));
 // pre-rename auto strings (9/24) still count as auto, so old plays pick up the new names
 ['4-3 over','over shade','4-3 under','bear','40 stack','double 3'].forEach(n=>['open','closed'].forEach(sh=>AUTO_DEFS.add(n+' · '+sh)));
 function autoDef(){ const i=$('#defCall'); if(!i) return;
@@ -1658,7 +2327,7 @@ function autoDef(){ const i=$('#defCall'); if(!i) return;
    sheet .json is the save file.
    ============================================================ */
 const GRID_DIMS={4:[2,2],6:[3,2],8:[4,2],9:[3,3]};   // landscape cols x rows; portrait swaps
-let sheet={name:'',size:6,orient:'land',cells:new Array(6).fill(null)};   // cell = {id, play, svg}
+let sheet={name:'',size:6,orient:'land',view:'off',cells:new Array(6).fill(null)};   // cell = {id, play, svg}
 let editingId=null;          // cell id the editor is working on (store -> update)
 let baseline='';             // editor state at last store/load — for "unsaved play" checks
 let sheetDirty=false;
@@ -1681,11 +2350,15 @@ function hint(t){const h=$('#hint');h.textContent=t;clearTimeout(hint._t);
 function captureField(){
   const clone=field.cloneNode(true);
   clone.querySelector('#uiLayer').remove();
+  const pk=clone.querySelector('#persKey'); if(pk) pk.removeAttribute('transform');
+  const wd=clone.querySelector('#world'); wd.removeAttribute('transform'); wd.removeAttribute('class');   // view is applied per frame by dress()   // export frame = EXP
   clone.querySelectorAll('.hit').forEach(n=>n.remove());
   const ser=new XMLSerializer();
   return Array.from(clone.childNodes).map(n=>ser.serializeToString(n)).join('');
 }
-const fieldDoc=inner=>`<svg xmlns="${NS}" xmlns:xlink="http://www.w3.org/1999/xlink" width="1040" height="720" viewBox="0 0 1040 720"><style>${EXPORT_CSS}</style>${inner}</svg>`;
+const fieldDoc=(inner,play,flip)=>{const f=frameOf(play||{},EXP_A);
+  return `<svg xmlns="${NS}" xmlns:xlink="http://www.w3.org/1999/xlink" width="${EXP.w}" height="${EXP.h}" viewBox="${vbStr(f)}"><style>${EXPORT_CSS}</style>${dress(inner,f,flip)}</svg>`;};
+const sheetFlip=()=>sheet.view==='def';
 const svgURL=xml=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml);
 
 /* render some other play through the real resolver, then put the editor back exactly */
@@ -1713,10 +2386,10 @@ function storePlay(target){                // target: index, or undefined -> edi
 function flyToTray(cell){
   const tab=$('#gridTab'), st=$('#stage').getBoundingClientRect();
   if($('#gridDrawer').classList.contains('open')) return;
-  const w=Math.min(st.width,st.height*1040/720), h=w*720/1040;
+  const w=Math.min(st.width,st.height*EXP.w/EXP.h), h=w*EXP.h/EXP.w;
   const f=document.createElement('div'); f.className='flyer';
   f.style.cssText=`left:${st.left+(st.width-w)/2}px;top:${st.top+(st.height-h)/2}px;width:${w}px;height:${h}px`;
-  const img=new Image(); img.src=svgURL(fieldDoc(cell.svg)); f.appendChild(img); document.body.appendChild(f);
+  const img=new Image(); img.src=svgURL(fieldDoc(cell.svg,cell.play,sheetFlip())); f.appendChild(img); document.body.appendChild(f);
   const t=tab.getBoundingClientRect(), dx=t.left+t.width/2-(st.left+st.width/2), dy=t.top+t.height/2-(st.top+st.height/2);
   const a=f.animate([{transform:'none',opacity:1},{transform:`translate(${dx}px,${dy}px) scale(.04)`,opacity:.4}],
     {duration:420,easing:'cubic-bezier(.5,0,.8,.4)'});
@@ -1748,6 +2421,7 @@ function renderGrid(){
   $('#gridCount').textContent=filled()+'/'+sheet.size;
   document.querySelectorAll('#sizeGrp button').forEach(b=>{b.classList.toggle('on',+b.dataset.size===sheet.size);b.disabled=+b.dataset.size<filled();});
   document.querySelectorAll('#orientGrp button').forEach(b=>b.classList.toggle('on',b.dataset.orient===sheet.orient));
+  document.querySelectorAll('#sheetViewGrp button').forEach(b=>b.classList.toggle('on',b.dataset.view===sheet.view));
   box.innerHTML='';
   sheet.cells.forEach((c,i)=>{
     const d=document.createElement('div'); d.dataset.i=i;
@@ -1756,7 +2430,7 @@ function renderGrid(){
     } else {
       d.className='gcell'+(c.id===editingId?' editing':''); d.draggable=true;
       d.innerHTML=`<div class="gbar"><span class="gnum">${i+1}</span><span class="gtitle">${esc(c.play.title)||'&nbsp;'}</span></div>`+
-        `<div class="gfield"><img alt="" src="${svgURL(fieldDoc(c.svg))}"><span class="gdef">${esc(c.play.defCall)}</span></div>`+
+        `<div class="gfield"><img alt="" src="${svgURL(fieldDoc(c.svg,c.play,sheetFlip()))}"><span class="gdef">${esc(c.play.defCall)}</span></div>`+
         `<div class="gfoot">${esc(c.play.note)}</div><button class="gx" title="clear cell">&times;</button>`+
         `<div class="gconfirm">unsaved play in the editor<br>click again to replace it</div>`;
     }
@@ -1797,6 +2471,7 @@ function setSize(n){
 }
 $('#sizeGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled)setSize(+b.dataset.size);});
 $('#orientGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;sheet.orient=b.dataset.orient;renderGrid();});
+$('#sheetViewGrp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;sheet.view=b.dataset.view;sheetDirty=true;renderGrid();});
 $('#sheetName').addEventListener('input',e=>{sheet.name=e.target.value;sheetDirty=true;$('#pageName').textContent=sheet.name;});
 function openGrid(){renderGrid();$('#gridDrawer').classList.add('open');$('#gridTab').classList.add('hide');}
 function closeGrid(){$('#gridDrawer').classList.remove('open');$('#gridTab').classList.remove('hide');}
@@ -1813,7 +2488,7 @@ window.addEventListener('keydown',e=>{
 // clear also leaves the cell it was editing
 { const clr=$('#clearBtn').onclick; $('#clearBtn').onclick=()=>{clr();editingId=null;syncEditing();renderGrid();markBaseline();}; }
 
-function sheetJSON(){return {v:1,kind:'sheet',name:sheet.name,size:sheet.size,orient:sheet.orient,
+function sheetJSON(){return {v:1,kind:'sheet',name:sheet.name,size:sheet.size,orient:sheet.orient,view:sheet.view,
   cells:sheet.cells.map(c=>c?c.play:null)};}
 function loadSheet(obj){
   const size=GRID_DIMS[obj.size]?obj.size:6;
@@ -1821,7 +2496,7 @@ function loadSheet(obj){
   const cells=plays.map(p=>(p&&p.formation&&p.players)?cellFrom(p):null);
   const n=Math.max(size,...Object.keys(GRID_DIMS).map(Number).filter(k=>k>=cells.length).slice(0,1));
   while(cells.length<n) cells.push(null);
-  sheet={name:typeof obj.name==='string'?obj.name:'',size:n,orient:obj.orient==='port'?'port':'land',cells};
+  sheet={name:typeof obj.name==='string'?obj.name:'',size:n,orient:obj.orient==='port'?'port':'land',view:obj.view==='def'?'def':'off',cells};
   editingId=null; sheetDirty=false; $('#sheetName').value=sheet.name; syncEditing(); openGrid();
 }
 function download(blob,name){const a=document.createElement('a');a.download=name;a.href=URL.createObjectURL(blob);a.click();
@@ -1838,14 +2513,14 @@ $('#sheetSave').onclick=()=>{download(new Blob([JSON.stringify(sheetJSON(),null,
 const FONT="'Space Mono','Courier New',monospace";
 const clip=(t,max)=>{t=String(t||'');return t.length>max?t.slice(0,Math.max(1,max-1))+'…':t;};
 function cellSVG(play,inner,x,y,w,num,foot){          // returns [svg, height]
-  const k=w/520, bar=34*k, fh=w*720/1040, fo=foot?24*k:0, h=bar+fh+fo;
+  const k=w/520, bar=34*k, fh=w*EXP.h/EXP.w, fo=foot?24*k:0, h=bar+fh+fo;
   const nb=num!=null?bar:0, cw=9*k;                  // ~char width at 15px mono
   let o=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fff" stroke="#0A0A0A" stroke-width="${2*k}"/>`;
   o+=`<rect x="${x}" y="${y}" width="${w}" height="${bar}" fill="#0A0A0A"/>`;
   if(num!=null) o+=`<rect x="${x+k}" y="${y+k}" width="${bar-2*k}" height="${bar-2*k}" fill="#fff"/>`+
     `<text x="${x+bar/2}" y="${y+bar/2}" font-family="${FONT}" font-weight="700" font-size="${19*k}" fill="#0A0A0A" text-anchor="middle" dominant-baseline="central">${num}</text>`;
   o+=`<text x="${x+nb+10*k}" y="${y+bar/2}" font-family="${FONT}" font-weight="700" font-size="${15*k}" fill="#fff" dominant-baseline="central">${esc(clip(play.title,Math.floor((w-nb-20*k)/cw)))}</text>`;
-  if(inner) o+=`<svg x="${x}" y="${y+bar}" width="${w}" height="${fh}" viewBox="0 0 1040 720">${inner}</svg>`;
+  if(inner){ const f=frameOf(play,EXP_A); o+=`<svg x="${x}" y="${y+bar}" width="${w}" height="${fh}" viewBox="${vbStr(f)}">${dress(inner,f,sheetFlip())}</svg>`; }
   else o+=`<text x="${x+w/2}" y="${y+bar+fh/2}" font-family="${FONT}" font-size="${11*k}" fill="#C0C0C0" text-anchor="middle">—</text>`;
   if(play.defCall) o+=`<text x="${x+w-10*k}" y="${y+bar+20*k}" font-family="${FONT}" font-weight="700" font-size="${14*k}" fill="#C0392B" text-anchor="end">${esc(clip(play.defCall,Math.floor(w*.6/(8.4*k))))}</text>`;
   if(foot){ o+=`<line x1="${x}" y1="${y+bar+fh}" x2="${x+w}" y2="${y+bar+fh}" stroke="#C0C0C0" stroke-width="${k}"/>`;
@@ -1859,7 +2534,7 @@ function emptyCellSVG(x,y,w,h,num){
 function sheetSVG(){
   const [cols,rows]=dims(), W=520, G=14, M=20, head=sheet.name?58:0;
   const foot=sheet.cells.some(c=>c&&c.play.note);
-  const CH=34+W*720/1040+(foot?24:0);
+  const CH=34+W*EXP.h/EXP.w+(foot?24:0);
   const PW=M*2+cols*W+(cols-1)*G, PH=M*2+head+rows*CH+(rows-1)*G;
   let o=`<rect width="${PW}" height="${PH}" fill="#fff"/>`;
   if(sheet.name) o+=`<text x="${M}" y="${M+26}" font-family="'Retron2000',${FONT}" font-weight="700" font-size="26" letter-spacing="1.5" fill="#0A0A0A">${esc(sheet.name.toUpperCase())}</text>`+
@@ -1873,7 +2548,7 @@ function sheetSVG(){
 }
 function playSVG(labeled){
   const inner=captureField(), play=playJSON();
-  if(!labeled) return {xml:fieldDoc(inner),w:1040,h:720,clear:true};
+  if(!labeled) return {xml:fieldDoc(inner,play,view==='def'),w:EXP.w,h:EXP.h,clear:true};
   const [o,h]=cellSVG(play,inner,0,0,1040,null,!!play.note);
   return {xml:`<svg xmlns="${NS}" xmlns:xlink="http://www.w3.org/1999/xlink" width="1040" height="${h}" viewBox="0 0 1040 ${h}"><style>${EXPORT_CSS}</style>${o}</svg>`,w:1040,h};
 }
@@ -1938,7 +2613,7 @@ async function handleFiles(fileList,start){
 window.addEventListener('beforeunload',e=>{if(sheetDirty&&filled()){e.preventDefault();e.returnValue='';}});
 
 /* ---------- boot ---------- */
-syncFormUI(); load(); syncLineCap(); autoTitle(); markBaseline(); renderGrid();
+syncFormUI(); syncBallOn(); load(); applyCamera(); syncLineCap(); autoTitle(); markBaseline(); renderGrid();
 window.addEventListener('storage',e=>{ if(e.key==='beauos_theme') document.documentElement.setAttribute('data-theme',e.newValue||'light'); });
 </script>
 </body>
